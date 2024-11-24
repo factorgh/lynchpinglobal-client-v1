@@ -56,6 +56,24 @@ const WealthTable = () => {
   const [deleteInvestment] = useDeleteInvestmentMutation();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   console.log(selectedFiles);
+  const [isAddOnDrawerVisible, setIsAddOnDrawerVisible] = useState(false);
+  const [isAddOffDrawerVisible, setIsAddOffDrawerVisible] = useState(false);
+
+  const showAddOnDrawer = () => {
+    setIsAddOnDrawerVisible(true);
+  };
+
+  const showAddOffDrawer = () => {
+    setIsAddOffDrawerVisible(true);
+  };
+
+  const closeAddOnDrawer = () => {
+    setIsAddOnDrawerVisible(false);
+  };
+
+  const closeAddOffDrawer = () => {
+    setIsAddOffDrawerVisible(false);
+  };
 
   const showInvestmentDetailsDrawer = (investment: any) => {
     setSelectedInvestment(investment);
@@ -91,11 +109,19 @@ const WealthTable = () => {
         Delete
       </Menu.Item>
       {/* Add more actions here */}
-      <Menu.Item key="addOn" icon={<PayCircleOutlined />}>
+      <Menu.Item
+        key="addOn"
+        icon={<PayCircleOutlined />}
+        onClick={showAddOnDrawer}
+      >
         Create Add On
       </Menu.Item>
-      <Menu.Item key="addOff" icon={<PlusCircleOutlined />}>
-        Create Add Offs
+      <Menu.Item
+        key="addOff"
+        icon={<PlusCircleOutlined />}
+        onClick={showAddOffDrawer}
+      >
+        Create Add Off
       </Menu.Item>
     </Menu>
   );
@@ -130,27 +156,36 @@ const WealthTable = () => {
   };
   const handleFormSubmit = async (values: any) => {
     try {
-      const formattedValues = {
-        ...values,
-        managementFee: toTwoDecimalPlaces(values.managementFee),
-        performanceYield: toTwoDecimalPlaces(values.performanceYield),
-        principal: toTwoDecimalPlaces(values.principal),
-      };
-
-      if (isEditMode) {
-        await updateInvestment({
-          id: editRentalId,
-          expenseData: formattedValues,
-        }).unwrap();
-        toast.success("Investment updated successfully");
+      if (isAddOnDrawerVisible) {
+        // Handle Add On submission
+        console.log("Add On submitted", values);
+      } else if (isAddOffDrawerVisible) {
+        // Handle Add Off submission
+        console.log("Add Off submitted", values);
       } else {
-        toast.success("New investment added successfully");
-      }
+        // Handle Investment submission (same logic as before)
+        const formattedValues = {
+          ...values,
+          managementFee: toTwoDecimalPlaces(values.managementFee),
+          performanceYield: toTwoDecimalPlaces(values.performanceYield),
+          principal: toTwoDecimalPlaces(values.principal),
+        };
 
-      setIsDrawerVisible(false);
-      form.resetFields();
+        if (isEditMode) {
+          await updateInvestment({
+            id: editRentalId,
+            expenseData: formattedValues,
+          }).unwrap();
+          toast.success("Investment updated successfully");
+        } else {
+          toast.success("New investment added successfully");
+        }
+
+        setIsDrawerVisible(false);
+        form.resetFields();
+      }
     } catch (error: any) {
-      toast.error("Failed to save investment entry: " + error?.data?.message);
+      toast.error("Failed to save entry: " + error?.data?.message);
     }
   };
 
@@ -459,6 +494,99 @@ const WealthTable = () => {
         visible={investmentDetailsDrawerVisible}
         onClose={closeInvestmentDetailsDrawer}
       />
+      <Drawer
+        title="Create Add On"
+        placement="right"
+        width="50%"
+        onClose={closeAddOnDrawer}
+        open={isAddOnDrawerVisible}
+      >
+        <Form
+          form={form}
+          onFinish={handleFormSubmit}
+          layout="vertical"
+          hideRequiredMark
+        >
+          <Form.Item
+            name="addOn"
+            label="Add On Amount"
+            rules={[{ required: true, message: "Please enter an add-on" }]}
+          >
+            <Input placeholder="Enter add-on details" />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isLoading}
+              className="w-full mt-6"
+            >
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Drawer>
+
+      <Drawer
+        title="Create Add Off"
+        placement="right"
+        width="50%"
+        onClose={closeAddOffDrawer}
+        open={isAddOffDrawerVisible}
+      >
+        <Form
+          form={form}
+          onFinish={handleFormSubmit}
+          layout="vertical"
+          hideRequiredMark
+        >
+          <Form.Item
+            name="addOff"
+            label="Add Off Amount"
+            rules={[{ required: true, message: "Please enter an add-off" }]}
+          >
+            <Input placeholder="Enter add-off details" />
+          </Form.Item>
+          <Col span={12}>
+            <Form.Item
+              name="guaranteedRate"
+              label="Guaranteed Rate"
+              rules={[
+                {
+                  required: true,
+                  message: "Please select a guaranteed rate",
+                },
+              ]}
+            >
+              <Select
+                placeholder="Select guaranteed rate"
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                options={Array.from({ length: 100 }, (_, i) => ({
+                  value: i + 1,
+                  label: `${i + 1}%`,
+                }))}
+              />
+            </Form.Item>
+          </Col>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isLoading}
+              className="w-full mt-6"
+            >
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Drawer>
     </>
   );
 };
