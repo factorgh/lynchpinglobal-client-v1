@@ -1,7 +1,5 @@
 "use client";
 
-import { Avatar } from "@/app/components/ui/avatar";
-import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import {
   Card,
@@ -11,14 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatPriceGHS } from "@/lib/helper";
-import {
-  AlertCircle,
-  Clock,
-  Filter,
-  Users,
-  Wallet,
-  Wallet2,
-} from "lucide-react";
+import { AlertCircle, Filter, Users, Wallet, Wallet2 } from "lucide-react";
 import { useState } from "react";
 import { ClientRow } from "../_components/ClientRow";
 import { DashboardCard } from "../_components/DashboardItem";
@@ -167,7 +158,7 @@ export default function DashboardPage() {
         </div> */}
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <DashboardCard
             title="Total Loans"
             value={formatPriceGHS(Number(dashboardData.totalLoans))}
@@ -247,7 +238,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Payments Table */}
-        <Card className="mt-6">
+        {/* <Card className="mt-6">
           <CardHeader>
             <CardTitle>Recent Payments</CardTitle>
             <CardDescription>Latest payment transactions</CardDescription>
@@ -297,7 +288,7 @@ export default function DashboardPage() {
               </table>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );

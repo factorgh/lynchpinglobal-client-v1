@@ -1,10 +1,12 @@
+import { AuthProvider } from "@/context/authContext";
 import DashboardWrapper from "../(components)/dashboardWrapper";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div>
-      <DashboardWrapper>{children}</DashboardWrapper>
-    </div>
+    <DashboardWrapper>
+      {" "}
+      <AuthProvider>{children}</AuthProvider>
+    </DashboardWrapper>
   );
 };
 

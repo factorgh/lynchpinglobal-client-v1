@@ -16,16 +16,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Load roles from localStorage on mount
   useEffect(() => {
-    const storedRoles = localStorage.getItem("roles");
-    if (storedRoles) {
-      setRolesState(storedRoles);
+    if (typeof window !== "undefined") {
+      const storedRoles = localStorage.getItem("roles");
+      if (storedRoles) {
+        setRolesState(storedRoles);
+      }
     }
   }, []);
 
-  // Update both state and localStorage
   const setRoles = (newRoles: string) => {
     setRolesState(newRoles);
-    localStorage.setItem("roles", newRoles);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("roles", newRoles);
+    }
   };
 
   return (

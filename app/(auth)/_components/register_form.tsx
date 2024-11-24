@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/context/authContext";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,7 +13,7 @@ const RegisterForm = () => {
   const [userName, setUserName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { setRoles } = useAuth();
+
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,8 +42,9 @@ const RegisterForm = () => {
       const { token, user } = response.data;
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("roles", JSON.stringify(user.role));
       // Set Role in the context
-      setRoles(user.role);
+      // setRoles(user.role);
 
       // Redirect to dashboard
       if (user.role === "admin") {
