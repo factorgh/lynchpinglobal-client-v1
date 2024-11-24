@@ -17,7 +17,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Load roles from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedRoles = localStorage.getItem("roles");
+      const storedRoles = JSON.parse(localStorage.getItem("roles") || "");
+      console.log(storedRoles);
       if (storedRoles) {
         setRolesState(storedRoles);
       }
