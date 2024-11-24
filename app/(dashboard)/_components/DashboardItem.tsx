@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronUp } from "lucide-react";
 import React from "react";
 
 interface DashboardCardProps {
@@ -56,7 +55,7 @@ export const DashboardCard = ({
       <CardContent>
         <div className="text-xl font-bold">{value}</div>
         <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-        {trend && (
+        {/* {trend && (
           <div className="flex items-center mt-2">
             <ChevronUp
               className={`h-4 w-4 ${
@@ -71,7 +70,7 @@ export const DashboardCard = ({
               {Math.abs(trend)}% from last month
             </span>
           </div>
-        )}
+        )} */}
       </CardContent>
     </Card>
   );
