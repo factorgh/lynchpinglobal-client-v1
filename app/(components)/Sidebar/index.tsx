@@ -14,13 +14,16 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import SignOutButton from "../signOut";
+
+// Dynamically import SignOutButton to disable SSR
+import dynamic from "next/dynamic";
+const SignOutButton = dynamic(() => import("../signOut"), { ssr: false });
 
 interface SidebarLinkProps {
   href: string;
   icon: LucideIcon;
   label: string;
-  isCollapsed?: boolean; // Optional prop, if needed in the future
+  isCollapsed?: boolean;
 }
 
 const SidebarLink = ({
@@ -57,20 +60,12 @@ const SidebarLink = ({
 
 const Sidebar = () => {
   const { roles } = useAuth();
-  // Replace `sidebarClassNames` with actual styles or remove if unused
   const sidebarClassNames = "flex flex-col h-full w-64 bg-gray-50";
 
   return (
     <div className="flex flex-col h-screen fixed w-64 bg-gray-50 border-r border-gray-200 gap-5">
       {/* TOP LOGO */}
       <div className="flex gap-3 justify-center md:justify-normal items-center pt-3 px-8 ">
-        {/* <Image
-          src=""
-          alt="edstock-logo"
-          width={27}
-          height={27}
-          className="rounded w-8"
-        /> */}
         <h1 className="block font-extrabold text-2xl ">FinVest</h1>
       </div>
 
@@ -83,7 +78,6 @@ const Sidebar = () => {
               icon={ChartNoAxesCombined}
               label="Dashboard"
             />
-
             <SidebarLink href="/portfolio" icon={Gauge} label="My Portfolio" />
             <SidebarLink href="/withdrawal" icon={Wallet} label="Withdrawal" />
           </>
@@ -109,6 +103,7 @@ const Sidebar = () => {
             />
           </>
         )}
+        {/* Dynamically imported SignOutButton */}
         <SignOutButton />
       </div>
 
