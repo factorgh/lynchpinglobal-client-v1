@@ -3,6 +3,7 @@
 import { useGetUsersQuery } from "@/services/auth";
 import {
   Button,
+  Card,
   DatePicker,
   Drawer,
   Form,
@@ -187,11 +188,13 @@ const CashOutPage: React.FC = () => {
               Create Withdrawal
             </Button>
           </div>
-          <Table
-            columns={columns}
-            dataSource={dataSource.withdrawals}
-            rowKey="id"
-          />
+          <Card bordered={false}>
+            <Table
+              columns={columns}
+              dataSource={dataSource.withdrawals}
+              rowKey="id"
+            />
+          </Card>
         </>
       ),
     },
@@ -210,11 +213,13 @@ const CashOutPage: React.FC = () => {
               Create Payment
             </Button>
           </div>
-          <Table
-            columns={columns}
-            dataSource={dataSource.payments}
-            rowKey="id"
-          />
+          <Card bordered={false}>
+            <Table
+              columns={columns}
+              dataSource={dataSource.payments}
+              rowKey="id"
+            />
+          </Card>
         </>
       ),
     },
