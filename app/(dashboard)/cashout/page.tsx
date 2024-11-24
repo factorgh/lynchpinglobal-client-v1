@@ -1,6 +1,6 @@
 "use client";
-
 import { useGetUsersQuery } from "@/services/auth";
+import { EditOutlined } from "@ant-design/icons";
 import {
   Button,
   Card,
@@ -11,6 +11,7 @@ import {
   message,
   Modal,
   Select,
+  Space,
   Table,
   Tabs,
   Tag,
@@ -24,10 +25,11 @@ const { confirm } = Modal;
 
 interface RecordType {
   key: number;
-  id: number;
+  id: string;
   amount: number;
   date: string;
   status: string;
+  userName: string; // Added customer name as userName
 }
 
 interface DataSourceType {
@@ -38,14 +40,16 @@ interface DataSourceType {
 const sampleWithdrawals: RecordType[] = [
   {
     key: 1,
-    id: 1,
+    id: "user_1",
+    userName: "John Doe", // Example name
     amount: 1000,
     date: "2024-11-01",
     status: "Pending",
   },
   {
     key: 2,
-    id: 2,
+    id: "user_2",
+    userName: "Jane Smith", // Example name
     amount: 2000,
     date: "2024-11-15",
     status: "Completed",
@@ -55,14 +59,16 @@ const sampleWithdrawals: RecordType[] = [
 const samplePayments: RecordType[] = [
   {
     key: 1,
-    id: 1,
+    id: "user_1",
+    userName: "John Doe", // Example name
     amount: 500,
     date: "2024-11-10",
     status: "Processed",
   },
   {
     key: 2,
-    id: 2,
+    id: "user_2",
+    userName: "Jane Smith", // Example name
     amount: 1500,
     date: "2024-11-18",
     status: "Pending",
@@ -115,11 +121,14 @@ const CashOutPage: React.FC = () => {
   const handleFormSubmit = (values: Record<string, any>) => {
     const newRecord: RecordType = {
       ...values,
-      id: dataSource[activeTab].length + 1,
+      id: `user_${dataSource[activeTab].length + 1}`, // Assuming this is an auto-incremented ID
       key: dataSource[activeTab].length + 1,
-      date: values.date.format("YYYY-MM-DD"),
+      date: values.date,
       status: values.status === "true" ? "Completed" : "Pending",
       amount: Number(values.amount),
+      userName:
+        users.find((user: any) => user._id === values.userId)?.name ||
+        "Unknown", // Map userId to userName
     };
     setDataSource((prevState) => ({
       ...prevState,
@@ -150,9 +159,9 @@ const CashOutPage: React.FC = () => {
 
   const columns: ColumnsType<RecordType> = [
     {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
+      title: "Customer",
+      dataIndex: "userName", // Updated to userName
+      key: "userName",
     },
     {
       title: "Amount",
@@ -169,6 +178,15 @@ const CashOutPage: React.FC = () => {
       dataIndex: "status",
       key: "status",
       render: (status: string) => getStatusTag(status),
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space size="middle">
+          <EditOutlined onClick={() => showDrawer(record)} />
+        </Space>
+      ),
     },
   ];
 
@@ -316,14 +334,13 @@ const CashOutPage: React.FC = () => {
             <Select>
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Completed">Completed</Select.Option>
-              <Select.Option value="Cancelled">Cancelled</Select.Option>
               <Select.Option value="Processed">Processed</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" block>
-              Create {activeTab === "withdrawals" ? "Withdrawal" : "Payment"}
+              Create
             </Button>
           </Form.Item>
         </Form>

@@ -97,7 +97,7 @@ const LoanForm: React.FC = () => {
         New Loan
       </Button>
       <Drawer
-        title="Create a New Investment"
+        title="Create a New Loan"
         width={720}
         onClose={onClose}
         open={open}
@@ -135,14 +135,14 @@ const LoanForm: React.FC = () => {
             {/* Principal */}
             <Col span={12}>
               <Form.Item
-                name="principal"
-                label="Principal"
+                name="loan"
+                label="Loan Amount"
                 rules={[
-                  { required: true, message: "Please enter the principal" },
+                  { required: true, message: "Please enter the loan amount " },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter principal"
+                  placeholder="Enter loan amount"
                   style={{ width: "100%" }}
                   min={1}
                 />
@@ -152,38 +152,21 @@ const LoanForm: React.FC = () => {
 
           <Row gutter={16}>
             {/* Performance Yield */}
-            <Col span={12}>
-              <Form.Item
-                name="performanceYield"
-                label="Performance Yield"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter the performance yield",
-                  },
-                ]}
-              >
-                <InputNumber
-                  placeholder="Enter performance yield"
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
 
             {/* Guaranteed Rate */}
-            <Col span={12}>
+            <Col span={24}>
               <Form.Item
-                name="guaranteedRate"
-                label="Guaranteed Rate"
+                name="overdueRate"
+                label="Overdue Rate"
                 rules={[
                   {
                     required: true,
-                    message: "Please select a guaranteed rate",
+                    message: "Please select a overdue rate",
                   },
                 ]}
               >
                 <Select
-                  placeholder="Select guaranteed rate"
+                  placeholder="Select overdue rate"
                   showSearch
                   filterOption={(input, option) =>
                     (option?.label ?? "")

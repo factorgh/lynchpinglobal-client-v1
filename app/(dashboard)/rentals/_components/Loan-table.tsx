@@ -2,10 +2,10 @@
 import BulkImage from "@/app/(components)/bulkImage";
 import { toTwoDecimalPlaces } from "@/lib/helper";
 import {
-  useDeleteInvestmentMutation,
-  useGetAllInvestmentsQuery,
-  useUpdateInvestmentMutation,
-} from "@/services/investment";
+  useDeleteLoanMutation,
+  useGetLoansQuery,
+  useUpdateLoanMutation,
+} from "@/services/loan";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -37,7 +37,7 @@ import Swal from "sweetalert2";
   () => {
     const searchInput = useRef(null);
     const { data: investmentData, isFetching: investmentLoading } =
-      useGetAllInvestmentsQuery<any>(null);
+      useGetLoansQuery<any>(null);
     console.log(
       "-------------------------InvestmentData-------------------------"
     );
@@ -49,8 +49,8 @@ import Swal from "sweetalert2";
     const [users, setUsers] = useState([]);
     const [form] = Form.useForm();
 
-    const [updateInvestment, { isLoading }] = useUpdateInvestmentMutation();
-    const [deleteInvestment] = useDeleteInvestmentMutation();
+    const [updateInvestment, { isLoading }] = useUpdateLoanMutation();
+    const [deleteInvestment] = useDeleteLoanMutation();
     const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
     console.log(selectedFiles);
 
@@ -70,10 +70,10 @@ import Swal from "sweetalert2";
 
       form.setFieldsValue({
         name: investment.name,
-        principal: toTwoDecimalPlaces(investment.principal),
+        loanAmount: toTwoDecimalPlaces(investment.loanAmount),
         managementFee: toTwoDecimalPlaces(investment.managementFee),
-        performanceYield: toTwoDecimalPlaces(investment.performanceYield),
-        guaranteedRate: investment.guaranteedRate,
+        overdueRate: toTwoDecimalPlaces(investment.overdueRate),
+        quater: investment.quater,
       });
 
       setIsDrawerVisible(true);
@@ -92,9 +92,9 @@ import Swal from "sweetalert2";
             id: editRentalId,
             expenseData: formattedValues,
           }).unwrap();
-          toast.success("Investment updated successfully");
+          toast.success("Loan updated successfully");
         } else {
-          toast.success("New investment added successfully");
+          toast.success("New Loan added successfully");
         }
 
         setIsDrawerVisible(false);
@@ -152,16 +152,16 @@ import Swal from "sweetalert2";
 
     const columns = [
       {
-        title: "Admin",
-        dataIndex: "name",
-        key: "name",
-        ...getColumnSearchProps("name"),
+        title: "Customer",
+        dataIndex: "user",
+        key: "userId",
+        ...getColumnSearchProps("userId"),
       },
       {
-        title: "Principal",
-        dataIndex: "principal",
-        key: "principal",
-        ...getColumnSearchProps("principal"),
+        title: "Loan Amount",
+        dataIndex: "loanAmount",
+        key: "loanAmount",
+        ...getColumnSearchProps("loanAmount"),
         render: (value: any) => toTwoDecimalPlaces(value), // Format principal
       },
       {
@@ -171,10 +171,10 @@ import Swal from "sweetalert2";
         ...getColumnSearchProps("guaranteedRate"),
       },
       {
-        title: "Performance Yield",
-        dataIndex: "performanceYield",
-        key: "performanceYield",
-        ...getColumnSearchProps("performanceYield"),
+        title: "overdue Rate",
+        dataIndex: "overdueRate",
+        key: "overdueRate",
+        ...getColumnSearchProps("overdueRate"),
         render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
       },
       {
@@ -184,13 +184,7 @@ import Swal from "sweetalert2";
         ...getColumnSearchProps("managementFee"),
         render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
       },
-      {
-        title: "Total Accrued Return",
-        dataIndex: "totalAccruedReturn",
-        key: "totalAccruedReturn",
-        ...getColumnSearchProps("totalAccruedReturn"),
-        render: (value: any) => `$${toTwoDecimalPlaces(value)}`, // Format with currency
-      },
+
       {
         title: "Action",
         key: "action",
@@ -263,14 +257,17 @@ import Swal from "sweetalert2";
               {/* Principal */}
               <Col span={12}>
                 <Form.Item
-                  name="principal"
-                  label="Principal"
+                  name="loan"
+                  label="Loan Amount"
                   rules={[
-                    { required: true, message: "Please enter the principal" },
+                    {
+                      required: true,
+                      message: "Please enter the loan amount ",
+                    },
                   ]}
                 >
                   <InputNumber
-                    placeholder="Enter principal"
+                    placeholder="Enter loan amount"
                     style={{ width: "100%" }}
                     min={1}
                   />
@@ -280,38 +277,21 @@ import Swal from "sweetalert2";
 
             <Row gutter={16}>
               {/* Performance Yield */}
-              <Col span={12}>
-                <Form.Item
-                  name="performanceYield"
-                  label="Performance Yield"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter the performance yield",
-                    },
-                  ]}
-                >
-                  <InputNumber
-                    placeholder="Enter performance yield"
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              </Col>
 
               {/* Guaranteed Rate */}
-              <Col span={12}>
+              <Col span={24}>
                 <Form.Item
-                  name="guaranteedRate"
-                  label="Guaranteed Rate"
+                  name="overdueRate"
+                  label="Overdue Rate"
                   rules={[
                     {
                       required: true,
-                      message: "Please select a guaranteed rate",
+                      message: "Please select a overdue rate",
                     },
                   ]}
                 >
                   <Select
-                    placeholder="Select guaranteed rate"
+                    placeholder="Select overdue rate"
                     showSearch
                     filterOption={(input, option) =>
                       (option?.label ?? "")
