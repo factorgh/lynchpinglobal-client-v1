@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatPriceGHS } from "@/lib/helper";
-import { Pagination, Table, Tag } from "antd";
+import { Card, Pagination, Table, Tag } from "antd";
 import { useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
 
@@ -124,7 +124,7 @@ const PaginatedTable = ({ data }: { data: Array<any> }) => {
   ];
 
   return (
-    <div>
+    <Card>
       {/* Table */}
       <Table
         columns={columns}
@@ -141,7 +141,7 @@ const PaginatedTable = ({ data }: { data: Array<any> }) => {
         onChange={(page) => setCurrentPage(page)}
         className="mt-4"
       />
-    </div>
+    </Card>
   );
 };
 

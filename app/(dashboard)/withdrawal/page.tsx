@@ -1,6 +1,6 @@
 "use client";
 
-import { Form, message, Table, Tabs, Tag } from "antd";
+import { Card, Form, message, Table, Tabs, Tag } from "antd";
 import { useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
 
@@ -98,13 +98,15 @@ const WithdrawalPage = () => {
               children: (
                 <div>
                   <div className="flex justify-between items-center">
-                    <h2>My Withdrawals</h2>
+                    <h2 className="mb-4">My Withdrawals</h2>
                   </div>
-                  <Table
-                    columns={columns}
-                    dataSource={sampleWithdrawals}
-                    rowKey="id"
-                  />
+                  <Card>
+                    <Table
+                      columns={columns}
+                      dataSource={sampleWithdrawals}
+                      rowKey="id"
+                    />
+                  </Card>
                 </div>
               ),
             },
