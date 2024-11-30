@@ -173,49 +173,6 @@ const LoanForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            {/* Performance Yield */}
-
-            {/* Guaranteed Rate */}
-            <Col span={12}>
-              <Form.Item
-                name="overdueRate"
-                label="Overdue Rate"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select a overdue rate",
-                  },
-                ]}
-              >
-                <Select
-                  placeholder="Select overdue rate"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={Array.from({ length: 100 }, (_, i) => ({
-                    value: i + 1,
-                    label: `${i + 1}%`,
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="maturity_date"
-                label="Maturity Date"
-                rules={[
-                  { required: true, message: "Please select a maturity date" },
-                ]}
-              >
-                <DatePicker style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
             {/* Management Fee */}
             <Col span={12}>
               <Form.Item
@@ -279,6 +236,23 @@ const LoanForm: React.FC = () => {
                   style={{ width: "100%" }}
                   min={1}
                 />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            {/* Performance Yield */}
+
+            {/* Guaranteed Rate */}
+
+            <Col span={24}>
+              <Form.Item
+                name="overdueDate"
+                label="Overdue Date"
+                rules={[
+                  { required: true, message: "Please select overdue date" },
+                ]}
+              >
+                <DatePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>

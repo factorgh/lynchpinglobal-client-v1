@@ -3,6 +3,9 @@
 import { Card } from "@/components/ui/card";
 
 import {
+  AccountBookOutlined,
+  AuditOutlined,
+  BlockOutlined,
   DollarOutlined,
   FallOutlined,
   PayCircleOutlined,
@@ -132,23 +135,23 @@ const CustomerLanding = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
             <CustomCard
-              icon={<RiseOutlined />}
+              icon={<AccountBookOutlined />}
               title="MANAGEMENT FEE"
               amount="15%"
             />
             <CustomCard
-              icon={<RiseOutlined />}
+              icon={<AuditOutlined />}
               title="PERFORMANCE YIELD"
               amount="15%"
             />
             <CustomCard icon={<RiseOutlined />} title="ADD OFFS" amount="15%" />
             <CustomCard
-              icon={<RiseOutlined />}
+              icon={<BlockOutlined />}
               title="OPERATIONAL COST"
               amount="15%"
             />
-            <CustomCard icon={<RiseOutlined />} title="Growth" amount="15%" />
-            <CustomCard icon={<RiseOutlined />} title="Growth" amount="15%" />
+            <CustomCard icon={<RiseOutlined />} title="Additions" amount="0" />
+            <CustomCard icon={<RiseOutlined />} title="More" amount="0" />
           </div>
           <Card className="p-3 ">
             <AssetsUnder />

@@ -2,6 +2,7 @@
 import DotLoader from "@/app/(components)/dot-loader";
 import InvestmentDetailDrawer from "@/app/(components)/investemnt_drawer";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
+import { useCreateAddOnMutation } from "@/services/addOn";
 import {
   useDeleteInvestmentMutation,
   useGetAllInvestmentsQuery,
@@ -25,6 +26,7 @@ import {
   Input,
   InputNumber,
   Menu,
+  message,
   Row,
   Select,
   Table,
@@ -53,6 +55,7 @@ const WealthTable = () => {
   const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
 
   const [updateInvestment, { isLoading }] = useUpdateInvestmentMutation();
+  const [createAddOn, { isLoading: addOnLoading }] = useCreateAddOnMutation();
   const [deleteInvestment] = useDeleteInvestmentMutation();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   console.log(selectedFiles);
@@ -72,7 +75,8 @@ const WealthTable = () => {
     // Send request to backend for update
   };
 
-  const showAddOnDrawer = () => {
+  const showAddOnDrawer = (investment: any) => {
+    setEditRentalId(investment._id);
     setIsAddOnDrawerVisible(true);
   };
 
@@ -127,7 +131,7 @@ const WealthTable = () => {
       <Menu.Item
         key="addOn"
         icon={<PayCircleOutlined />}
-        onClick={showAddOnDrawer}
+        onClick={() => showAddOnDrawer(record)}
       >
         Create Add On
       </Menu.Item>
@@ -205,7 +209,14 @@ const WealthTable = () => {
     try {
       if (isAddOnDrawerVisible) {
         console.log("Add On submitted", values);
+        console.log(editRentalId);
+        await createAddOn({
+          amount: values.amount,
+          status: values.status,
+          investmentId: editRentalId,
+        });
         closeAddOnDrawer();
+        message.success("Add On has been created successfully");
         form.resetFields(); // Reset form fiel
         console.log("Add On submitted", values);
       } else if (isAddOffDrawerVisible) {
@@ -243,7 +254,7 @@ const WealthTable = () => {
         form.resetFields();
       }
     } catch (error: any) {
-      toast.error("Failed to save entry: " + error?.data?.message);
+      toast.error("Unexpected error occurred");
     }
   };
 
@@ -577,7 +588,7 @@ const WealthTable = () => {
       >
         <Form form={form} onFinish={handleFormSubmit} layout="vertical">
           <Form.Item
-            name="addOn"
+            name="amount"
             label="Add On Amount"
             rules={[{ required: true, message: "Please enter an add-on" }]}
           >
@@ -597,7 +608,7 @@ const WealthTable = () => {
                   .toLowerCase()
                   .includes(input.toLowerCase())
               }
-              options={["active", "inactive", "finalized"].map((status) => ({
+              options={["active", "inactive"].map((status) => ({
                 value: status,
                 label: status,
               }))}
@@ -608,7 +619,7 @@ const WealthTable = () => {
             <Button
               type="primary"
               htmlType="submit"
-              loading={isLoading}
+              loading={addOnLoading}
               className="w-full mt-6"
             >
               Submit

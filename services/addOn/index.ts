@@ -4,16 +4,16 @@ import { crudService } from "../custom-crud-service";
 // Define the vendor endpoints using crudService
 export const AddOnApi = baseApi.injectEndpoints({
   endpoints: (builder) => {
-    const AddOnCrud = crudService("/investments");
+    const AddOnCrud = crudService("/add-on");
 
     return {
       createAddOn: builder.mutation({
         query: (data) => AddOnCrud.create(data),
-        invalidatesTags: ["AddOn"],
+        invalidatesTags: ["AddOn", "Investment"],
       }),
       updateAddOn: builder.mutation({
         query: ({ id, data }) => AddOnCrud.update({ id, data: data }),
-        invalidatesTags: ["AddOn"],
+        invalidatesTags: ["AddOn", "Investment"],
       }),
       deleteAddOn: builder.mutation({
         query: (id) => AddOnCrud.delete(id),

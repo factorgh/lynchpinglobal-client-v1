@@ -30,6 +30,14 @@ const WealthForm: React.FC = () => {
     mandate: [],
   });
 
+  // UpLoading State
+  const [uploading, setUploading] = useState({
+    certificate: false,
+    partnerForm: false,
+    checklist: false,
+    mandate: false,
+  });
+
   // Update user list when data is fetched
   useEffect(() => {
     setUsers(data?.allUsers || []);
@@ -77,6 +85,14 @@ const WealthForm: React.FC = () => {
   const handleFormSubmit = async (values: any) => {
     const uploadedFiles: Record<string, string[]> = {};
 
+    setUploading((prev) => ({
+      ...prev,
+      certificate: fileCategories.certificate.length > 0,
+      partnerForm: fileCategories.partnerForm.length > 0,
+      checklist: fileCategories.checklist.length > 0,
+      mandate: fileCategories.mandate.length > 0,
+    }));
+
     for (const category in fileCategories) {
       if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
         uploadedFiles[category as keyof typeof fileCategories] =
@@ -85,19 +101,40 @@ const WealthForm: React.FC = () => {
           );
       }
     }
+    // After uploads
+    setUploading({
+      certificate: false,
+      partnerForm: false,
+      checklist: false,
+      mandate: false,
+    });
 
+    // Formatted values
+    const { certificate, mandate, partnerForm, checklist } = uploadedFiles;
     const formattedValues = {
       ...values,
-      files: uploadedFiles,
+      certificate,
+      mandate,
+      partnerForm,
+      checklist,
     };
 
+    // Check values
+    console.log(formattedValues);
     try {
       await createInvestment(formattedValues).unwrap();
       toast.success("Investment created successfully");
       setOpen(false);
+      form.resetFields();
     } catch (error: any) {
       console.error("Error creating investment:", error);
       toast.error(error?.data?.message || "An error occurred");
+      setUploading({
+        certificate: false,
+        partnerForm: false,
+        checklist: false,
+        mandate: false,
+      });
     }
   };
 
@@ -290,7 +327,8 @@ const WealthForm: React.FC = () => {
               className="w-full mt-6"
               type="primary"
               htmlType="submit"
-              loading={isLoading}
+              loading={isLoading || Object.values(uploading).includes(true)}
+              disabled={Object.values(uploading).includes(true)}
             >
               Submit
             </Button>

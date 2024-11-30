@@ -1,6 +1,7 @@
 "use client";
 
 import { useCreateAssetsMutation } from "@/services/assets";
+import { useGetUsersQuery } from "@/services/auth";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import {
   Button,
@@ -16,7 +17,7 @@ import {
   Upload,
   UploadProps,
 } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 const AssetForm: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -25,13 +26,17 @@ const AssetForm: React.FC = () => {
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
-
+  const { data, isFetching } = useGetUsersQuery(null);
   const [fileCategories, setFileCategories] = useState({
     certificate: [],
     partnerForm: [],
     checklist: [],
     mandate: [],
   });
+
+  useEffect(() => {
+    setUsers(data?.allUsers || []);
+  }, [data]);
 
   // // File list change handler
   // const handleFileListChange = (fileList: any[]) => {
@@ -145,10 +150,48 @@ const AssetForm: React.FC = () => {
           hideRequiredMark
         >
           <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="userId"
+                label="User"
+                rules={[{ required: true, message: "Please select a user" }]}
+              >
+                <Select
+                  placeholder="Select a user"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  options={users?.map((user: any) => ({
+                    value: user._id,
+                    label: user.name,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                name="assetName"
+                label="Asset Name"
+                rules={[
+                  { required: true, message: "Please enter the asset name" },
+                ]}
+              >
+                <Input
+                  placeholder="Enter principal"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
             {/* User Selection */}
             <Col span={12}>
               <Form.Item
-                name="asset_class"
+                name="assetClass"
                 label="Asset Class"
                 rules={[
                   { required: true, message: "Please enter the principal" },
@@ -164,7 +207,7 @@ const AssetForm: React.FC = () => {
             {/* Principal */}
             <Col span={12}>
               <Form.Item
-                name="asset_designation"
+                name="assetDesignation"
                 label="Asset Designation"
                 rules={[
                   {
@@ -186,7 +229,7 @@ const AssetForm: React.FC = () => {
             {/* Performance Yield */}
             <Col span={12}>
               <Form.Item
-                name="accrued_interest"
+                name="accruedInterest"
                 label="Accrued Interest"
                 rules={[
                   {
@@ -206,7 +249,7 @@ const AssetForm: React.FC = () => {
 
             <Col span={12}>
               <Form.Item
-                name="maturity_date"
+                name="maturityDate"
                 label="Maturity Date"
                 rules={[
                   { required: true, message: "Please select a maturity date" },
@@ -268,7 +311,7 @@ const AssetForm: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="time"
+                name="timeCourse"
                 label="Time course"
                 rules={[
                   { required: true, message: "Please select a time course" },
@@ -297,7 +340,7 @@ const AssetForm: React.FC = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="asset_designation"
+                name="assetImage"
                 label="Asset Image"
                 rules={[
                   {

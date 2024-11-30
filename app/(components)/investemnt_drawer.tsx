@@ -1,13 +1,31 @@
 import { formatPriceGHS } from "@/lib/helper";
-import { Button, Card, Col, Drawer, List, Row, Tag, Typography } from "antd";
+import { useUpdateAddOnMutation } from "@/services/addOn";
+import { EditOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Card,
+  Col,
+  Drawer,
+  Form,
+  Image,
+  message,
+  Modal,
+  Row,
+  Select,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
+import Title from "antd/es/typography/Title";
 import { useState } from "react";
-import Zoom from "react-medium-image-zoom"; // Import the zoom component
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface AddOn {
-  name: string;
+  _id: string;
+  amount: number;
   accruedInterest: number;
+  status: string; // status is a string, can be 'active' or 'inactive'
 }
 
 interface InvestmentData {
@@ -27,24 +45,109 @@ interface InvestmentData {
   active: boolean;
   managementFee: number;
   performanceYield: number;
-  pdf: string[]; // These are now PNG URLs
+  certificate: string[]; // Array of document URLs (certificates)
+  checklist: string[]; // Array of document URLs (checklists)
+  mandate: string[]; // Array of document URLs (mandates)
+  partnerForm: string[]; // Array of document URLs (partner forms)
   lastModified: string;
 }
 
 const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
-  const [imageIndex, setImageIndex] = useState<number>(0);
+  const [previewFile, setPreviewFile] = useState<string | null>(null);
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingAddOn, setEditingAddOn] = useState<AddOn | null>(null);
 
-  // Function to move to the next image
-  const goToNextImage = () => {
-    if (imageIndex < investment?.pdf.length - 1) {
-      setImageIndex(imageIndex + 1);
+  const [form] = Form.useForm();
+  const [updateAddOn, { isLoading: updatingAddOn }] = useUpdateAddOnMutation();
+
+  const handleEdit = (record: AddOn, index: number) => {
+    setEditingAddOn(record);
+    form.setFieldsValue({ status: record.status });
+    setEditModalVisible(true);
+  };
+
+  const addOnColumns = [
+    {
+      title: "Add-on Amount",
+      dataIndex: "amount",
+      key: "amount",
+      render: (amount: number) => `GH₵${amount.toFixed(2)}`,
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status: string) => (
+        <Tag color={status === "active" ? "green" : "volcano"}>
+          {status === "active" ? "Active" : "Inactive"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: any, record: AddOn, index: number) => (
+        <Button
+          icon={<EditOutlined />}
+          onClick={() => handleEdit(record, index)}
+          size="small"
+          type="link"
+        >
+          Edit
+        </Button>
+      ),
+    },
+  ];
+
+  const handleFinishEdit = async (values: any) => {
+    console.log(values);
+    if (editingAddOn) {
+      try {
+        await updateAddOn({ id: editingAddOn._id, data: values });
+        message.success("Add-on status updated successfully");
+      } catch (error) {
+        message.error("Failed to update add-on status");
+      }
+      // Close the modal
+      handleCloseEdit();
     }
   };
 
-  // Function to move to the previous image
-  const goToPreviousImage = () => {
-    if (imageIndex > 0) {
-      setImageIndex(imageIndex - 1);
+  const handleCloseEdit = () => {
+    setEditModalVisible(false);
+    setEditingAddOn(null);
+  };
+
+  // Handle preview modal
+  const handlePreview = (fileUrl: string) => {
+    setPreviewFile(fileUrl); // Set the file URL to preview
+    setIsPreviewVisible(true); // Open the modal for preview
+  };
+
+  // Close the preview modal
+  const handleClosePreview = () => {
+    setIsPreviewVisible(false);
+    setPreviewFile(null);
+  };
+
+  // Utility function to render document previews (Image or Button for PDFs)
+  const renderDocumentPreview = (fileUrl: string, index: number) => {
+    if (fileUrl.endsWith(".pdf")) {
+      return (
+        <Button type="link" onClick={() => handlePreview(fileUrl)}>
+          <Text strong>Preview PDF {index + 1}</Text>
+        </Button>
+      );
+    } else {
+      return (
+        <Image
+          src={fileUrl}
+          alt={`Document ${index + 1}`}
+          onClick={() => handlePreview(fileUrl)}
+          style={{ cursor: "pointer" }}
+        />
+      );
     }
   };
 
@@ -68,6 +171,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
               <Text strong>Name: </Text>
               {investment?.name}
             </Col>
+
             <Col span={12}>
               <Text strong>Principal: </Text>GH{investment?.principal}
             </Col>
@@ -106,83 +210,170 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
           </Row>
         </Card>
 
-        {/* Add-ons Section */}
         <Card title="Add-ons" bordered={false}>
           {investment?.addOns.length > 0 ? (
-            <List
-              size="small"
-              bordered
+            <Table
+              columns={addOnColumns}
               dataSource={investment?.addOns}
-              renderItem={(addOn: any) => (
-                <List.Item>
-                  <Text strong>{addOn.name}: </Text>
-                  {addOn.accruedInterest}%
-                </List.Item>
-              )}
+              rowKey="_id" // Assuming 'name' is unique in the AddOn array, otherwise use a different field like 'id'
+              pagination={false}
+              size="small"
             />
           ) : (
             <Tag color="orange">No add-ons</Tag>
           )}
         </Card>
 
-        {/* One-Offs (Add-offs) Section */}
-        <Card title="One-Offs (Add-offs)" bordered={false}>
-          {investment?.oneOffs.length > 0 ? (
-            <List
-              size="small"
-              bordered
-              dataSource={investment?.oneOffs}
-              renderItem={(oneOff: any) => (
-                <List.Item>
-                  <Text strong>{oneOff.name}: </Text>
-                  {formatPriceGHS(oneOff.accruedInterest)}{" "}
-                  {/* Format the return */}
-                </List.Item>
-              )}
-            />
-          ) : (
-            <Tag color="orange">No one-offs</Tag>
-          )}
-        </Card>
-
         {/* Investment Documents Section */}
-        <Card title="Investment Documents (PNG)" bordered={false}>
-          {investment?.pdf.length > 0 ? (
+        <Card title="Investment Documents" bordered={false}>
+          {investment?.certificate.length > 0 && (
             <div>
-              <p>
-                Viewing Image {imageIndex + 1} of {investment?.pdf.length}
-              </p>
-              {/* Full-Screen Image Zoom */}
-              <Zoom zoomMargin={20}>
-                <img
-                  src={investment?.pdf[imageIndex]} // Image URL from Cloudinary
-                  alt={`Investment Document ${imageIndex + 1}`}
-                  style={{
-                    width: "100%",
-                    maxHeight: "300px",
-                    objectFit: "contain",
-                    cursor: "zoom-in",
-                  }}
-                />
-              </Zoom>
-              <br />
-              <div>
-                <Button onClick={goToPreviousImage} disabled={imageIndex <= 0}>
-                  Previous Image
-                </Button>
-                <Button
-                  onClick={goToNextImage}
-                  disabled={imageIndex >= investment?.pdf.length - 1}
-                >
-                  Next Image
-                </Button>
-              </div>
+              <Title level={4}>Certificates</Title>
+              <Row gutter={16}>
+                {investment?.certificate.map(
+                  (fileUrl: string, index: number) => (
+                    <Col span={8} key={index}>
+                      <Card
+                        hoverable
+                        cover={renderDocumentPreview(fileUrl, index)}
+                      >
+                        <Text>{`Certificate ${index + 1}`}</Text>
+                      </Card>
+                    </Col>
+                  )
+                )}
+              </Row>
             </div>
-          ) : (
-            <Tag color="red">No Documents available</Tag>
           )}
+
+          {investment?.checklist.length > 0 && (
+            <div>
+              <Title level={4}>Checklists</Title>
+              <Row gutter={16}>
+                {investment?.checklist.map((fileUrl: string, index: number) => (
+                  <Col span={8} key={index}>
+                    <Card
+                      hoverable
+                      cover={renderDocumentPreview(fileUrl, index)}
+                    >
+                      <Text>{`Checklist ${index + 1}`}</Text>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          )}
+
+          {investment?.mandate?.length > 0 && (
+            <div>
+              <Title level={4}>Mandates</Title>
+              <Row gutter={16}>
+                {investment?.mandate.map((fileUrl: string, index: number) => (
+                  <Col span={8} key={index}>
+                    <Card
+                      hoverable
+                      cover={renderDocumentPreview(fileUrl, index)}
+                    >
+                      <Text>{`Mandate ${index + 1}`}</Text>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          )}
+
+          {investment?.partnerForm.length > 0 && (
+            <div>
+              <Title level={4}>Partner Forms</Title>
+              <Row gutter={16}>
+                {investment?.partnerForm.map(
+                  (fileUrl: string, index: number) => (
+                    <Col span={8} key={index}>
+                      <Card
+                        hoverable
+                        cover={renderDocumentPreview(fileUrl, index)}
+                      >
+                        <Text>{`Partner Form ${index + 1}`}</Text>
+                      </Card>
+                    </Col>
+                  )
+                )}
+              </Row>
+            </div>
+          )}
+
+          {!investment?.certificate.length &&
+            !investment?.checklist.length &&
+            !investment?.mandate.length &&
+            !investment?.partnerForm.length && (
+              <Tag color="red">No Documents available</Tag>
+            )}
         </Card>
       </Drawer>
+
+      {/* Preview Modal */}
+      <Modal
+        visible={isPreviewVisible}
+        footer={null}
+        onCancel={handleClosePreview}
+        width={800}
+      >
+        {previewFile?.endsWith(".pdf") ? (
+          <iframe
+            src={previewFile}
+            width="100%"
+            height="600px"
+            title="PDF Preview"
+            frameBorder="0"
+          />
+        ) : (
+          <Image
+            src={previewFile!}
+            alt="Document Preview"
+            style={{ width: "100%", height: "auto" }}
+          />
+        )}
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        visible={editModalVisible}
+        footer={null}
+        onCancel={handleCloseEdit}
+        width={400}
+        title={`Edit Add-on Status`}
+      >
+        <Form form={form} onFinish={handleFinishEdit}>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: "Please select a status" }]}
+          >
+            <Select
+              placeholder="Select a status"
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              options={["active", "inactive"].map((status) => ({
+                value: status,
+                label: status,
+              }))}
+            />
+          </Form.Item>
+
+          <Button
+            loading={updatingAddOn}
+            type="primary"
+            htmlType="submit"
+            block
+          >
+            Save Changes
+          </Button>
+        </Form>
+      </Modal>
     </>
   );
 };
