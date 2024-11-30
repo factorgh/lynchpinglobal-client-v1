@@ -5,6 +5,9 @@ import { formatPriceGHS } from "@/lib/helper";
 import { Card, Pagination, Table, Tag } from "antd";
 import { useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
+import CustomerRentals from "./_components/customerAssets";
+import CustomerInvestment from "./_components/customerInvestment";
+import CustomerLoan from "./_components/customerLoan";
 
 const sampleData = [
   {
@@ -36,45 +39,41 @@ const sampleData = [
 
 const PortfolioPage = () => {
   return (
-    <div className=" min-h-screen p-8 bg-slate-50">
-      {" "}
-      {/* Background and shadow for the page */}
-      <Wrapper>
-        <div>
-          <h1 className="text-2xl font-bold mb-4">Portfolio</h1>
-          <Tabs defaultValue="investment">
-            {/* Tab List */}
-            <TabsList className="mb-6">
-              <TabsTrigger value="investment">Investment</TabsTrigger>
-              <TabsTrigger value="assets">Assets</TabsTrigger>
-              <TabsTrigger value="loans">Loans</TabsTrigger>
-              <TabsTrigger value="rentals">Rentals</TabsTrigger>
-            </TabsList>
+    <Wrapper>
+      <div className="mt-7 text-white">
+        <h1 className="text-2xl font-bold mb-4 text-white">Portfolio</h1>
+        <Tabs defaultValue="investment">
+          {/* Tab List */}
+          <TabsList className="mb-6">
+            <TabsTrigger value="investment">Investment</TabsTrigger>
+            <TabsTrigger value="assets">Assets</TabsTrigger>
+            <TabsTrigger value="loans">Loans</TabsTrigger>
+            <TabsTrigger value="rentals">Rentals</TabsTrigger>
+          </TabsList>
 
-            {/* Tab Content */}
-            <TabsContent value="investment">
-              <h2 className="text-lg font-semibold mb-2">Investment</h2>
-              <PaginatedTable data={sampleData} />
-            </TabsContent>
+          {/* Tab Content */}
+          <TabsContent value="investment">
+            <h2 className="text-lg font-semibold mb-2">Investment</h2>
+            <CustomerInvestment />
+          </TabsContent>
 
-            <TabsContent value="assets">
-              <h2 className="text-lg font-semibold mb-2">Assets</h2>
-              <PaginatedTable data={sampleData} />
-            </TabsContent>
+          <TabsContent value="assets">
+            <h2 className="text-lg font-semibold mb-2">Assets</h2>
+            <CustomerRentals />
+          </TabsContent>
 
-            <TabsContent value="loans">
-              <h2 className="text-lg font-semibold mb-2">Loans</h2>
-              <PaginatedTable data={sampleData} />
-            </TabsContent>
+          <TabsContent value="loans">
+            <h2 className="text-lg font-semibold mb-2">Loans</h2>
+            <CustomerLoan />
+          </TabsContent>
 
-            <TabsContent value="rentals">
-              <h2 className="text-lg font-semibold mb-2">Rentals</h2>
-              <PaginatedTable data={sampleData} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </Wrapper>
-    </div>
+          <TabsContent value="rentals">
+            <h2 className="text-lg font-semibold mb-2">Rentals</h2>
+            <CustomerRentals />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </Wrapper>
   );
 };
 

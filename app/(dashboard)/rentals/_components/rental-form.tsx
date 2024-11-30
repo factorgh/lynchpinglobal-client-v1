@@ -1,6 +1,5 @@
 "use client";
 
-import BulkImage from "@/app/(components)/bulkImage";
 import { useGetUsersQuery } from "@/services/auth";
 import { useCreateInvestmentMutation } from "@/services/investment";
 import { PlusOutlined } from "@ant-design/icons";
@@ -14,6 +13,7 @@ import {
   InputNumber,
   Row,
   Select,
+  Upload,
 } from "antd";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -24,6 +24,13 @@ const RentalForm: React.FC = () => {
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+  // Hnadle file category
+  const [fileCategories, setFileCategories] = useState({
+    certificate: [],
+    partnerForm: [],
+    checklist: [],
+    mandate: [],
+  });
 
   // Update user list when data is fetched
   useEffect(() => {
@@ -31,23 +38,22 @@ const RentalForm: React.FC = () => {
   }, [data]);
 
   // File list change handler
-  const handleFileListChange = (fileList: any[]) => {
-    setSelectedFiles(fileList);
+  const handleFileChange = (category: string, fileList: any[]) => {
+    setFileCategories((prev) => ({
+      ...prev,
+      [category]: fileList,
+    }));
   };
 
   // Function to upload files to Cloudinary
-  const handleUploadToCloudinary = async (): Promise<string[]> => {
-    if (selectedFiles.length === 0) {
-      toast.error("No files selected for upload.");
-      return [];
-    }
-
+  const handleUploadToCloudinary = async (
+    categoryFiles: any[]
+  ): Promise<string[]> => {
     const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
     const uploadPreset = "burchells";
 
     try {
-      // Upload all files concurrently
-      const uploadPromises = selectedFiles.map((file) => {
+      const uploadPromises = categoryFiles.map((file) => {
         const formData = new FormData();
         formData.append("file", file.originFileObj);
         formData.append("upload_preset", uploadPreset);
@@ -62,27 +68,28 @@ const RentalForm: React.FC = () => {
       });
 
       const uploadResults = await Promise.all(uploadPromises);
-
-      const uploadedUrls = uploadResults.map((result) => result.secure_url);
-
-      toast.success("All files uploaded successfully!");
-      return uploadedUrls;
+      return uploadResults.map((result) => result.secure_url);
     } catch (error) {
       console.error("File upload error:", error);
-      toast.error("File upload failed.");
       return [];
     }
   };
-
   // Form submission handler
   const handleFormSubmit = async (values: any) => {
-    // Upload files and get URLs
-    const uploadedUrls = await handleUploadToCloudinary();
+    const uploadedFiles: Record<string, string[]> = {};
 
-    // Format form values with uploaded URLs
+    for (const category in fileCategories) {
+      if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
+        uploadedFiles[category as keyof typeof fileCategories] =
+          await handleUploadToCloudinary(
+            fileCategories[category as keyof typeof fileCategories]
+          );
+      }
+    }
+
     const formattedValues = {
       ...values,
-      pdf: uploadedUrls,
+      files: uploadedFiles,
     };
 
     try {
@@ -160,17 +167,17 @@ const RentalForm: React.FC = () => {
             {/* Performance Yield */}
             <Col span={12}>
               <Form.Item
-                name="amount_due"
-                label="Performance Yield"
+                name="overdueRate"
+                label="Overdue Rate"
                 rules={[
                   {
                     required: true,
-                    message: "Please enter the amount due",
+                    message: "Please enter overdue due",
                   },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter amount due"
+                  placeholder="Enter overdue rate"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -179,20 +186,13 @@ const RentalForm: React.FC = () => {
             {/* Guaranteed Rate */}
             <Col span={12}>
               <Form.Item
-                name="overdue_fee"
-                label="Overdue fee"
+                name="returnDate"
+                label="Return Date"
                 rules={[
-                  {
-                    required: true,
-                    message: "Please enter the overdue fee amount",
-                  },
+                  { required: true, message: "Please select a maturity date" },
                 ]}
               >
-                <InputNumber
-                  placeholder="Enter asset overdue fee amount"
-                  style={{ width: "100%" }}
-                  min={1}
-                />
+                <DatePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>
@@ -217,7 +217,7 @@ const RentalForm: React.FC = () => {
                 rules={[{ required: true, message: "Please select a quater" }]}
               >
                 <Select
-                  placeholder="Select management fee"
+                  placeholder="Select a quater"
                   showSearch
                   filterOption={(input, option) =>
                     (option?.label ?? "")
@@ -234,10 +234,69 @@ const RentalForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            {/* File Upload */}
-            <BulkImage onFileListChange={handleFileListChange} />
+            <Col span={12}>
+              <Form.Item
+                name="userId"
+                label="User"
+                rules={[{ required: true, message: "Please select a user" }]}
+              >
+                <Select
+                  placeholder="Select a user"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  options={users?.map((user: any) => ({
+                    value: user._id,
+                    label: user.name,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="amountDue"
+                label="Amount Due"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter the  amount due",
+                  },
+                ]}
+              >
+                <InputNumber
+                  placeholder="Enter amount due"
+                  style={{ width: "100%" }}
+                  min={1}
+                />
+              </Form.Item>
+            </Col>
           </Row>
 
+          <Row gutter={16}>
+            {["certificate", "partnerForm", "checklist", "mandate"].map(
+              (category) => (
+                <Col key={category} span={6}>
+                  <Form.Item label={`Upload ${category}`}>
+                    <Upload
+                      listType="picture-card"
+                      fileList={
+                        fileCategories[category as keyof typeof fileCategories]
+                      }
+                      onChange={({ fileList }) =>
+                        handleFileChange(category, fileList)
+                      }
+                      beforeUpload={() => false}
+                    >
+                      <Button type="dashed">Upload</Button>
+                    </Upload>
+                  </Form.Item>
+                </Col>
+              )
+            )}
+          </Row>
           <Form.Item>
             <Button
               className="w-full mt-6"

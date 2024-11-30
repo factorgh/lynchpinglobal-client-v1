@@ -12,7 +12,16 @@ const BASE_URL =
 
 // Define a service using a base URL and expected endpoints
 export const baseApi = createApi({
-  tagTypes: ["Rental", "Investment", "Loan", "Assets"],
+  tagTypes: [
+    "Rental",
+    "Investment",
+    "Loan",
+    "Assets",
+    "AddOn",
+    "AddOff",
+    "Logs",
+    "Notifications",
+  ],
   reducerPath: "baseApi",
   baseQuery: fetchBaseQuery({
     baseUrl: BASE_URL,

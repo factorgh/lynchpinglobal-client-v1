@@ -1,5 +1,4 @@
 "use client";
-import BulkImage from "@/app/(components)/bulkImage";
 import DotLoader from "@/app/(components)/dot-loader";
 import InvestmentDetailDrawer from "@/app/(components)/investemnt_drawer";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
@@ -29,6 +28,7 @@ import {
   Row,
   Select,
   Table,
+  Upload,
 } from "antd";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -58,6 +58,19 @@ const WealthTable = () => {
   console.log(selectedFiles);
   const [isAddOnDrawerVisible, setIsAddOnDrawerVisible] = useState(false);
   const [isAddOffDrawerVisible, setIsAddOffDrawerVisible] = useState(false);
+  const [isActive, setIsActive] = useState(false);
+  const [fileCategories, setFileCategories] = useState({
+    certificate: [],
+    partnerForm: [],
+    checklist: [],
+    mandate: [],
+  });
+
+  const onChange = (checked: boolean) => {
+    console.log(`switch to ${checked}`);
+    setIsActive(checked);
+    // Send request to backend for update
+  };
 
   const showAddOnDrawer = () => {
     setIsAddOnDrawerVisible(true);
@@ -69,10 +82,12 @@ const WealthTable = () => {
 
   const closeAddOnDrawer = () => {
     setIsAddOnDrawerVisible(false);
+    form.resetFields(); // Reset the form
   };
 
   const closeAddOffDrawer = () => {
     setIsAddOffDrawerVisible(false);
+    form.resetFields(); // Reset the form
   };
 
   const showInvestmentDetailsDrawer = (investment: any) => {
@@ -126,8 +141,11 @@ const WealthTable = () => {
     </Menu>
   );
 
-  const handleFileListChange = (fileList: any[]) => {
-    setSelectedFiles(fileList);
+  const handleFileChange = (category: string, fileList: any[]) => {
+    setFileCategories((prev) => ({
+      ...prev,
+      [category]: fileList,
+    }));
   };
 
   const handleCloseDrawer = () => {
@@ -154,21 +172,61 @@ const WealthTable = () => {
     setIsEditMode(true);
     setEditRentalId(investment.id);
   };
+  const handleUploadToCloudinary = async (
+    categoryFiles: any[]
+  ): Promise<string[]> => {
+    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
+    const uploadPreset = "burchells";
+
+    try {
+      const uploadPromises = categoryFiles.map((file) => {
+        const formData = new FormData();
+        formData.append("file", file.originFileObj);
+        formData.append("upload_preset", uploadPreset);
+
+        return fetch(cloudinaryUrl, {
+          method: "POST",
+          body: formData,
+        }).then((res) => {
+          if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
+          return res.json();
+        });
+      });
+
+      const uploadResults = await Promise.all(uploadPromises);
+      return uploadResults.map((result) => result.secure_url);
+    } catch (error) {
+      console.error("File upload error:", error);
+      return [];
+    }
+  };
+
   const handleFormSubmit = async (values: any) => {
     try {
       if (isAddOnDrawerVisible) {
-        // Handle Add On submission
+        console.log("Add On submitted", values);
+        closeAddOnDrawer();
+        form.resetFields(); // Reset form fiel
         console.log("Add On submitted", values);
       } else if (isAddOffDrawerVisible) {
         // Handle Add Off submission
         console.log("Add Off submitted", values);
       } else {
         // Handle Investment submission (same logic as before)
+        const uploadedFiles: Record<string, string[]> = {};
+
+        for (const category in fileCategories) {
+          if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
+            uploadedFiles[category as keyof typeof fileCategories] =
+              await handleUploadToCloudinary(
+                fileCategories[category as keyof typeof fileCategories]
+              );
+          }
+        }
+
         const formattedValues = {
           ...values,
-          managementFee: toTwoDecimalPlaces(values.managementFee),
-          performanceYield: toTwoDecimalPlaces(values.performanceYield),
-          principal: toTwoDecimalPlaces(values.principal),
+          files: uploadedFiles,
         };
 
         if (isEditMode) {
@@ -293,7 +351,7 @@ const WealthTable = () => {
   ];
 
   return (
-    <>
+    <div className="mt-7">
       <Table
         pagination={{
           pageSize: 10,
@@ -459,12 +517,28 @@ const WealthTable = () => {
               </Form.Item>
             </Col>
           </Row>
-
           <Row gutter={16}>
-            {/* File Upload */}
-            <BulkImage onFileListChange={handleFileListChange} />
+            {["certificate", "partnerForm", "checklist", "mandate"].map(
+              (category) => (
+                <Col key={category} span={6}>
+                  <Form.Item label={`Upload ${category}`}>
+                    <Upload
+                      listType="picture-card"
+                      fileList={
+                        fileCategories[category as keyof typeof fileCategories]
+                      }
+                      onChange={({ fileList }) =>
+                        handleFileChange(category, fileList)
+                      }
+                      beforeUpload={() => false} // Disable auto-upload
+                    >
+                      <Button type="dashed">Upload</Button>
+                    </Upload>
+                  </Form.Item>
+                </Col>
+              )
+            )}
           </Row>
-
           <Form.Item>
             {isLoading ? (
               <Button
@@ -501,18 +575,33 @@ const WealthTable = () => {
         onClose={closeAddOnDrawer}
         open={isAddOnDrawerVisible}
       >
-        <Form
-          form={form}
-          onFinish={handleFormSubmit}
-          layout="vertical"
-          hideRequiredMark
-        >
+        <Form form={form} onFinish={handleFormSubmit} layout="vertical">
           <Form.Item
             name="addOn"
             label="Add On Amount"
             rules={[{ required: true, message: "Please enter an add-on" }]}
           >
-            <Input placeholder="Enter add-on details" />
+            <Input placeholder="Enter add-on amount" />
+          </Form.Item>
+
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: "Please select a status" }]}
+          >
+            <Select
+              placeholder="Select a status"
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              options={["active", "inactive", "finalized"].map((status) => ({
+                value: status,
+                label: status,
+              }))}
+            />
           </Form.Item>
 
           <Form.Item>
@@ -535,12 +624,7 @@ const WealthTable = () => {
         onClose={closeAddOffDrawer}
         open={isAddOffDrawerVisible}
       >
-        <Form
-          form={form}
-          onFinish={handleFormSubmit}
-          layout="vertical"
-          hideRequiredMark
-        >
+        <Form form={form} onFinish={handleFormSubmit} layout="vertical">
           <Form.Item
             name="addOff"
             label="Add Off Amount"
@@ -548,32 +632,51 @@ const WealthTable = () => {
           >
             <Input placeholder="Enter add-off details" />
           </Form.Item>
-          <Col span={12}>
-            <Form.Item
-              name="guaranteedRate"
-              label="Guaranteed Rate"
-              rules={[
-                {
-                  required: true,
-                  message: "Please select a guaranteed rate",
-                },
-              ]}
-            >
-              <Select
-                placeholder="Select guaranteed rate"
-                showSearch
-                filterOption={(input, option) =>
-                  (option?.label ?? "")
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
-                options={Array.from({ length: 100 }, (_, i) => ({
-                  value: i + 1,
-                  label: `${i + 1}%`,
-                }))}
-              />
-            </Form.Item>
-          </Col>
+
+          <Form.Item
+            name="guaranteedRate"
+            label="Guaranteed Rate"
+            rules={[
+              {
+                required: true,
+                message: "Please select a guaranteed rate",
+              },
+            ]}
+          >
+            <Select
+              placeholder="Select guaranteed rate"
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              options={Array.from({ length: 100 }, (_, i) => ({
+                value: i + 1,
+                label: `${i + 1}%`,
+              }))}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="currency"
+            label="Currency"
+            rules={[{ required: true, message: "Please select a currency" }]}
+          >
+            <Select
+              placeholder="Select a currency"
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              options={["USD", "GHC"].map((currency) => ({
+                value: currency,
+                label: currency,
+              }))}
+            />
+          </Form.Item>
 
           <Form.Item>
             <Button
@@ -587,7 +690,7 @@ const WealthTable = () => {
           </Form.Item>
         </Form>
       </Drawer>
-    </>
+    </div>
   );
 };
 

@@ -100,7 +100,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-[url('/p1.jpeg')] pt-7">
       {/* Sidebar */}
       {/* <div className="fixed left-0 top-0 h-full w-64 bg-white border-r p-4">
         <div className="flex items-center space-x-2 mb-8">
@@ -128,7 +128,7 @@ export default function DashboardPage() {
       </div> */}
 
       {/* Main Content */}
-      <div className="ml-64 px-8">
+      <div className="ml-64 px-8 ">
         {/* Header */}
         {/* <div className="flex items-center justify-between mb-8">
           <div>

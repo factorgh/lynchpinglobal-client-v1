@@ -1,5 +1,8 @@
 "use client";
 
+import { BellAlertIcon } from "@heroicons/react/24/outline";
+import { Avatar, Badge } from "antd";
+import { Inbox } from "lucide-react";
 import moment from "moment";
 
 const Navbar = () => {
@@ -8,14 +11,14 @@ const Navbar = () => {
 
   // Date formatter
   const getCurrentFormattedDate = () => {
-    const currentDate = moment(); // Fetch current date
-    const dayWithOrdinal = currentDate.format("Do").toUpperCase(); // Get day with ordinal suffix in uppercase
-    const monthAndYear = currentDate.format("MMMM, YYYY"); // Get full month and year
-    return `${dayWithOrdinal}, ${monthAndYear}`; // Combine and return formatted date
+    const currentDate = moment();
+    const dayWithOrdinal = currentDate.format("Do").toUpperCase();
+    const monthAndYear = currentDate.format("MMMM, YYYY");
+    return `${dayWithOrdinal}, ${monthAndYear}`;
   };
 
   return (
-    <div className="flex justify-end items-center w-full mb-7 border-b border-gray-200 p-2 ">
+    <div className="flex justify-end items-center w-full  border-b border-gray-200 p-2 ">
       {/* LEFT SIDE */}
 
       {/* RIGHT SIDE */}
@@ -29,7 +32,17 @@ const Navbar = () => {
         </div>
 
         <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
-        {getCurrentFormattedDate()}
+        <div className="flex items-center justify-center gap-5">
+          <Badge count={5}>
+            <Avatar
+              className="bg-gray-100"
+              icon={<BellAlertIcon fontSize={15} color="black" />}
+              shape="circle"
+              size="small"
+            />
+          </Badge>
+          {user.role !== "admin" && <Inbox />}
+        </div>
         {/* Profile Image and Link */}
       </div>
     </div>

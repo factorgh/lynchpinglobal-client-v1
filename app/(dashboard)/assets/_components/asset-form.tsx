@@ -1,6 +1,5 @@
 "use client";
 
-import BulkImage from "@/app/(components)/bulkImage";
 import { useCreateAssetsMutation } from "@/services/assets";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import {
@@ -27,24 +26,26 @@ const AssetForm: React.FC = () => {
   const [form] = Form.useForm();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
 
-  // File list change handler
-  const handleFileListChange = (fileList: any[]) => {
-    setSelectedFiles(fileList);
-  };
+  const [fileCategories, setFileCategories] = useState({
+    certificate: [],
+    partnerForm: [],
+    checklist: [],
+    mandate: [],
+  });
 
-  // Function to upload files to Cloudinary
-  const handleUploadToCloudinary = async (): Promise<string[]> => {
-    if (selectedFiles.length === 0) {
-      toast.error("No files selected for upload.");
-      return [];
-    }
+  // // File list change handler
+  // const handleFileListChange = (fileList: any[]) => {
+  //   setSelectedFiles(fileList);
+  // };
 
+  const handleUploadToCloudinary = async (
+    categoryFiles: any[]
+  ): Promise<string[]> => {
     const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
     const uploadPreset = "burchells";
 
     try {
-      // Upload all files concurrently
-      const uploadPromises = selectedFiles.map((file) => {
+      const uploadPromises = categoryFiles.map((file) => {
         const formData = new FormData();
         formData.append("file", file.originFileObj);
         formData.append("upload_preset", uploadPreset);
@@ -59,27 +60,36 @@ const AssetForm: React.FC = () => {
       });
 
       const uploadResults = await Promise.all(uploadPromises);
-
-      const uploadedUrls = uploadResults.map((result) => result.secure_url);
-
-      toast.success("All files uploaded successfully!");
-      return uploadedUrls;
+      return uploadResults.map((result) => result.secure_url);
     } catch (error) {
       console.error("File upload error:", error);
-      toast.error("File upload failed.");
       return [];
     }
+  };
+  const handleFileChange = (category: string, fileList: any[]) => {
+    setFileCategories((prev) => ({
+      ...prev,
+      [category]: fileList,
+    }));
   };
 
   // Form submission handler
   const handleFormSubmit = async (values: any) => {
     // Upload files and get URLs
-    const uploadedUrls = await handleUploadToCloudinary();
+    const uploadedFiles: Record<string, string[]> = {};
 
-    // Format form values with uploaded URLs
+    for (const category in fileCategories) {
+      if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
+        uploadedFiles[category as keyof typeof fileCategories] =
+          await handleUploadToCloudinary(
+            fileCategories[category as keyof typeof fileCategories]
+          );
+      }
+    }
+
     const formattedValues = {
       ...values,
-      pdf: uploadedUrls,
+      files: uploadedFiles,
     };
 
     try {
@@ -239,7 +249,7 @@ const AssetForm: React.FC = () => {
                 rules={[{ required: true, message: "Please select a quater" }]}
               >
                 <Select
-                  placeholder="Select management fee"
+                  placeholder="Select a quarter"
                   showSearch
                   filterOption={(input, option) =>
                     (option?.label ?? "")
@@ -258,16 +268,30 @@ const AssetForm: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="asset_class"
-                label="Asset Class"
+                name="time"
+                label="Time course"
                 rules={[
-                  { required: true, message: "Please enter the principal" },
+                  { required: true, message: "Please select a time course" },
                 ]}
               >
-                <InputNumber
-                  placeholder="Enter asset class"
-                  style={{ width: "100%" }}
-                  min={1}
+                <Select
+                  placeholder="Select a time course"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  options={[
+                    "Weekly",
+                    "Monthly",
+                    "Quarterly",
+                    "Biannually",
+                    "Annually",
+                  ].map((quater) => ({
+                    value: quater,
+                    label: quater,
+                  }))}
                 />
               </Form.Item>
             </Col>
@@ -290,9 +314,28 @@ const AssetForm: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
+
           <Row gutter={16}>
-            {/* File Upload */}
-            <BulkImage onFileListChange={handleFileListChange} />
+            {["certificate", "partnerForm", "checklist", "mandate"].map(
+              (category) => (
+                <Col key={category} span={6}>
+                  <Form.Item label={`Upload ${category}`}>
+                    <Upload
+                      listType="picture-card"
+                      fileList={
+                        fileCategories[category as keyof typeof fileCategories]
+                      }
+                      onChange={({ fileList }) =>
+                        handleFileChange(category, fileList)
+                      }
+                      beforeUpload={() => false} // Disable auto-upload
+                    >
+                      <Button type="dashed">Upload</Button>
+                    </Upload>
+                  </Form.Item>
+                </Col>
+              )
+            )}
           </Row>
 
           <Form.Item>

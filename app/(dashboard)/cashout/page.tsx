@@ -1,6 +1,6 @@
 "use client";
 import { useGetUsersQuery } from "@/services/auth";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, SmileOutlined } from "@ant-design/icons";
 import {
   Button,
   Card,
@@ -29,7 +29,7 @@ interface RecordType {
   amount: number;
   date: string;
   status: string;
-  userName: string; // Added customer name as userName
+  userName: string;
 }
 
 interface DataSourceType {
@@ -52,7 +52,7 @@ const sampleWithdrawals: RecordType[] = [
     userName: "Jane Smith", // Example name
     amount: 2000,
     date: "2024-11-15",
-    status: "Completed",
+    status: "Approved",
   },
 ];
 
@@ -63,7 +63,7 @@ const samplePayments: RecordType[] = [
     userName: "John Doe", // Example name
     amount: 500,
     date: "2024-11-10",
-    status: "Processed",
+    status: "Processing",
   },
   {
     key: 2,
@@ -124,7 +124,7 @@ const CashOutPage: React.FC = () => {
       id: `user_${dataSource[activeTab].length + 1}`, // Assuming this is an auto-incremented ID
       key: dataSource[activeTab].length + 1,
       date: values.date,
-      status: values.status === "true" ? "Completed" : "Pending",
+      status: values.status === "true" ? "Approved" : "Pending",
       amount: Number(values.amount),
       userName:
         users.find((user: any) => user._id === values.userId)?.name ||
@@ -146,11 +146,11 @@ const CashOutPage: React.FC = () => {
     switch (status) {
       case "Pending":
         return <Tag color="orange">Pending</Tag>;
-      case "Completed":
-        return <Tag color="green">Completed</Tag>;
+      case "Approved":
+        return <Tag color="green">Approved</Tag>;
       case "Cancelled":
         return <Tag color="red">Cancelled</Tag>;
-      case "Processed":
+      case "Processing":
         return <Tag color="blue">Processed</Tag>;
       default:
         return <Tag>{status}</Tag>;
@@ -169,9 +169,14 @@ const CashOutPage: React.FC = () => {
       key: "amount",
     },
     {
-      title: "Date",
-      dataIndex: "date",
-      key: "date",
+      title: "Request Date",
+      dataIndex: "requestDate",
+      key: "requestDate",
+    },
+    {
+      title: "Approval Date",
+      dataIndex: "approvalDate",
+      key: "approvalDate",
     },
     {
       title: "Status",
@@ -196,8 +201,8 @@ const CashOutPage: React.FC = () => {
       label: "Withdrawals",
       children: (
         <>
-          <div className="flex justify-between items-center">
-            <h2>Withdrawal Management</h2>
+          <div className="flex justify-between items-center text-white">
+            <h2 className="text-white">Withdrawal Management</h2>
             <Button
               type="primary"
               onClick={() => showDrawer()}
@@ -222,7 +227,7 @@ const CashOutPage: React.FC = () => {
       children: (
         <>
           <div className="flex justify-between items-center">
-            <h2>Payments Management</h2>
+            <h2 className="text-white">Payments Management</h2>
             <Button
               type="primary"
               onClick={() => showDrawer()}
@@ -236,6 +241,16 @@ const CashOutPage: React.FC = () => {
               columns={columns}
               dataSource={dataSource.payments}
               rowKey="id"
+              locale={{
+                emptyText: (
+                  <div style={{ textAlign: "center" }}>
+                    <SmileOutlined style={{ fontSize: 35, color: "#1890ff" }} />
+                    <p style={{ fontSize: 20, color: "#1890ff" }}>
+                      No data available
+                    </p>
+                  </div>
+                ),
+              }}
             />
           </Card>
         </>
@@ -247,6 +262,7 @@ const CashOutPage: React.FC = () => {
     <div>
       <Wrapper>
         <Tabs
+          className="mt-7"
           activeKey={activeTab}
           onChange={(key) => setActiveTab(key as "withdrawals" | "payments")}
           items={tabItems}
@@ -255,9 +271,7 @@ const CashOutPage: React.FC = () => {
 
       {/* Drawer */}
       <Drawer
-        title={`Create ${
-          activeTab === "withdrawals" ? "Withdrawal" : "Payment"
-        }`}
+        title={` ${activeTab === "withdrawals" ? "Withdrawal" : "Payment"}`}
         width={400}
         visible={isDrawerVisible}
         onClose={onCloseDrawer}
@@ -305,14 +319,28 @@ const CashOutPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label="Date"
-            name="date"
+            label="Request Date"
+            name="requestDate"
             rules={[
               {
                 required: true,
                 message: `Please select the ${
                   activeTab === "withdrawals" ? "withdrawal" : "payment"
-                } date!`,
+                } request date!`,
+              },
+            ]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item
+            label="Approval Date"
+            name="approvalDate"
+            rules={[
+              {
+                required: true,
+                message: `Please select the ${
+                  activeTab === "withdrawals" ? "withdrawal" : "payment"
+                } approval date!`,
               },
             ]}
           >
@@ -333,8 +361,9 @@ const CashOutPage: React.FC = () => {
           >
             <Select>
               <Select.Option value="Pending">Pending</Select.Option>
-              <Select.Option value="Completed">Completed</Select.Option>
-              <Select.Option value="Processed">Processed</Select.Option>
+              <Select.Option value="Approved">Approved</Select.Option>
+              <Select.Option value="Processed">Processing</Select.Option>
+              <Select.Option value="Cancelled">Cancelled</Select.Option>
             </Select>
           </Form.Item>
 

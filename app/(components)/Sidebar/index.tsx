@@ -99,7 +99,7 @@ const Sidebar = () => {
             <SidebarLink
               href="/activity"
               icon={Activity}
-              label="Activity Monitor"
+              label="Activity Log"
             />
           </>
         )}
@@ -108,9 +108,9 @@ const Sidebar = () => {
       </div>
 
       {/* FOOTER */}
-      <div className="mb-10 text-center h-full flex-col justify-end">
+      {/* <div className="mb-10 text-center h-full flex-col justify-end">
         <p className="text-xs text-gray-500">&copy; 2024 Factorgh</p>
-      </div>
+      </div> */}
     </div>
   );
 };

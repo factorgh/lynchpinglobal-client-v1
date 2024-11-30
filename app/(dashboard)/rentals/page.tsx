@@ -9,6 +9,7 @@ const Rentals = () => {
   return (
     <Wrapper>
       <Tabs
+        className="mt-7"
         defaultActiveKey="1"
         items={[
           {

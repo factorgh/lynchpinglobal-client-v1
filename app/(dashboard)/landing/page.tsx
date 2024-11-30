@@ -1,30 +1,26 @@
 "use client";
 
-import DashboardItemCustomer from "@/app/(components)/dashboardItemCustomer";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
-import { Pagination, Table } from "antd";
 import {
-  ArrowDownCircle,
-  Briefcase,
-  CreditCard,
-  DollarSign,
-  FileText,
-  Home,
-  TrendingUp,
-} from "lucide-react";
+  DollarOutlined,
+  FallOutlined,
+  PayCircleOutlined,
+  PieChartOutlined,
+  RiseOutlined,
+  StockOutlined,
+} from "@ant-design/icons";
+import { Carousel, Divider, Pagination, Table } from "antd";
 import { useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
+import AssetsUnder from "./_components/assetsUnder";
+import CustomCard from "./_components/customCard";
+import CustomList from "./_components/customList";
+import LandingCard from "./_components/landingCard";
 
 const dataSource = [
   {
-    key: "1", // Use key as the unique identifier
+    key: "1",
     client: "John Anderson",
     description: "Tesla Model 3",
     amount: "$850.00",
@@ -43,84 +39,124 @@ const dataSource = [
 
 const CustomerLanding = () => {
   return (
-    <div>
+    <div className="  ">
       <Wrapper>
-        <div className="grid grid-cols-4 gap-4">
-          <DashboardItemCustomer
-            item={{
-              title: "Principal",
-              number: 80000,
-              change: 10,
-              icon: <DollarSign />, // Money-related icon
-            }}
-          />
-          <DashboardItemCustomer
-            item={{
-              title: "Total Accrued Interest",
-              number: 2500.56,
-              change: 10,
-              icon: <TrendingUp />, // Interest or growth-related icon
-            }}
-          />
-          <DashboardItemCustomer
-            item={{
-              title: "Add Ons",
-              number: 7000,
-              change: 10,
-              icon: <Briefcase />, // Add-ons or portfolio-related icon
-            }}
-          />
-          <DashboardItemCustomer
-            item={{
-              title: "Assets",
-              number: 123,
-              change: 10,
-              icon: <Home />,
-            }}
-          />
-          <DashboardItemCustomer
-            item={{
-              title: "Loans",
-              number: 123,
-              change: 10,
-              icon: <FileText />,
-            }}
-          />
-          <DashboardItemCustomer
-            item={{
-              title: "Rentals",
-              number: 123,
-              change: 10,
-              icon: <Home />,
-            }}
-          />
-          <DashboardItemCustomer
-            item={{
-              title: "Accrued Addon Interest",
-              number: 300.25,
-              change: 10,
-              icon: <CreditCard />,
-            }}
-          />
-          <DashboardItemCustomer
-            item={{
-              title: "Withdrawals",
-              number: 300.25,
-              change: 10,
-              icon: <ArrowDownCircle />,
-            }}
-          />
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-5">
+          {/* first card */}
+          <Card className="p-5 flex flex-col gap-8  justify-start ">
+            <div className="flex justify-between items-center ">
+              <h3 className="mt-6 text-md">TOTAL BALANCE</h3>
+              <PayCircleOutlined className="text-2xl" />
+            </div>
+            <p className="text-4xl font-bold">$10,000</p>
+            <p>Last updated: 2024-11-08</p>
+            <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full "></div>
+          </Card>
 
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>Latest withdrawal transactions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PaginatedTable data={dataSource} />
-          </CardContent>
-        </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2">
+            <LandingCard
+              icon={<DollarOutlined />}
+              title="PRINCIPAL"
+              amount="$24,000"
+            />
+            <LandingCard
+              icon={<StockOutlined />}
+              title="ACCRUED INTEREST"
+              amount="15%"
+            />
+            <LandingCard
+              icon={<FallOutlined />}
+              title="ADD ONS"
+              amount="$8,000"
+            />
+            <LandingCard
+              icon={<PieChartOutlined />}
+              title="ADD ON INTEREST"
+              amount="$16,000"
+            />
+          </div>
+          <Card className="bg-[url('/p3.jpeg')] border-none shadow-md ">
+            <Carousel autoplay>
+              <div className="h-[100%]">
+                <h3
+                  style={{
+                    textAlign: "center",
+                    padding: "50px",
+                    background: "#364d79",
+                    color: "#fff",
+                  }}
+                >
+                  Slide 1
+                </h3>
+              </div>
+              <div>
+                <h3
+                  style={{
+                    textAlign: "center",
+                    padding: "50px",
+                    background: "#64c2a6",
+                    color: "#fff",
+                  }}
+                >
+                  Slide 2
+                </h3>
+              </div>
+              <div>
+                <h3
+                  style={{
+                    textAlign: "center",
+                    padding: "50px",
+                    background: "#f0a76d",
+                    color: "#fff",
+                  }}
+                >
+                  Slide 3
+                </h3>
+              </div>
+              <div>
+                <h3
+                  style={{
+                    textAlign: "center",
+                    padding: "50px",
+                    background: "#9b4d96",
+                    color: "#fff",
+                  }}
+                >
+                  Slide 4
+                </h3>
+              </div>
+            </Carousel>
+          </Card>
+        </div>
+        <Divider className="bg-white" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+            <CustomCard
+              icon={<RiseOutlined />}
+              title="MANAGEMENT FEE"
+              amount="15%"
+            />
+            <CustomCard
+              icon={<RiseOutlined />}
+              title="PERFORMANCE YIELD"
+              amount="15%"
+            />
+            <CustomCard icon={<RiseOutlined />} title="ADD OFFS" amount="15%" />
+            <CustomCard
+              icon={<RiseOutlined />}
+              title="OPERATIONAL COST"
+              amount="15%"
+            />
+            <CustomCard icon={<RiseOutlined />} title="Growth" amount="15%" />
+            <CustomCard icon={<RiseOutlined />} title="Growth" amount="15%" />
+          </div>
+          <Card className="p-3 ">
+            <AssetsUnder />
+          </Card>
+          <Card className="p-3">
+            <CustomList />
+          </Card>
+        </div>
       </Wrapper>
     </div>
   );

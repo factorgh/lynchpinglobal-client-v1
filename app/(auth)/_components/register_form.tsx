@@ -43,14 +43,12 @@ const RegisterForm = () => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("roles", JSON.stringify(user.role));
-      // Set Role in the context
-      // setRoles(user.role);
 
-      // Redirect to dashboard
+      // Redirect based on user role
       if (user.role === "admin") {
-        router.replace("/dashboard"); // Redirect to admin page
+        router.replace("/dashboard");
       } else if (user.role === "user") {
-        router.replace("/landing"); // Redirect to user page
+        router.replace("/landing");
       }
 
       toast.success("Registration successful");
@@ -64,8 +62,16 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-8">
+    <div
+      className="min-h-screen bg-cover bg-center flex items-center justify-center"
+      style={{
+        backgroundImage: "url(/p4.jpeg)", // Replace with the path to your image
+      }}
+    >
+      {/* Optional: Overlay for better visibility of the form */}
+      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+
+      <div className="relative z-10 w-full max-w-md bg-gray-50 shadow-lg rounded-lg p-8">
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
           Register to FinVest
         </h2>

@@ -7,7 +7,11 @@ const LoginForm = dynamic(() => import("../_components/login_form"), {
 });
 
 const LoginPage = () => {
-  return <LoginForm />;
+  return (
+    <div>
+      <LoginForm />;
+    </div>
+  );
 };
 
 export default LoginPage;

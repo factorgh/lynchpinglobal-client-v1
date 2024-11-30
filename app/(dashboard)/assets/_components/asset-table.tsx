@@ -10,6 +10,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   SearchOutlined,
+  SmileOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -152,30 +153,30 @@ import Swal from "sweetalert2";
     const columns = [
       {
         title: "Asset Class",
-        dataIndex: "asset_class",
-        key: "asset_class",
-        ...getColumnSearchProps("asset_class"),
+        dataIndex: "assetClass",
+        key: "assetClass",
+        ...getColumnSearchProps("assetClass"),
       },
       {
         title: "Asset Designation",
-        dataIndex: "asset_designation",
-        key: "asset_designation",
-        ...getColumnSearchProps("asset_designation"),
-        render: (value: any) => toTwoDecimalPlaces(value), // Format asset_designation
+        dataIndex: "assetDesignation",
+        key: "assetDesignation",
+        ...getColumnSearchProps("assetDesignation"),
+        render: (value: any) => toTwoDecimalPlaces(value), // Format assetDesignation
       },
 
       {
         title: "Accrued Interest",
-        dataIndex: "accrued_interest",
-        key: "accrued_interest",
-        ...getColumnSearchProps("accrued_interest"),
+        dataIndex: "accruedInterest",
+        key: "accruedInterest",
+        ...getColumnSearchProps("accruedInterest"),
         render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
       },
       {
         title: "Management Fee",
-        dataIndex: "management_fee",
-        key: "management_fee",
-        ...getColumnSearchProps("management_fee"),
+        dataIndex: "managementFee",
+        key: "managementFee",
+        ...getColumnSearchProps("managementFee"),
         render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
       },
       {
@@ -187,9 +188,9 @@ import Swal from "sweetalert2";
       },
       {
         title: "Maturity Date",
-        dataIndex: "maturity_date",
-        key: "maturity_date",
-        ...getColumnSearchProps("maturity_date"),
+        dataIndex: "maturityDate",
+        key: "maturityDate",
+        ...getColumnSearchProps("maturityDate"),
         render: (value: any) => `$${toTwoDecimalPlaces(value)}`, // Format with currency
       },
       {
@@ -222,7 +223,17 @@ import Swal from "sweetalert2";
           dataSource={assetsData?.data.data}
           // scroll={{ x: 1000 }}
           className="border border-slate-200 rounded-md"
-          rowKey="id" // Correct rowKey
+          rowKey="id"
+          locale={{
+            emptyText: (
+              <div style={{ textAlign: "center" }}>
+                <SmileOutlined style={{ fontSize: 35, color: "#1890ff" }} />
+                <p style={{ fontSize: 20, color: "#1890ff" }}>
+                  No data available
+                </p>
+              </div>
+            ),
+          }}
         />
         <Drawer
           title="Edit Asset"
@@ -241,7 +252,7 @@ import Swal from "sweetalert2";
               {/* User Selection */}
               <Col span={12}>
                 <Form.Item
-                  name="asset_class"
+                  name="assetClass"
                   label="Asset Class"
                   rules={[
                     { required: true, message: "Please enter the principal" },
@@ -257,7 +268,7 @@ import Swal from "sweetalert2";
               {/* Principal */}
               <Col span={12}>
                 <Form.Item
-                  name="asset_designation"
+                  name="assetDesignation"
                   label="Asset Designation"
                   rules={[
                     {
@@ -299,7 +310,7 @@ import Swal from "sweetalert2";
 
               <Col span={12}>
                 <Form.Item
-                  name="maturity_date"
+                  name="maturityDate"
                   label="Maturity Date"
                   rules={[
                     {
@@ -350,7 +361,7 @@ import Swal from "sweetalert2";
                   ]}
                 >
                   <Select
-                    placeholder="Select management fee"
+                    placeholder="Select quater"
                     showSearch
                     filterOption={(input, option) =>
                       (option?.label ?? "")
@@ -369,16 +380,30 @@ import Swal from "sweetalert2";
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  name="asset_class"
-                  label="Asset Class"
+                  name="time"
+                  label="Time course"
                   rules={[
-                    { required: true, message: "Please enter the principal" },
+                    { required: true, message: "Please select a time course" },
                   ]}
                 >
-                  <InputNumber
-                    placeholder="Enter asset class"
-                    style={{ width: "100%" }}
-                    min={1}
+                  <Select
+                    placeholder="Select a time course"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={[
+                      "Weekly",
+                      "Monthly",
+                      "Quarterly",
+                      "Biannually",
+                      "Annually",
+                    ].map((quater) => ({
+                      value: quater,
+                      label: quater,
+                    }))}
                   />
                 </Form.Item>
               </Col>

@@ -1,44 +1,57 @@
 "use client";
 
-import BulkImage from "@/app/(components)/bulkImage";
-import DotLoader from "@/app/(components)/dot-loader";
 import { useGetUsersQuery } from "@/services/auth";
 import { useCreateInvestmentMutation } from "@/services/investment";
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Col, Drawer, Form, InputNumber, Row, Select } from "antd";
+import {
+  Button,
+  Col,
+  Drawer,
+  Form,
+  InputNumber,
+  Row,
+  Select,
+  Upload,
+} from "antd";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+
 const WealthForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [createInvestment, { isLoading }] = useCreateInvestmentMutation();
   const { data, isFetching } = useGetUsersQuery(null);
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
-  const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+
+  const [fileCategories, setFileCategories] = useState({
+    certificate: [],
+    partnerForm: [],
+    checklist: [],
+    mandate: [],
+  });
 
   // Update user list when data is fetched
   useEffect(() => {
     setUsers(data?.allUsers || []);
   }, [data]);
 
-  // File list change handler
-  const handleFileListChange = (fileList: any[]) => {
-    setSelectedFiles(fileList);
+  // Handle file changes for each category
+  const handleFileChange = (category: string, fileList: any[]) => {
+    setFileCategories((prev) => ({
+      ...prev,
+      [category]: fileList,
+    }));
   };
 
   // Function to upload files to Cloudinary
-  const handleUploadToCloudinary = async (): Promise<string[]> => {
-    if (selectedFiles.length === 0) {
-      toast.error("No files selected for upload.");
-      return [];
-    }
-
+  const handleUploadToCloudinary = async (
+    categoryFiles: any[]
+  ): Promise<string[]> => {
     const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
     const uploadPreset = "burchells";
 
     try {
-      // Upload all files concurrently
-      const uploadPromises = selectedFiles.map((file) => {
+      const uploadPromises = categoryFiles.map((file) => {
         const formData = new FormData();
         formData.append("file", file.originFileObj);
         formData.append("upload_preset", uploadPreset);
@@ -53,27 +66,29 @@ const WealthForm: React.FC = () => {
       });
 
       const uploadResults = await Promise.all(uploadPromises);
-
-      const uploadedUrls = uploadResults.map((result) => result.secure_url);
-
-      toast.success("All files uploaded successfully!");
-      return uploadedUrls;
+      return uploadResults.map((result) => result.secure_url);
     } catch (error) {
       console.error("File upload error:", error);
-      toast.error("File upload failed.");
       return [];
     }
   };
 
   // Form submission handler
   const handleFormSubmit = async (values: any) => {
-    // Upload files and get URLs
-    const uploadedUrls = await handleUploadToCloudinary();
+    const uploadedFiles: Record<string, string[]> = {};
 
-    // Format form values with uploaded URLs
+    for (const category in fileCategories) {
+      if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
+        uploadedFiles[category as keyof typeof fileCategories] =
+          await handleUploadToCloudinary(
+            fileCategories[category as keyof typeof fileCategories]
+          );
+      }
+    }
+
     const formattedValues = {
       ...values,
-      pdf: uploadedUrls,
+      files: uploadedFiles,
     };
 
     try {
@@ -109,8 +124,8 @@ const WealthForm: React.FC = () => {
           layout="vertical"
           hideRequiredMark
         >
+          {/* Existing form fields */}
           <Row gutter={16}>
-            {/* User Selection */}
             <Col span={12}>
               <Form.Item
                 name="userId"
@@ -133,7 +148,6 @@ const WealthForm: React.FC = () => {
               </Form.Item>
             </Col>
 
-            {/* Principal */}
             <Col span={12}>
               <Form.Item
                 name="principal"
@@ -152,7 +166,6 @@ const WealthForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            {/* Performance Yield */}
             <Col span={12}>
               <Form.Item
                 name="performanceYield"
@@ -171,7 +184,6 @@ const WealthForm: React.FC = () => {
               </Form.Item>
             </Col>
 
-            {/* Guaranteed Rate */}
             <Col span={12}>
               <Form.Item
                 name="guaranteedRate"
@@ -185,12 +197,6 @@ const WealthForm: React.FC = () => {
               >
                 <Select
                   placeholder="Select guaranteed rate"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
                   options={Array.from({ length: 100 }, (_, i) => ({
                     value: i + 1,
                     label: `${i + 1}%`,
@@ -201,7 +207,6 @@ const WealthForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            {/* Management Fee */}
             <Col span={12}>
               <Form.Item
                 name="managementFee"
@@ -212,12 +217,6 @@ const WealthForm: React.FC = () => {
               >
                 <Select
                   placeholder="Select management fee"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
                   options={Array.from({ length: 100 }, (_, i) => ({
                     value: i + 1,
                     label: `${i + 1}%`,
@@ -225,54 +224,76 @@ const WealthForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
+
             <Col span={12}>
               <Form.Item
                 name="quarter"
-                label="Quater"
-                rules={[{ required: true, message: "Please select a quater" }]}
+                label="Quarter"
+                rules={[{ required: true, message: "Please select a quarter" }]}
               >
                 <Select
-                  placeholder="Select management fee"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={["Q1", "Q2", "Q3", "Q4"].map((quater) => ({
-                    value: quater,
-                    label: quater,
+                  placeholder="Select quarter"
+                  options={["Q1", "Q2", "Q3", "Q4"].map((quarter) => ({
+                    value: quarter,
+                    label: quarter,
                   }))}
                 />
               </Form.Item>
             </Col>
           </Row>
+          <Row>
+            <Col span={24}>
+              <Form.Item
+                name="operationalCost"
+                label="Operational Cost"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter the operational cost",
+                  },
+                ]}
+              >
+                <InputNumber
+                  placeholder="Enter operational cost"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
 
+          {/* File upload sections */}
           <Row gutter={16}>
-            {/* File Upload */}
-            <BulkImage onFileListChange={handleFileListChange} />
+            {["certificate", "partnerForm", "checklist", "mandate"].map(
+              (category) => (
+                <Col key={category} span={6}>
+                  <Form.Item label={`Upload ${category}`}>
+                    <Upload
+                      listType="picture-card"
+                      fileList={
+                        fileCategories[category as keyof typeof fileCategories]
+                      }
+                      onChange={({ fileList }) =>
+                        handleFileChange(category, fileList)
+                      }
+                      beforeUpload={() => false} // Disable auto-upload
+                    >
+                      <Button type="dashed">Upload</Button>
+                    </Upload>
+                  </Form.Item>
+                </Col>
+              )
+            )}
           </Row>
 
           <Form.Item>
-            {isLoading ? (
-              <Button
-                className="w-full mt-6"
-                type="default"
-                htmlType="submit"
-                disabled
-              >
-                <DotLoader />
-              </Button>
-            ) : (
-              <Button
-                className="w-full mt-6"
-                type="primary"
-                htmlType="submit"
-                loading={isLoading}
-              >
-                Submit
-              </Button>
-            )}
+            <Button
+              className="w-full mt-6"
+              type="primary"
+              htmlType="submit"
+              loading={isLoading}
+            >
+              Submit
+            </Button>
           </Form.Item>
         </Form>
       </Drawer>

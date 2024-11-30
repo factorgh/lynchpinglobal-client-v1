@@ -42,3 +42,10 @@ const uploadToCloudinary = async (file: any, uploadPreset: any) => {
   }
   return response.json();
 };
+
+function formatMultipleCurrency(amount: any, currency: any) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+  }).format(amount);
+}
