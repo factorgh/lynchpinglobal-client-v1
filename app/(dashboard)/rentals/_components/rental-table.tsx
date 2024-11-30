@@ -151,6 +151,13 @@ import Swal from "sweetalert2";
 
     const columns = [
       {
+        title: "Customer",
+        dataIndex: "user",
+        key: "userId",
+        ...getColumnSearchProps("userId"),
+        render: (value: any) => value?.name,
+      },
+      {
         title: "Asset Class",
         dataIndex: "asset_class",
         key: "asset_class",
@@ -175,13 +182,6 @@ import Swal from "sweetalert2";
         key: "dueDate",
         ...getColumnSearchProps("dueDate"),
         render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
-      },
-      {
-        title: "Overdue Fee",
-        dataIndex: "overdueFee",
-        key: "overdueFee",
-        ...getColumnSearchProps("overdueFee"),
-        render: (value: any) => `${toTwoDecimalPlaces(value)}%`,
       },
 
       {

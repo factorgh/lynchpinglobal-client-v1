@@ -6,7 +6,7 @@ export interface Rental {}
 // Define the vendor endpoints using crudService
 export const RentalApi = baseApi.injectEndpoints({
   endpoints: (builder) => {
-    const rentalCrud = crudService("/rental");
+    const rentalCrud = crudService("/rentals");
 
     return {
       createRental: builder.mutation({

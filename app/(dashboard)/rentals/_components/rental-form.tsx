@@ -1,7 +1,7 @@
 "use client";
 
 import { useGetUsersQuery } from "@/services/auth";
-import { useCreateInvestmentMutation } from "@/services/investment";
+import { useCreateRentalMutation } from "@/services/rental";
 import { PlusOutlined } from "@ant-design/icons";
 import {
   Button,
@@ -19,7 +19,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 const RentalForm: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const [createInvestment, { isLoading }] = useCreateInvestmentMutation();
+  const [createRental, { isLoading }] = useCreateRentalMutation();
   const { data, isFetching } = useGetUsersQuery(null);
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
@@ -45,6 +45,12 @@ const RentalForm: React.FC = () => {
     }));
   };
 
+  const [uploading, setUploading] = useState({
+    certificate: false,
+    partnerForm: false,
+    checklist: false,
+    mandate: false,
+  });
   // Function to upload files to Cloudinary
   const handleUploadToCloudinary = async (
     categoryFiles: any[]
@@ -78,6 +84,12 @@ const RentalForm: React.FC = () => {
   const handleFormSubmit = async (values: any) => {
     const uploadedFiles: Record<string, string[]> = {};
 
+    setUploading({
+      certificate: true,
+      partnerForm: true,
+      checklist: true,
+      mandate: true,
+    });
     for (const category in fileCategories) {
       if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
         uploadedFiles[category as keyof typeof fileCategories] =
@@ -87,18 +99,27 @@ const RentalForm: React.FC = () => {
       }
     }
 
+    const { certificate, mandate, partnerForm, checklist } = uploadedFiles;
     const formattedValues = {
       ...values,
-      files: uploadedFiles,
+      certificate,
+      mandate,
+      partnerForm,
+      checklist,
     };
-
     try {
-      await createInvestment(formattedValues).unwrap();
+      await createRental(formattedValues).unwrap();
       toast.success("Investment created successfully");
       setOpen(false);
     } catch (error: any) {
       console.error("Error creating investment:", error);
       toast.error(error?.data?.message || "An error occurred");
+      setUploading({
+        certificate: false,
+        partnerForm: false,
+        checklist: false,
+        mandate: false,
+      });
     }
   };
 
@@ -302,7 +323,8 @@ const RentalForm: React.FC = () => {
               className="w-full mt-6"
               type="primary"
               htmlType="submit"
-              loading={isLoading}
+              loading={isLoading || Object.values(uploading).includes(true)}
+              disabled={Object.values(uploading).includes(true)}
             >
               Submit
             </Button>
