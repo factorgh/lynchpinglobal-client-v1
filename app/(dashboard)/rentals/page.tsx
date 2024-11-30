@@ -1,4 +1,6 @@
-import { Tabs } from "antd"; // Import Ant Design Tabs
+"use client";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Assuming this is your custom Tab component
 import Wrapper from "../wealth/_components/wapper";
 import LoanForm from "./_components/loan-form";
 import LoanTable from "./_components/Loan-table";
@@ -8,110 +10,53 @@ import RentalTable from "./_components/rental-table";
 const Rentals = () => {
   return (
     <Wrapper>
-      <Tabs
-        className="mt-7"
-        defaultActiveKey="1"
-        items={[
-          {
-            key: "1",
-            label: "Loan Management",
-            children: (
-              <div
-                style={{
-                  padding: "20px",
-                  backgroundColor: "#f9fafb", // Light background color
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
-                  marginBottom: "20px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    borderBottom: "2px solid #e5e7eb", // Underline for separation
-                    paddingBottom: "10px",
-                  }}
-                >
-                  <h1
-                    style={{
-                      fontSize: "24px",
-                      fontWeight: "bold",
-                      color: "#111827",
-                    }}
-                  >
-                    Loan Management
-                  </h1>
-                  <LoanForm />
-                </div>
-                <p
-                  style={{
-                    fontSize: "16px",
-                    color: "#4b5563",
-                    marginTop: "10px",
-                    marginBottom: "20px",
-                  }}
-                >
-                  Latest asset transactions
-                </p>
-                <div>
-                  <LoanTable />
-                </div>
+      <div className="mt-7 text-white">
+        <h1 className="text-2xl font-bold mb-4 text-white">Loans & Rentals</h1>
+
+        {/* Custom Tabs using your UI library */}
+        <Tabs defaultValue="loan">
+          {/* Tab List */}
+          <TabsList className="mb-6">
+            <TabsTrigger value="loan">Loan Management</TabsTrigger>
+            <TabsTrigger value="rentals">Asset Rentals</TabsTrigger>
+          </TabsList>
+
+          {/* Tab Content */}
+          <TabsContent value="loan">
+            <div className="p-5 bg-gray-50 rounded-lg shadow-md mb-5">
+              <div className="flex justify-between items-center border-b-2 pb-3 mb-3">
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Loan Management
+                </h1>
+                <LoanForm />
               </div>
-            ),
-          },
-          {
-            key: "2",
-            label: "Asset Rentals",
-            children: (
-              <div
-                style={{
-                  padding: "20px",
-                  backgroundColor: "#f9fafb", // Light background color
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
-                  marginBottom: "20px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    borderBottom: "2px solid #e5e7eb", // Underline for separation
-                    paddingBottom: "10px",
-                  }}
-                >
-                  <h1
-                    style={{
-                      fontSize: "24px",
-                      fontWeight: "bold",
-                      color: "#111827",
-                    }}
-                  >
-                    Rentals Management
-                  </h1>
-                  <RentalForm />
-                </div>
-                <p
-                  style={{
-                    fontSize: "16px",
-                    color: "#4b5563",
-                    marginTop: "10px",
-                    marginBottom: "20px",
-                  }}
-                >
-                  Latest rental transactions
-                </p>
-                <div>
-                  <RentalTable />
-                </div>
+              <p className="text-gray-600 text-sm mb-5">
+                Latest asset transactions
+              </p>
+              <div>
+                <LoanTable />
               </div>
-            ),
-          },
-        ]}
-      />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="rentals">
+            <div className="p-5 bg-gray-50 rounded-lg shadow-md mb-5">
+              <div className="flex justify-between items-center border-b-2 pb-3 mb-3">
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Rentals Management
+                </h1>
+                <RentalForm />
+              </div>
+              <p className="text-gray-600 text-sm mb-5">
+                Latest rental transactions
+              </p>
+              <div>
+                <RentalTable />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </Wrapper>
   );
 };

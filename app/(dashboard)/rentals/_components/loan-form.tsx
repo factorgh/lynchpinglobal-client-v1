@@ -1,7 +1,7 @@
 "use client";
 
 import { useGetUsersQuery } from "@/services/auth";
-import { useCreateInvestmentMutation } from "@/services/investment";
+import { useCreateLoanMutation } from "@/services/loan";
 import { PlusOutlined } from "@ant-design/icons";
 import {
   Button,
@@ -18,7 +18,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 const LoanForm: React.FC = () => {
   const [open, setOpen] = useState(false);
-  const [createInvestment, { isLoading }] = useCreateInvestmentMutation();
+  const [createLoan, { isLoading }] = useCreateLoanMutation();
   const { data, isFetching } = useGetUsersQuery(null);
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
@@ -72,13 +72,6 @@ const LoanForm: React.FC = () => {
     setUsers(data?.allUsers || []);
   }, [data]);
 
-  // File list change handler
-  // const handleFileListChange = (fileList: any[]) => {
-  //   setSelectedFiles(fileList);
-  // };
-
-  // // Function to upload files to Cloudinary
-  // Form submission handler
   const handleFormSubmit = async (values: any) => {
     // Upload files and get URLs
     const uploadedFiles: Record<string, string[]> = {};
@@ -98,11 +91,11 @@ const LoanForm: React.FC = () => {
     };
 
     try {
-      await createInvestment(formattedValues).unwrap();
-      toast.success("Investment created successfully");
+      await createLoan(formattedValues).unwrap();
+      toast.success("Loan  created successfully");
       setOpen(false);
     } catch (error: any) {
-      console.error("Error creating investment:", error);
+      console.error("Error creating loan entry:", error);
       toast.error(error?.data?.message || "An error occurred");
     }
   };
@@ -134,7 +127,7 @@ const LoanForm: React.FC = () => {
             {/* User Selection */}
             <Col span={12}>
               <Form.Item
-                name="userId"
+                name="user"
                 label="User"
                 rules={[{ required: true, message: "Please select a user" }]}
               >

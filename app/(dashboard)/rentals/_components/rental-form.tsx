@@ -129,7 +129,7 @@ const RentalForm: React.FC = () => {
             {/* User Selection */}
             <Col span={12}>
               <Form.Item
-                name="asset_class"
+                name="assetClass"
                 label="Asset Class"
                 rules={[
                   { required: true, message: "Please enter the principal" },
@@ -145,7 +145,7 @@ const RentalForm: React.FC = () => {
             {/* Principal */}
             <Col span={12}>
               <Form.Item
-                name="asset_designation"
+                name="assetDesignation"
                 label="Asset Designation"
                 rules={[
                   {
@@ -201,7 +201,7 @@ const RentalForm: React.FC = () => {
             {/* Management Fee */}
             <Col span={12}>
               <Form.Item
-                name="overdue_date"
+                name="overdueDate"
                 label="Overdue Date"
                 rules={[
                   { required: true, message: "Please select an overdue date" },
@@ -236,7 +236,7 @@ const RentalForm: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="userId"
+                name="user"
                 label="User"
                 rules={[{ required: true, message: "Please select a user" }]}
               >

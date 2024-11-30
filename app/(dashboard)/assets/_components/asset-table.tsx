@@ -1,5 +1,4 @@
 "use client";
-import BulkImage from "@/app/(components)/bulkImage";
 import { toTwoDecimalPlaces } from "@/lib/helper";
 import {
   useDeleteAssetsMutation,
@@ -24,6 +23,7 @@ import {
   Select,
   Table,
 } from "antd";
+import moment from "moment";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -65,26 +65,37 @@ import Swal from "sweetalert2";
       setIsEditMode(false);
     };
     const showEditDrawer = (investment: any) => {
+      if (!investment) return; // Guard against null or undefined investment
+
+      console.log("Editing investment:", investment); // Debugging
+
       setIsEditMode(true);
       setEditRentalId(investment.id);
 
+      // Set form values based on the data of the investment
       form.setFieldsValue({
-        name: investment.name,
-        principal: toTwoDecimalPlaces(investment.principal),
-        managementFee: toTwoDecimalPlaces(investment.managementFee),
-        performanceYield: toTwoDecimalPlaces(investment.performanceYield),
-        guaranteedRate: investment.guaranteedRate,
+        assetClass: investment.assetClass,
+        assetDesignation: investment.assetDesignation,
+        accruedInterest: investment.accruedInterest,
+        maturityDate: moment(investment.maturityDate), // Ensure this is a moment object
+        managementFee: investment.managementFee,
+        timeCourse: investment.timeCourse,
+        quater: investment.quater,
       });
 
       setIsDrawerVisible(true);
     };
+
     const handleFormSubmit = async (values: any) => {
       try {
         const formattedValues = {
           ...values,
           managementFee: toTwoDecimalPlaces(values.managementFee),
-          performanceYield: toTwoDecimalPlaces(values.performanceYield),
-          principal: toTwoDecimalPlaces(values.principal),
+          assetDesignation: toTwoDecimalPlaces(values.assetDesignation),
+          accruedInterest: toTwoDecimalPlaces(values.accruedInterest),
+          maturityDate: values.maturityDate.toISOString(),
+          timeCourse: values.timeCourse,
+          quater: values.quater,
         };
 
         if (isEditMode) {
@@ -184,14 +195,13 @@ import Swal from "sweetalert2";
         dataIndex: "quater",
         key: "quater",
         ...getColumnSearchProps("quater"),
-        render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
       },
       {
         title: "Maturity Date",
         dataIndex: "maturityDate",
         key: "maturityDate",
         ...getColumnSearchProps("maturityDate"),
-        render: (value: any) => `$${toTwoDecimalPlaces(value)}`, // Format with currency
+        render: (value: any) => moment(value).format("YYYY-MM-DD"), // Format the value correctly
       },
       {
         title: "Action",
@@ -290,7 +300,7 @@ import Swal from "sweetalert2";
               {/* Performance Yield */}
               <Col span={12}>
                 <Form.Item
-                  name="accrued_interest"
+                  name="accruedInterest"
                   label="Accrued Interest"
                   rules={[
                     {
@@ -354,7 +364,7 @@ import Swal from "sweetalert2";
               </Col>
               <Col span={12}>
                 <Form.Item
-                  name="quarter"
+                  name="quater"
                   label="Quater"
                   rules={[
                     { required: true, message: "Please select a quater" },
@@ -380,7 +390,7 @@ import Swal from "sweetalert2";
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  name="time"
+                  name="timeCourse"
                   label="Time course"
                   rules={[
                     { required: true, message: "Please select a time course" },
@@ -407,28 +417,6 @@ import Swal from "sweetalert2";
                   />
                 </Form.Item>
               </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="asset_designation"
-                  label="Asset Image"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter the asset designation",
-                    },
-                  ]}
-                >
-                  {/* <Upload {...props}>
-                    <Button icon={<UploadOutlined />}>
-                      Click to Upload Asset Image
-                    </Button>
-                  </Upload> */}
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              {/* File Upload */}
-              <BulkImage onFileListChange={handleFileListChange} />
             </Row>
 
             <Form.Item>
