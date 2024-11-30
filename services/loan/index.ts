@@ -4,7 +4,7 @@ import { crudService } from "../custom-crud-service";
 // Define the vendor endpoints using crudService
 export const LoanApi = baseApi.injectEndpoints({
   endpoints: (builder) => {
-    const loanCrud = crudService("/loan");
+    const loanCrud = crudService("/loans");
 
     return {
       createLoan: builder.mutation({

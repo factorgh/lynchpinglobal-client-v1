@@ -40,7 +40,7 @@ import Swal from "sweetalert2";
     console.log(
       "-------------------------InvestmentData-------------------------"
     );
-    console.log(investmentData?.data);
+    console.log(investmentData);
 
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [editRentalId, setEditRentalId] = useState(null);

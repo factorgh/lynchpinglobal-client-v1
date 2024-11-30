@@ -85,13 +85,12 @@ const WealthForm: React.FC = () => {
   const handleFormSubmit = async (values: any) => {
     const uploadedFiles: Record<string, string[]> = {};
 
-    setUploading((prev) => ({
-      ...prev,
-      certificate: fileCategories.certificate.length > 0,
-      partnerForm: fileCategories.partnerForm.length > 0,
-      checklist: fileCategories.checklist.length > 0,
-      mandate: fileCategories.mandate.length > 0,
-    }));
+    setUploading({
+      certificate: true,
+      partnerForm: true,
+      checklist: true,
+      mandate: true,
+    });
 
     for (const category in fileCategories) {
       if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {

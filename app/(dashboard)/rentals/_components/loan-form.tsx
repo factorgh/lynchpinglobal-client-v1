@@ -32,6 +32,12 @@ const LoanForm: React.FC = () => {
     mandate: [],
   });
 
+  const [uploading, setUploading] = useState({
+    certificate: false,
+    partnerForm: false,
+    checklist: false,
+    mandate: false,
+  });
   const handleUploadToCloudinary = async (
     categoryFiles: any[]
   ): Promise<string[]> => {
@@ -73,6 +79,12 @@ const LoanForm: React.FC = () => {
   }, [data]);
 
   const handleFormSubmit = async (values: any) => {
+    setUploading({
+      certificate: true,
+      partnerForm: true,
+      checklist: true,
+      mandate: true,
+    });
     // Upload files and get URLs
     const uploadedFiles: Record<string, string[]> = {};
 
@@ -85,18 +97,36 @@ const LoanForm: React.FC = () => {
       }
     }
 
+    setUploading({
+      certificate: false,
+      partnerForm: false,
+      checklist: false,
+      mandate: false,
+    });
+
+    // Formatted values
+    const { certificate, mandate, partnerForm, checklist } = uploadedFiles;
     const formattedValues = {
       ...values,
-      files: uploadedFiles,
+      certificate,
+      mandate,
+      partnerForm,
+      checklist,
     };
-
     try {
       await createLoan(formattedValues).unwrap();
       toast.success("Loan  created successfully");
+      form.resetFields();
       setOpen(false);
     } catch (error: any) {
       console.error("Error creating loan entry:", error);
       toast.error(error?.data?.message || "An error occurred");
+      setUploading({
+        certificate: false,
+        partnerForm: false,
+        checklist: false,
+        mandate: false,
+      });
     }
   };
 
@@ -150,7 +180,7 @@ const LoanForm: React.FC = () => {
             {/* Principal */}
             <Col span={12}>
               <Form.Item
-                name="loan"
+                name="loanAmount"
                 label="Loan Amount"
                 rules={[
                   { required: true, message: "Please enter the loan amount " },
@@ -184,7 +214,7 @@ const LoanForm: React.FC = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="quarter"
+                name="quater"
                 label="Quater"
                 rules={[{ required: true, message: "Please select a quater" }]}
               >
@@ -209,7 +239,7 @@ const LoanForm: React.FC = () => {
               <Form.Item
                 name="loanRate"
                 label="Loan Rate"
-                rules={[{ required: true, message: "Please ENTER LOAN RATE" }]}
+                rules={[{ required: true, message: "Please enter loan rate" }]}
               >
                 <InputNumber
                   placeholder="Enter loan rate"
@@ -277,7 +307,8 @@ const LoanForm: React.FC = () => {
               className="w-full mt-6"
               type="primary"
               htmlType="submit"
-              loading={isLoading}
+              loading={isLoading || Object.values(uploading).includes(true)}
+              disabled={Object.values(uploading).includes(true)}
             >
               Submit
             </Button>

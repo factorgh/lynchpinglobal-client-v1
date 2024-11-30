@@ -141,6 +141,12 @@ const AssetForm: React.FC = () => {
 
   // Form submission handler
   const handleFormSubmit = async (values: any) => {
+    setUploading({
+      certificate: true,
+      partnerForm: true,
+      checklist: true,
+      mandate: true,
+    });
     // Upload files and get URLs
     const uploadedFiles: Record<string, string[]> = {};
 

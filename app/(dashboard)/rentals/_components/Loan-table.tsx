@@ -1,5 +1,4 @@
 "use client";
-import BulkImage from "@/app/(components)/bulkImage";
 import { toTwoDecimalPlaces } from "@/lib/helper";
 import {
   useDeleteLoanMutation,
@@ -14,6 +13,7 @@ import {
 import {
   Button,
   Col,
+  DatePicker,
   Drawer,
   Form,
   Input,
@@ -22,6 +22,7 @@ import {
   Select,
   Table,
 } from "antd";
+import moment from "moment";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -41,7 +42,7 @@ import Swal from "sweetalert2";
     console.log(
       "-------------------------InvestmentData-------------------------"
     );
-    console.log(investmentData?.data);
+    console.log(investmentData);
 
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [editRentalId, setEditRentalId] = useState(null);
@@ -74,6 +75,9 @@ import Swal from "sweetalert2";
         managementFee: toTwoDecimalPlaces(investment.managementFee),
         overdueRate: toTwoDecimalPlaces(investment.overdueRate),
         quater: investment.quater,
+        amountDue: toTwoDecimalPlaces(investment.amountDue),
+        overdueDate: moment(investment.overdueDate),
+        loanRate: toTwoDecimalPlaces(investment.loanRate),
       });
 
       setIsDrawerVisible(true);
@@ -156,6 +160,7 @@ import Swal from "sweetalert2";
         dataIndex: "user",
         key: "userId",
         ...getColumnSearchProps("userId"),
+        render: (value: any) => value?.name,
       },
       {
         title: "Loan Amount",
@@ -165,10 +170,11 @@ import Swal from "sweetalert2";
         render: (value: any) => toTwoDecimalPlaces(value), // Format principal
       },
       {
-        title: "Guaranteed Return",
-        dataIndex: "guaranteedRate",
-        key: "guaranteedRate",
-        ...getColumnSearchProps("guaranteedRate"),
+        title: "Overdue Date",
+        dataIndex: "overdueDate",
+        key: "overdueDate",
+        ...getColumnSearchProps("overdueDate"),
+        render: (value: any) => moment(value).format("YYYY-MM-DD"),
       },
       {
         title: "overdue Rate",
@@ -178,10 +184,10 @@ import Swal from "sweetalert2";
         render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
       },
       {
-        title: "Management Fee",
-        dataIndex: "managementFee",
-        key: "managementFee",
-        ...getColumnSearchProps("managementFee"),
+        title: "Amount Due",
+        dataIndex: "amountDue",
+        key: "amountDue",
+        ...getColumnSearchProps("amountDue"),
         render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
       },
 
@@ -212,13 +218,13 @@ import Swal from "sweetalert2";
           }}
           loading={investmentLoading}
           columns={columns}
-          dataSource={investmentData?.data}
+          dataSource={investmentData?.data?.data}
           // scroll={{ x: 1000 }}
           className="border border-slate-200 rounded-md"
           rowKey="id" // Correct rowKey
         />
         <Drawer
-          title="Edit Expense"
+          title="Edit Loan"
           placement="right"
           width="50%" // Adjust to center the drawer
           onClose={handleCloseDrawer}
@@ -234,30 +240,20 @@ import Swal from "sweetalert2";
               {/* User Selection */}
               <Col span={12}>
                 <Form.Item
-                  name="userId"
-                  label="User"
-                  rules={[{ required: true, message: "Please select a user" }]}
+                  name="overdueDate"
+                  label="Overdue Date"
+                  rules={[
+                    { required: true, message: "Please select overdue date" },
+                  ]}
                 >
-                  <Select
-                    placeholder="Select a user"
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.label ?? "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={users?.map((user: any) => ({
-                      value: user._id,
-                      label: user.name,
-                    }))}
-                  />
+                  <DatePicker style={{ width: "100%" }} />
                 </Form.Item>
               </Col>
 
               {/* Principal */}
               <Col span={12}>
                 <Form.Item
-                  name="loan"
+                  name="loanAmount"
                   label="Loan Amount"
                   rules={[
                     {
@@ -276,75 +272,32 @@ import Swal from "sweetalert2";
             </Row>
 
             <Row gutter={16}>
-              {/* Performance Yield */}
-
-              {/* Guaranteed Rate */}
-              <Col span={24}>
+              {/* Management Fee */}
+              <Col span={12}>
                 <Form.Item
                   name="overdueRate"
                   label="Overdue Rate"
                   rules={[
-                    {
-                      required: true,
-                      message: "Please select a overdue rate",
-                    },
+                    { required: true, message: "Please enter overdue rate" },
                   ]}
                 >
-                  <Select
-                    placeholder="Select overdue rate"
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.label ?? "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={Array.from({ length: 100 }, (_, i) => ({
-                      value: i + 1,
-                      label: `${i + 1}%`,
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              {/* Management Fee */}
-              <Col span={12}>
-                <Form.Item
-                  name="managementFee"
-                  label="Management Fee"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select a management fee",
-                    },
-                  ]}
-                >
-                  <Select
-                    placeholder="Select management fee"
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.label ?? "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={Array.from({ length: 100 }, (_, i) => ({
-                      value: i + 1,
-                      label: `${i + 1}%`,
-                    }))}
+                  <InputNumber
+                    placeholder="Enter overdue rate"
+                    style={{ width: "100%" }}
+                    min={1}
                   />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
-                  name="quarter"
+                  name="quater"
                   label="Quater"
                   rules={[
                     { required: true, message: "Please select a quater" },
                   ]}
                 >
                   <Select
-                    placeholder="Select management fee"
+                    placeholder="Select a quarter"
                     showSearch
                     filterOption={(input, option) =>
                       (option?.label ?? "")
@@ -359,10 +312,42 @@ import Swal from "sweetalert2";
                 </Form.Item>
               </Col>
             </Row>
-
             <Row gutter={16}>
-              {/* File Upload */}
-              <BulkImage onFileListChange={handleFileListChange} />
+              <Col span={12}>
+                <Form.Item
+                  name="loanRate"
+                  label="Loan Rate"
+                  rules={[
+                    { required: true, message: "Please enter loan rate" },
+                  ]}
+                >
+                  <InputNumber
+                    placeholder="Enter loan rate"
+                    style={{ width: "100%" }}
+                    min={1}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="amountDue"
+                  label="Amount Due"
+                  rules={[
+                    { required: true, message: "Please enter amount due" },
+                  ]}
+                >
+                  <InputNumber
+                    placeholder="Enter amount due"
+                    style={{ width: "100%" }}
+                    min={1}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              {/* Performance Yield */}
+
+              {/* Guaranteed Rate */}
             </Row>
 
             <Form.Item>
