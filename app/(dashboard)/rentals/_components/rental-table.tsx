@@ -21,6 +21,7 @@ import {
   Select,
   Table,
 } from "antd";
+import moment from "moment";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -159,8 +160,8 @@ import Swal from "sweetalert2";
       },
       {
         title: "Asset Class",
-        dataIndex: "asset_class",
-        key: "asset_class",
+        dataIndex: "assetClass",
+        key: "assetClass",
         ...getColumnSearchProps("asset_class"),
       },
       {
@@ -181,7 +182,7 @@ import Swal from "sweetalert2";
         dataIndex: "dueDate",
         key: "dueDate",
         ...getColumnSearchProps("dueDate"),
-        render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
+        render: (value: any) => moment(value).format("YYYY-MM-DD"),
       },
 
       {
@@ -215,7 +216,7 @@ import Swal from "sweetalert2";
           }}
           loading={investmentLoading}
           columns={columns}
-          dataSource={investmentData?.data}
+          dataSource={investmentData?.data?.data}
           // scroll={{ x: 1000 }}
           className="border border-slate-200 rounded-md"
           rowKey="id" // Correct rowKey

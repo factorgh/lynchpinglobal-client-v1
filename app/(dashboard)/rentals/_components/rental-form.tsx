@@ -109,10 +109,10 @@ const RentalForm: React.FC = () => {
     };
     try {
       await createRental(formattedValues).unwrap();
-      toast.success("Investment created successfully");
+      toast.success("Rental created successfully");
       setOpen(false);
     } catch (error: any) {
-      console.error("Error creating investment:", error);
+      console.error("Error creating rental:", error);
       toast.error(error?.data?.message || "An error occurred");
       setUploading({
         certificate: false,
@@ -233,7 +233,7 @@ const RentalForm: React.FC = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="quarter"
+                name="quater"
                 label="Quater"
                 rules={[{ required: true, message: "Please select a quater" }]}
               >
