@@ -1,12 +1,10 @@
 "use client";
-import BulkImage from "@/app/(components)/bulkImage";
 import { toTwoDecimalPlaces } from "@/lib/helper";
 import { useDeleteInvestmentMutation } from "@/services/investment";
 import { useGetRentalsQuery, useUpdateRentalMutation } from "@/services/rental";
 import {
   DeleteOutlined,
   EditOutlined,
-  EyeOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 import {
@@ -69,11 +67,13 @@ import Swal from "sweetalert2";
       setEditRentalId(investment.id);
 
       form.setFieldsValue({
-        name: investment.name,
-        principal: toTwoDecimalPlaces(investment.principal),
-        managementFee: toTwoDecimalPlaces(investment.managementFee),
-        performanceYield: toTwoDecimalPlaces(investment.performanceYield),
-        guaranteedRate: investment.guaranteedRate,
+        assetClass: investment.assetClass,
+        assetDesignation: investment.assetDesignation,
+        overdueRate: toTwoDecimalPlaces(investment.overdueRate),
+        returnDate: moment(investment.returnDate),
+        overdueDate: moment(investment.overdueDate),
+        quater: investment.quater,
+        amountDue: toTwoDecimalPlaces(investment.amountDue),
       });
 
       setIsDrawerVisible(true);
@@ -190,10 +190,6 @@ import Swal from "sweetalert2";
         key: "action",
         render: (text: any, record: any) => (
           <div className="flex gap-3">
-            <EyeOutlined
-              className="text-emerald-500"
-              onClick={() => showEditDrawer(record)}
-            />
             <EditOutlined
               className="text-blue-500"
               onClick={() => showEditDrawer(record)}
@@ -238,7 +234,7 @@ import Swal from "sweetalert2";
               {/* User Selection */}
               <Col span={12}>
                 <Form.Item
-                  name="asset_class"
+                  name="assetClass"
                   label="Asset Class"
                   rules={[
                     { required: true, message: "Please enter the principal" },
@@ -254,7 +250,7 @@ import Swal from "sweetalert2";
               {/* Principal */}
               <Col span={12}>
                 <Form.Item
-                  name="asset_designation"
+                  name="assetDesignation"
                   label="Asset Designation"
                   rules={[
                     {
@@ -276,17 +272,17 @@ import Swal from "sweetalert2";
               {/* Performance Yield */}
               <Col span={12}>
                 <Form.Item
-                  name="amount_due"
-                  label="Performance Yield"
+                  name="overdueRate"
+                  label="Overdue Rate"
                   rules={[
                     {
                       required: true,
-                      message: "Please enter the amount due",
+                      message: "Please enter overdue due",
                     },
                   ]}
                 >
                   <InputNumber
-                    placeholder="Enter amount due"
+                    placeholder="Enter overdue rate"
                     style={{ width: "100%" }}
                   />
                 </Form.Item>
@@ -295,20 +291,16 @@ import Swal from "sweetalert2";
               {/* Guaranteed Rate */}
               <Col span={12}>
                 <Form.Item
-                  name="overdue_fee"
-                  label="Overdue fee"
+                  name="returnDate"
+                  label="Return Date"
                   rules={[
                     {
                       required: true,
-                      message: "Please enter the overdue fee amount",
+                      message: "Please select a maturity date",
                     },
                   ]}
                 >
-                  <InputNumber
-                    placeholder="Enter asset overdue fee amount"
-                    style={{ width: "100%" }}
-                    min={1}
-                  />
+                  <DatePicker style={{ width: "100%" }} />
                 </Form.Item>
               </Col>
             </Row>
@@ -317,7 +309,7 @@ import Swal from "sweetalert2";
               {/* Management Fee */}
               <Col span={12}>
                 <Form.Item
-                  name="overdue_date"
+                  name="overdueDate"
                   label="Overdue Date"
                   rules={[
                     {
@@ -331,14 +323,14 @@ import Swal from "sweetalert2";
               </Col>
               <Col span={12}>
                 <Form.Item
-                  name="quarter"
+                  name="quater"
                   label="Quater"
                   rules={[
                     { required: true, message: "Please select a quater" },
                   ]}
                 >
                   <Select
-                    placeholder="Select management fee"
+                    placeholder="Select a quater"
                     showSearch
                     filterOption={(input, option) =>
                       (option?.label ?? "")
@@ -355,8 +347,24 @@ import Swal from "sweetalert2";
             </Row>
 
             <Row gutter={16}>
-              {/* File Upload */}
-              <BulkImage onFileListChange={handleFileListChange} />
+              <Col span={24}>
+                <Form.Item
+                  name="amountDue"
+                  label="Amount Due"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter the  amount due",
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    placeholder="Enter amount due"
+                    style={{ width: "100%" }}
+                    min={1}
+                  />
+                </Form.Item>
+              </Col>
             </Row>
 
             <Form.Item>
