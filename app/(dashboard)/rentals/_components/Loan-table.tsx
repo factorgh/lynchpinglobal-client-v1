@@ -67,7 +67,7 @@ import Swal from "sweetalert2";
     };
     const showEditDrawer = (investment: any) => {
       setIsEditMode(true);
-      setEditRentalId(investment.id);
+      setEditRentalId(investment._id);
 
       form.setFieldsValue({
         name: investment.name,
@@ -94,7 +94,7 @@ import Swal from "sweetalert2";
         if (isEditMode) {
           await updateInvestment({
             id: editRentalId,
-            expenseData: formattedValues,
+            data: formattedValues,
           }).unwrap();
           toast.success("Loan updated successfully");
         } else {

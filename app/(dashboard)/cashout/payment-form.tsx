@@ -1,103 +1,137 @@
 "use client";
+
 import { useGetUsersQuery } from "@/services/auth";
-import { Button, DatePicker, Form, Input, Select } from "antd";
-import { useEffect, useState } from "react";
+import { useCreatePaymentMutation } from "@/services/payments";
+import { PlusOutlined } from "@ant-design/icons";
+import { Button, DatePicker, Drawer, Form, Input, Select } from "antd";
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+const PaymentForm: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const [createPayment, { isLoading }] = useCreatePaymentMutation();
+  const { data, isFetching } = useGetUsersQuery(null);
+  const [users, setUsers] = useState([]);
+  const [form] = Form.useForm();
 
-const PaymentForm = ({ onFinish, initialValues, form }: any) => {
-  const [users, setUsers] = useState<any>([]);
-  const { data } = useGetUsersQuery(null);
+  // Hnadle file category
 
+  // Update user list when data is fetched
   useEffect(() => {
     setUsers(data?.allUsers || []);
   }, [data]);
 
+  const handleFormSubmit = async (values: any) => {
+    try {
+      console.log(values);
+      await createPayment(values).unwrap();
+      toast.success("Payment  created successfully");
+      form.resetFields();
+      setOpen(false);
+    } catch (error: any) {
+      console.error("Error creating payment entry:", error);
+      toast.error(error?.data?.message || "An error occurred");
+    }
+  };
+
+  // Show drawer
+  const showDrawer = () => setOpen(true);
+
+  // Close drawer
+  const onClose = () => setOpen(false);
+
   return (
-    <Form
-      form={form}
-      initialValues={initialValues}
-      onFinish={onFinish}
-      layout="vertical"
-    >
-      <Form.Item
-        name="userId"
-        label="User"
-        rules={[{ required: true, message: "Please select a user" }]}
+    <>
+      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
+        New Payment
+      </Button>
+      <Drawer
+        title="Create a New Payment"
+        width={400}
+        onClose={onClose}
+        open={open}
       >
-        <Select
-          placeholder="Select a user"
-          showSearch
-          filterOption={(input, option: any) =>
-            (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-          }
-          options={users?.map((user: any) => ({
-            value: user._id,
-            label: user.name,
-          }))}
-        />
-      </Form.Item>
+        <Form
+          form={form}
+          onFinish={handleFormSubmit}
+          layout="vertical"
+          hideRequiredMark
+        >
+          <Form.Item
+            name="user"
+            label="User"
+            rules={[{ required: true, message: "Please select a user" }]}
+          >
+            <Select
+              placeholder="Select a user"
+              showSearch
+              filterOption={(input, option: any) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              options={users?.map((user: any) => ({
+                value: user._id,
+                label: user.name,
+              }))}
+            />
+          </Form.Item>
 
-      <Form.Item
-        label="Amount"
-        name="amount"
-        rules={[
-          {
-            required: true,
-            message: `Please input the payment amount!`,
-          },
-        ]}
-      >
-        <Input type="number" />
-      </Form.Item>
+          <Form.Item
+            label="Amount"
+            name="amount"
+            rules={[
+              {
+                required: true,
+                message: `Please input the withdrawal amount!`,
+              },
+            ]}
+          >
+            <Input type="number" />
+          </Form.Item>
 
-      <Form.Item
-        label="Request Date"
-        name="requestDate"
-        rules={[
-          {
-            required: true,
-            message: `Please select the payment request date!`,
-          },
-        ]}
-      >
-        <DatePicker style={{ width: "100%" }} />
-      </Form.Item>
+          <Form.Item
+            label="Request Date"
+            name="requestedDate"
+            rules={[
+              {
+                required: true,
+                message: `Please select the withdrawal request date!`,
+              },
+            ]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
 
-      <Form.Item
-        label="Approval Date"
-        name="approvalDate"
-        rules={[
-          {
-            required: true,
-            message: `Please select the payment approval date!`,
-          },
-        ]}
-      >
-        <DatePicker style={{ width: "100%" }} />
-      </Form.Item>
+          <Form.Item label="Approval Date" name="approvedDate">
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
 
-      <Form.Item
-        label="Status"
-        name="status"
-        rules={[
-          {
-            required: true,
-            message: `Please select the payment status!`,
-          },
-        ]}
-      >
-        <Select>
-          <Select.Option value="Pending">Pending</Select.Option>
-          <Select.Option value="Approved">Approved</Select.Option>
-          <Select.Option value="Cancelled">Cancelled</Select.Option>
-        </Select>
-      </Form.Item>
+          <Form.Item
+            label="Status"
+            name="status"
+            rules={[
+              {
+                required: true,
+                message: `Please select the withdrawal status!`,
+              },
+            ]}
+          >
+            <Select>
+              <Select.Option value="Pending">Pending</Select.Option>
+              <Select.Option value="Approved">Approved</Select.Option>
+              <Select.Option value="Processing">Processing</Select.Option>
+              <Select.Option value="Cancelled">Cancelled</Select.Option>
+            </Select>
+          </Form.Item>
 
-      <Form.Item>
-        <Button type="primary" htmlType="submit" block>
-          Create
-        </Button>
-      </Form.Item>
-    </Form>
+          <Form.Item>
+            <Button loading={isLoading} type="primary" htmlType="submit" block>
+              Create
+            </Button>
+          </Form.Item>
+        </Form>
+      </Drawer>
+    </>
   );
 };
 

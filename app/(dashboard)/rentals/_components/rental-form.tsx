@@ -110,6 +110,12 @@ const RentalForm: React.FC = () => {
     try {
       await createRental(formattedValues).unwrap();
       toast.success("Rental created successfully");
+      setUploading({
+        certificate: false,
+        partnerForm: false,
+        checklist: false,
+        mandate: false,
+      });
       setOpen(false);
     } catch (error: any) {
       console.error("Error creating rental:", error);
