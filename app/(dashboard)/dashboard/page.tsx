@@ -138,24 +138,7 @@ export default function DashboardPage() {
             <p className="text-gray-500">Welcome back, Admin</p>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search clients, vehicles..."
-                className="pl-10 w-80"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="mr-2 h-4 w-4" /> New Loan
-            </Button>
-            <Button variant="outline" size="icon">
-              <Bell className="h-5 w-5" />
-            </Button>
-          </div>
-        </div> */}
+         
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
@@ -207,9 +190,7 @@ export default function DashboardPage() {
                   <Filter className="mr-2 h-4 w-4" /> Filter
                 </Button>
               </div>
-              <CardDescription>
-                Latest client activities and loan status
-              </CardDescription>
+              <CardDescription>Latest client activities</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {sampleClients.map((client, index) => (

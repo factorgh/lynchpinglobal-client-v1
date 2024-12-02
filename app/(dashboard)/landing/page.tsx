@@ -7,18 +7,18 @@ import {
   AuditOutlined,
   BlockOutlined,
   DollarOutlined,
-  FallOutlined,
-  PayCircleOutlined,
   PieChartOutlined,
+  PlusCircleOutlined,
   RiseOutlined,
-  StockOutlined,
 } from "@ant-design/icons";
-import { Carousel, Divider, Pagination, Table } from "antd";
+import { Divider, Pagination, Table } from "antd";
+import { HandCoins } from "lucide-react";
 import { useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
 import AssetsUnder from "./_components/assetsUnder";
 import CustomCard from "./_components/customCard";
 import CustomList from "./_components/customList";
+import CustomSlider from "./_components/customSlider";
 import LandingCard from "./_components/landingCard";
 
 const dataSource = [
@@ -49,26 +49,26 @@ const CustomerLanding = () => {
           <Card className="p-5 flex flex-col gap-8  justify-start ">
             <div className="flex justify-between items-center ">
               <h3 className="mt-6 text-md">TOTAL BALANCE</h3>
-              <PayCircleOutlined className="text-2xl" />
+              <DollarOutlined className="text-2xl" />
             </div>
             <p className="text-4xl font-bold">$10,000</p>
             <p>Last updated: 2024-11-08</p>
             <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full "></div>
           </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2 ">
             <LandingCard
-              icon={<DollarOutlined />}
+              icon={<HandCoins />}
               title="PRINCIPAL"
               amount="$24,000"
             />
             <LandingCard
-              icon={<StockOutlined />}
+              icon={<PieChartOutlined />}
               title="ACCRUED INTEREST"
               amount="15%"
             />
             <LandingCard
-              icon={<FallOutlined />}
+              icon={<PlusCircleOutlined />}
               title="ADD ONS"
               amount="$8,000"
             />
@@ -78,58 +78,8 @@ const CustomerLanding = () => {
               amount="$16,000"
             />
           </div>
-          <Card className="bg-[url('/p3.jpeg')] border-none shadow-md ">
-            <Carousel autoplay>
-              <div className="h-[100%]">
-                <h3
-                  style={{
-                    textAlign: "center",
-                    padding: "50px",
-                    background: "#364d79",
-                    color: "#fff",
-                  }}
-                >
-                  Slide 1
-                </h3>
-              </div>
-              <div>
-                <h3
-                  style={{
-                    textAlign: "center",
-                    padding: "50px",
-                    background: "#64c2a6",
-                    color: "#fff",
-                  }}
-                >
-                  Slide 2
-                </h3>
-              </div>
-              <div>
-                <h3
-                  style={{
-                    textAlign: "center",
-                    padding: "50px",
-                    background: "#f0a76d",
-                    color: "#fff",
-                  }}
-                >
-                  Slide 3
-                </h3>
-              </div>
-              <div>
-                <h3
-                  style={{
-                    textAlign: "center",
-                    padding: "50px",
-                    background: "#9b4d96",
-                    color: "#fff",
-                  }}
-                >
-                  Slide 4
-                </h3>
-              </div>
-            </Carousel>
-          </Card>
+
+          <CustomSlider />
         </div>
         <Divider className="bg-white" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
@@ -137,18 +87,18 @@ const CustomerLanding = () => {
             <CustomCard
               icon={<AccountBookOutlined />}
               title="MANAGEMENT FEE"
-              amount="15%"
+              amount="1200"
             />
             <CustomCard
               icon={<AuditOutlined />}
               title="PERFORMANCE YIELD"
-              amount="15%"
+              amount="150"
             />
             <CustomCard icon={<RiseOutlined />} title="ADD OFFS" amount="15%" />
             <CustomCard
               icon={<BlockOutlined />}
               title="OPERATIONAL COST"
-              amount="15%"
+              amount="150"
             />
             <CustomCard icon={<RiseOutlined />} title="Additions" amount="0" />
             <CustomCard icon={<RiseOutlined />} title="More" amount="0" />

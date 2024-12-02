@@ -245,6 +245,7 @@ const LoanForm: React.FC = () => {
                   placeholder="Enter loan rate"
                   style={{ width: "100%" }}
                   min={1}
+                  max={100}
                 />
               </Form.Item>
             </Col>

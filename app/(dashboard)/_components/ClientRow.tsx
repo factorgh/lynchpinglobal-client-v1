@@ -29,7 +29,6 @@ export const ClientRow = ({ client }: ClientRowProps) => (
       </Badge>
       <div className="text-right">
         <p className="font-semibold">GH{client.loanAmount.toLocaleString()}</p>
-        <p className="text-sm text-muted-foreground">Loan Amount</p>
       </div>
     </div>
   </div>

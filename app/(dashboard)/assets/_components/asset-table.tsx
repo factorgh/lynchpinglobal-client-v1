@@ -70,7 +70,7 @@ import Swal from "sweetalert2";
       console.log("Editing investment:", investment); // Debugging
 
       setIsEditMode(true);
-      setEditRentalId(investment.id);
+      setEditRentalId(investment._id);
 
       // Set form values based on the data of the investment
       form.setFieldsValue({
@@ -101,17 +101,17 @@ import Swal from "sweetalert2";
         if (isEditMode) {
           await updateAssets({
             id: editRentalId,
-            expenseData: formattedValues,
+            data: formattedValues,
           }).unwrap();
-          toast.success("Investment updated successfully");
+          toast.success("Assets updated successfully");
         } else {
-          toast.success("New investment added successfully");
+          toast.success("New Asset added successfully");
         }
 
         setIsDrawerVisible(false);
         form.resetFields();
       } catch (error: any) {
-        toast.error("Failed to save investment entry: " + error?.data?.message);
+        toast.error("Failed to save update entry: " + error?.data?.message);
       }
     };
 

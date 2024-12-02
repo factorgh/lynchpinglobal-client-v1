@@ -1,5 +1,6 @@
 "use client";
 
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
 import { useCreateInvestmentMutation } from "@/services/investment";
 import { PlusOutlined } from "@ant-design/icons";
@@ -19,9 +20,12 @@ import { toast } from "react-toastify";
 const WealthForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [createInvestment, { isLoading }] = useCreateInvestmentMutation();
+  const [createActivity] = useCreateActivityLogMutation();
   const { data, isFetching } = useGetUsersQuery(null);
   const [users, setUsers] = useState([]);
+
   const [form] = Form.useForm();
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [fileCategories, setFileCategories] = useState({
     certificate: [],
@@ -122,6 +126,17 @@ const WealthForm: React.FC = () => {
     console.log(formattedValues);
     try {
       await createInvestment(formattedValues).unwrap();
+      // Create activity log
+      await createActivity({
+        activity: "New Investment",
+        description: "A new investment was created",
+        user: loggedInUser._id,
+      }).unwrap();
+
+      // Reset form and close drawer after successful creation
+      toast.success("Investment created successfully");
+      setOpen(false);
+      form.resetFields();
       toast.success("Investment created successfully");
       setOpen(false);
       form.resetFields();
@@ -146,10 +161,10 @@ const WealthForm: React.FC = () => {
   return (
     <>
       <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
-        New Investment
+        New Wealth
       </Button>
       <Drawer
-        title="Create a New Investment"
+        title="Create a New Wealth"
         width={720}
         onClose={onClose}
         open={open}

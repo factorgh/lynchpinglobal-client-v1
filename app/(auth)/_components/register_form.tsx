@@ -73,7 +73,7 @@ const RegisterForm = () => {
 
       <div className="relative z-10 w-full max-w-md bg-gray-50 shadow-lg rounded-lg p-8">
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
-          Register to FinVest
+          Register to Lynchpin Global
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

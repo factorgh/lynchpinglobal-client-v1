@@ -9,13 +9,7 @@ interface DashboardCardProps {
   trendColor?: string;
 }
 
-const CustomCard: React.FC<DashboardCardProps> = ({
-  icon,
-  title,
-  amount,
-  percentageChange,
-  trendColor,
-}) => {
+const CustomCard: React.FC<DashboardCardProps> = ({ icon, title, amount }) => {
   return (
     <Card
       className="  max-w-sm  h-40  bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200 "

@@ -2,6 +2,7 @@
 import DotLoader from "@/app/(components)/dot-loader";
 import InvestmentDetailDrawer from "@/app/(components)/investemnt_drawer";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
+import { useCreateAddOffMutation } from "@/services/addOff";
 import { useCreateAddOnMutation } from "@/services/addOn";
 import {
   useDeleteInvestmentMutation,
@@ -26,11 +27,9 @@ import {
   Input,
   InputNumber,
   Menu,
-  message,
   Row,
   Select,
   Table,
-  Upload,
 } from "antd";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -56,6 +55,8 @@ const WealthTable = () => {
 
   const [updateInvestment, { isLoading }] = useUpdateInvestmentMutation();
   const [createAddOn, { isLoading: addOnLoading }] = useCreateAddOnMutation();
+  const [createAddOff, { isLoading: addOffLoading }] =
+    useCreateAddOffMutation();
   const [deleteInvestment] = useDeleteInvestmentMutation();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   console.log(selectedFiles);
@@ -159,15 +160,15 @@ const WealthTable = () => {
     setIsEditMode(false);
   };
   const showEditDrawer = (investment: any) => {
+    console.log(investment);
     setIsEditMode(true);
-    setEditRentalId(investment.id);
+    setEditRentalId(investment._id);
 
     form.setFieldsValue({
-      name: investment.name,
-      principal: toTwoDecimalPlaces(investment.principal),
-      managementFee: toTwoDecimalPlaces(investment.managementFee),
-      performanceYield: toTwoDecimalPlaces(investment.performanceYield),
+      managementFee: investment.managementFee,
+      performanceYield: investment.performanceYield,
       guaranteedRate: investment.guaranteedRate,
+      quater: investment.quater,
     });
 
     setIsDrawerVisible(true);
@@ -216,38 +217,31 @@ const WealthTable = () => {
           investmentId: editRentalId,
         });
         closeAddOnDrawer();
-        message.success("Add On has been created successfully");
+        toast.success("Add On has been created successfully");
         form.resetFields(); // Reset form fiel
         console.log("Add On submitted", values);
       } else if (isAddOffDrawerVisible) {
         // Handle Add Off submission
+        await createAddOff({
+          amount: values.amount,
+          currency: values.currnecy,
+          rate: values.rate,
+          investmentId: editRentalId,
+        });
+        closeAddOffDrawer();
         console.log("Add Off submitted", values);
+        toast.success("Add Off has been created successfully");
       } else {
         // Handle Investment submission (same logic as before)
-        const uploadedFiles: Record<string, string[]> = {};
-
-        for (const category in fileCategories) {
-          if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
-            uploadedFiles[category as keyof typeof fileCategories] =
-              await handleUploadToCloudinary(
-                fileCategories[category as keyof typeof fileCategories]
-              );
-          }
-        }
-
-        const formattedValues = {
-          ...values,
-          files: uploadedFiles,
-        };
-
+        console.log(values);
         if (isEditMode) {
           await updateInvestment({
             id: editRentalId,
-            expenseData: formattedValues,
+            data: values,
           }).unwrap();
-          toast.success("Investment updated successfully");
+          toast.success("Wealth updated successfully");
         } else {
-          toast.success("New investment added successfully");
+          toast.success("New wealth added successfully");
         }
 
         setIsDrawerVisible(false);
@@ -323,6 +317,7 @@ const WealthTable = () => {
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),
+      render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
     },
     {
       title: "Performance Yield",
@@ -375,7 +370,7 @@ const WealthTable = () => {
         rowKey="id" // Correct rowKey
       />
       <Drawer
-        title="Edit Expense"
+        title="Edit Wealth"
         placement="right"
         width="50%" // Adjust to center the drawer
         onClose={handleCloseDrawer}
@@ -387,48 +382,6 @@ const WealthTable = () => {
           layout="vertical"
           hideRequiredMark
         >
-          <Row gutter={16}>
-            {/* User Selection */}
-            <Col span={12}>
-              <Form.Item
-                name="userId"
-                label="User"
-                rules={[{ required: true, message: "Please select a user" }]}
-              >
-                <Select
-                  placeholder="Select a user"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={users?.map((user: any) => ({
-                    value: user._id,
-                    label: user.name,
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-
-            {/* Principal */}
-            <Col span={12}>
-              <Form.Item
-                name="principal"
-                label="Principal"
-                rules={[
-                  { required: true, message: "Please enter the principal" },
-                ]}
-              >
-                <InputNumber
-                  placeholder="Enter principal"
-                  style={{ width: "100%" }}
-                  min={1}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
           <Row gutter={16}>
             {/* Performance Yield */}
             <Col span={12}>
@@ -508,12 +461,12 @@ const WealthTable = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="quarter"
-                label="Quater"
+                name="quater"
+                label="Quarter"
                 rules={[{ required: true, message: "Please select a quater" }]}
               >
                 <Select
-                  placeholder="Select management fee"
+                  placeholder="Select a quarter"
                   showSearch
                   filterOption={(input, option) =>
                     (option?.label ?? "")
@@ -528,7 +481,7 @@ const WealthTable = () => {
               </Form.Item>
             </Col>
           </Row>
-          <Row gutter={16}>
+          {/* <Row gutter={16}>
             {["certificate", "partnerForm", "checklist", "mandate"].map(
               (category) => (
                 <Col key={category} span={6}>
@@ -549,7 +502,7 @@ const WealthTable = () => {
                 </Col>
               )
             )}
-          </Row>
+          </Row> */}
           <Form.Item>
             {isLoading ? (
               <Button
@@ -637,7 +590,7 @@ const WealthTable = () => {
       >
         <Form form={form} onFinish={handleFormSubmit} layout="vertical">
           <Form.Item
-            name="addOff"
+            name="amount"
             label="Add Off Amount"
             rules={[{ required: true, message: "Please enter an add-off" }]}
           >
@@ -645,17 +598,17 @@ const WealthTable = () => {
           </Form.Item>
 
           <Form.Item
-            name="guaranteedRate"
-            label="Guaranteed Rate"
+            name="Rate"
+            label="Rate"
             rules={[
               {
                 required: true,
-                message: "Please select a guaranteed rate",
+                message: "Please select a  rate",
               },
             ]}
           >
             <Select
-              placeholder="Select guaranteed rate"
+              placeholder="Select rate"
               showSearch
               filterOption={(input, option) =>
                 (option?.label ?? "")
@@ -693,7 +646,7 @@ const WealthTable = () => {
             <Button
               type="primary"
               htmlType="submit"
-              loading={isLoading}
+              loading={addOffLoading}
               className="w-full mt-6"
             >
               Submit

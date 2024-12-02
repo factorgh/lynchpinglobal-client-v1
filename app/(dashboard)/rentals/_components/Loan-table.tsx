@@ -181,14 +181,15 @@ import Swal from "sweetalert2";
         dataIndex: "overdueRate",
         key: "overdueRate",
         ...getColumnSearchProps("overdueRate"),
-        render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
+        render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
+        // Format performance yield
       },
       {
         title: "Amount Due",
         dataIndex: "amountDue",
         key: "amountDue",
         ...getColumnSearchProps("amountDue"),
-        render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
+        render: (value: any) => toTwoDecimalPlaces(value),
       },
 
       {
@@ -201,7 +202,7 @@ import Swal from "sweetalert2";
               onClick={() => showEditDrawer(record)}
             />
             <DeleteOutlined
-              onClick={() => handleDelete(record.id)}
+              onClick={() => handleDelete(record._id)}
               className="text-red-500"
               style={{ marginLeft: "10px" }}
             />

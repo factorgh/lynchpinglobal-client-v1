@@ -5,8 +5,8 @@ interface DashboardCardProps {
   icon: React.ReactNode;
   title: string;
   amount: string;
-  percentageChange?: string; // e.g., "+3.2%" or "-2.4%"
-  trendColor?: string; // e.g., "text-green-500" or "text-red-500"
+  percentageChange?: string;
+  trendColor?: string;
 }
 
 const LandingCard: React.FC<DashboardCardProps> = ({

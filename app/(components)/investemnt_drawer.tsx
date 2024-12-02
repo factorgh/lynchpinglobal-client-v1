@@ -17,6 +17,7 @@ import {
   Typography,
 } from "antd";
 import Title from "antd/es/typography/Title";
+import moment from "moment";
 import { useState } from "react";
 
 const { Text } = Typography;
@@ -98,6 +99,48 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
         </Button>
       ),
     },
+  ];
+  const addOffColumns = [
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
+      render: (amount: number) => `GH₵${amount.toFixed(2)}`,
+    },
+
+    {
+      title: "Currency",
+      dataIndex: "currency",
+      key: "currency",
+    },
+
+    {
+      title: "Rate",
+      dataIndex: "rate",
+      key: "rate",
+      render: (rate: number) => `${rate.toFixed(2)}%`,
+    },
+    {
+      title: "Date Added",
+      dataIndex: "dateOfEntry",
+      key: "rdateOfEntry",
+      render: (rate: number) => moment(rate).format("YYYY-MM-DD"),
+    },
+
+    // {
+    //   title: "Actions",
+    //   key: "actions",
+    //   render: (_: any, record: AddOn, index: number) => (
+    //     <Button
+    //       icon={<EditOutlined />}
+    //       onClick={() => handleEdit(record, index)}
+    //       size="small"
+    //       type="link"
+    //     >
+    //       Edit
+    //     </Button>
+    //   ),
+    // },
   ];
 
   const handleFinishEdit = async (values: any) => {
@@ -215,6 +258,19 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Table
               columns={addOnColumns}
               dataSource={investment?.addOns}
+              rowKey="_id" // Assuming 'name' is unique in the AddOn array, otherwise use a different field like 'id'
+              pagination={false}
+              size="small"
+            />
+          ) : (
+            <Tag color="orange">No add-ons</Tag>
+          )}
+        </Card>
+        <Card title="Add-Offs" bordered={false}>
+          {investment?.oneOffs.length > 0 ? (
+            <Table
+              columns={addOffColumns}
+              dataSource={investment?.oneOffs}
               rowKey="_id" // Assuming 'name' is unique in the AddOn array, otherwise use a different field like 'id'
               pagination={false}
               size="small"

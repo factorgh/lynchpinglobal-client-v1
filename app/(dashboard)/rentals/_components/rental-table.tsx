@@ -154,15 +154,15 @@ import Swal from "sweetalert2";
       {
         title: "Customer",
         dataIndex: "user",
-        key: "userId",
-        ...getColumnSearchProps("userId"),
+        key: "user",
+        ...getColumnSearchProps("user"),
         render: (value: any) => value?.name,
       },
       {
         title: "Asset Class",
         dataIndex: "assetClass",
         key: "assetClass",
-        ...getColumnSearchProps("asset_class"),
+        ...getColumnSearchProps("assetClass"),
       },
       {
         title: "Asset Designation",
@@ -284,6 +284,8 @@ import Swal from "sweetalert2";
                   <InputNumber
                     placeholder="Enter overdue rate"
                     style={{ width: "100%" }}
+                    min={1}
+                    max={100}
                   />
                 </Form.Item>
               </Col>
