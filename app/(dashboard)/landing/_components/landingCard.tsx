@@ -34,7 +34,7 @@ const LandingCard: React.FC<DashboardCardProps> = ({
       </div>
 
       {/* Amount */}
-      <span className="text-2xl font-bold text-gray-800 text-start">
+      <span className="text-md font-bold text-gray-800 text-start">
         {amount}
       </span>
 

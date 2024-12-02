@@ -27,6 +27,13 @@ export const LoanApi = baseApi.injectEndpoints({
         query: (id) => loanCrud.getSingle(id),
         providesTags: ["Loan"],
       }),
+      getUserLoan: builder.query({
+        query: (id) => ({
+          url: `/loans/user`,
+          method: "GET",
+        }),
+        providesTags: ["Loan"],
+      }),
     };
   },
 });
@@ -37,4 +44,5 @@ export const {
   useGetLoansQuery,
   useGetSingleLoanQuery,
   useUpdateLoanMutation,
+  useGetUserLoanQuery,
 } = LoanApi;

@@ -29,6 +29,13 @@ export const RentalApi = baseApi.injectEndpoints({
         query: (id) => rentalCrud.getSingle(id),
         providesTags: ["Rental"],
       }),
+      getUserRentals: builder.query({
+        query: (id) => ({
+          url: `/rentals/user`,
+          method: "GET",
+        }),
+        providesTags: ["Investment"],
+      }),
     };
   },
 });
@@ -39,4 +46,5 @@ export const {
   useGetRentalsQuery,
   useGetSingleRentalQuery,
   useUpdateRentalMutation,
+  useGetUserRentalsQuery,
 } = RentalApi;

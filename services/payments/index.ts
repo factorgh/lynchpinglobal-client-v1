@@ -27,6 +27,13 @@ export const PaymentApi = baseApi.injectEndpoints({
         query: (id) => PaymentCrud.getSingle(id),
         providesTags: ["Payments"],
       }),
+      getUserPayments: builder.query({
+        query: (id) => ({
+          url: `/payments/user`,
+          method: "GET",
+        }),
+        providesTags: ["Payments"],
+      }),
     };
   },
 });
@@ -37,4 +44,5 @@ export const {
   useGetPaymentsQuery,
   useGetSinglePaymentQuery,
   useUpdatePaymentMutation,
+  useGetUserPaymentsQuery,
 } = PaymentApi;

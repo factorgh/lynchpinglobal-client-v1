@@ -1,15 +1,13 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { formatPriceGHS } from "@/lib/helper";
+import { useGetUserAssetsQuery } from "@/services/assets";
 import { useGetAllInvestmentsQuery } from "@/services/investment";
-import {
-  DollarOutlined,
-  PieChartOutlined,
-  PlusCircleOutlined,
-  RiseOutlined,
-} from "@ant-design/icons";
+import { useGetUserPaymentsQuery } from "@/services/payments";
+import { PieChartOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { Divider, Pagination, Table } from "antd";
-import { HandCoins } from "lucide-react";
+import { HandCoins, LucideCreditCard } from "lucide-react";
 import { useEffect, useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
 import AssetsUnder from "./_components/assetsUnder";
@@ -19,13 +17,26 @@ import CustomSlider from "./_components/customSlider";
 import LandingCard from "./_components/landingCard";
 
 const CustomerLanding = () => {
-  const { data: userInvestments } = useGetAllInvestmentsQuery(null); // Fetch user investments data
+  const { data: userInvestments } = useGetAllInvestmentsQuery(null);
+  const { data: userPayments, isFetching: isFetchingPayment } =
+    useGetUserPaymentsQuery(null);
 
   const [totalBalance, setTotalBalance] = useState(0);
   const [principal, setPrincipal] = useState(0);
   const [accruedInterest, setAccruedInterest] = useState(0);
   const [addOns, setAddOns] = useState(0);
+  const [oneOffs, setOneOffs] = useState(0);
   const [addonAccruedReturn, setAddonAccruedReturn] = useState(0);
+  const [managementFee, setManagementFee] = useState(0);
+  const [performanceYield, setPerformanceYield] = useState(0);
+  const [operationalCost, setOperationalCost] = useState(0);
+  const [guaranteedRate, setGuaranteedRate] = useState(0);
+  const [activeInves, setActiveInves] = useState([]);
+  const [quarter, setQuarter] = useState("");
+
+  //  others
+  const { data: assetsData, isFetching } = useGetUserAssetsQuery(null);
+  console.log(assetsData?.data.data);
 
   useEffect(() => {
     if (userInvestments?.data) {
@@ -33,21 +44,38 @@ const CustomerLanding = () => {
       const activeInvestments = userInvestments.data.filter(
         (investment: any) => !investment.archived
       );
+      console.log(activeInvestments);
+      setActiveInves(activeInvestments);
 
       let totalPrincipal = 0;
       let totalAccruedInterest = 0;
       let totalAddOns = 0;
       let totalAddonAccruedReturn = 0;
+      let totalManagementFee = 0;
+      let totalPerformanceYield = 0;
+      let totalOneOffs = 0;
+      let totalOperationalCost = 0;
+      let guaranteedRate = 0;
+      let quarter = "";
 
-      // Calculate the totals
+      // Calculate the totals and gather additional fields
       activeInvestments.forEach((investment: any) => {
         totalPrincipal += investment.principal;
         totalAccruedInterest += investment.totalAccruedReturn;
         totalAddOns += investment.addOns.reduce(
           (sum: any, addOn: any) => sum + (addOn.amount || 0),
           0
-        ); // Assuming addOn has amount
+        );
+        totalOneOffs += investment.oneOffs.reduce(
+          (sum: any, oneOffs: any) => sum + (oneOffs.amount || 0),
+          0
+        );
         totalAddonAccruedReturn += investment.addOnAccruedReturn;
+        totalManagementFee += investment.managementFee || 0; // Assuming managementFee is a field
+        totalPerformanceYield += investment.performanceYield || 0; // Assuming performanceYield is a field
+        totalOperationalCost += investment.operationalCost || 0;
+        guaranteedRate += investment.guaranteedRate || 0;
+        quarter = investment.quarter;
       });
 
       const totalCalculatedBalance =
@@ -62,23 +90,27 @@ const CustomerLanding = () => {
       setAccruedInterest(totalAccruedInterest);
       setAddOns(totalAddOns);
       setAddonAccruedReturn(totalAddonAccruedReturn);
+      setManagementFee(totalManagementFee);
+      setPerformanceYield(totalPerformanceYield);
+      setOperationalCost(totalOperationalCost);
+      setGuaranteedRate(guaranteedRate);
+      setQuarter(quarter);
+      setOneOffs(totalOneOffs);
     }
   }, [userInvestments]);
 
   return (
-    <div className="  ">
+    <div className="">
       <Wrapper>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-5">
           {/* first card */}
           <Card className="p-5 flex flex-col gap-8 justify-start ">
             <div className="flex justify-between items-center ">
               <h3 className="mt-6 text-md">TOTAL BALANCE</h3>
-              <DollarOutlined className="text-2xl" />
+              <LucideCreditCard className="text-2xl" />
             </div>
-            <p className="text-4xl font-bold">
-              ${totalBalance.toLocaleString()}
-            </p>
-            <p>Last updated: {new Date().toLocaleDateString()}</p>
+            <p className="text-2xl font-bold">{formatPriceGHS(totalBalance)}</p>
+            <p>Current Quarter: {quarter}</p>
             <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full "></div>
           </Card>
 
@@ -86,22 +118,22 @@ const CustomerLanding = () => {
             <LandingCard
               icon={<HandCoins />}
               title="PRINCIPAL"
-              amount={`$${principal.toLocaleString()}`}
+              amount={formatPriceGHS(principal)}
             />
             <LandingCard
               icon={<PieChartOutlined />}
               title="ACCRUED INTEREST"
-              amount={`${((accruedInterest / principal) * 100).toFixed(2)}%`}
+              amount={formatPriceGHS(accruedInterest)}
             />
             <LandingCard
               icon={<PlusCircleOutlined />}
               title="ADD ONS"
-              amount={`$${addOns.toLocaleString()}`}
+              amount={formatPriceGHS(addOns)}
             />
             <LandingCard
               icon={<PieChartOutlined />}
               title="ADD ON INTEREST"
-              amount={`$${addonAccruedReturn.toLocaleString()}`}
+              amount={formatPriceGHS(addonAccruedReturn)}
             />
           </div>
 
@@ -115,25 +147,35 @@ const CustomerLanding = () => {
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="MANAGEMENT FEE"
-              amount="1200"
+              amount={`${managementFee.toLocaleString()} %`}
+            />
+            <CustomCard
+              icon={<PlusCircleOutlined />}
+              title="ONE-OFFS"
+              amount={formatPriceGHS(oneOffs)}
             />
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="PERFORMANCE YIELD"
-              amount="150"
+              amount={formatPriceGHS(performanceYield)}
             />
-            <CustomCard icon={<RiseOutlined />} title="ADD OFFS" amount="15%" />
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="OPERATIONAL COST"
-              amount="150"
+              amount={formatPriceGHS(operationalCost)}
             />
           </div>
           <Card className="p-3 ">
-            <AssetsUnder />
+            <AssetsUnder
+              loading={isFetching}
+              dataSource={assetsData?.data.data}
+            />
           </Card>
           <Card className="p-3">
-            <CustomList />
+            <CustomList
+              dataSource={userPayments?.data.data}
+              loading={isFetchingPayment}
+            />
           </Card>
         </div>
       </Wrapper>

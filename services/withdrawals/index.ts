@@ -27,6 +27,13 @@ export const WithdrawalApi = baseApi.injectEndpoints({
         query: (id) => WithdrawalCrud.getSingle(id),
         providesTags: ["Withdrawals"],
       }),
+      getUserWithdrawals: builder.query({
+        query: (id) => ({
+          url: `/withdrawals/user`,
+          method: "GET",
+        }),
+        providesTags: ["Withdrawals"],
+      }),
     };
   },
 });
@@ -37,4 +44,5 @@ export const {
   useGetWithdrawalsQuery,
   useGetSingleWithdrawalQuery,
   useUpdateWithdrawalMutation,
+  useGetUserWithdrawalsQuery,
 } = WithdrawalApi;

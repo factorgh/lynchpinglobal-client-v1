@@ -36,6 +36,13 @@ export const NotificationApi = baseApi.injectEndpoints({
         }),
         invalidatesTags: ["Notifications"],
       }),
+      getUserNotifications: builder.query({
+        query: (id) => ({
+          url: `/notifications/user`,
+          method: "GET",
+        }),
+        providesTags: ["Notifications"],
+      }),
     };
   },
 });
@@ -46,5 +53,6 @@ export const {
   useGetNotificationsQuery,
   useGetSingleNotificationQuery,
   useUpdateNotificationMutation,
-  useReadAllNotificationsMutation, // Export the hook for the new service
+  useReadAllNotificationsMutation,
+  useGetUserNotificationsQuery,
 } = NotificationApi;

@@ -27,6 +27,13 @@ export const AssetsApi = baseApi.injectEndpoints({
         query: (id) => assetsCrud.getSingle(id),
         providesTags: ["Assets"],
       }),
+      getUserAssets: builder.query({
+        query: (id) => ({
+          url: `/assets/user`,
+          method: "GET",
+        }),
+        providesTags: ["Assets"],
+      }),
     };
   },
 });
@@ -37,4 +44,5 @@ export const {
   useGetAllAssetssQuery,
   useGetSingleAssetsQuery,
   useUpdateAssetsMutation,
+  useGetUserAssetsQuery,
 } = AssetsApi;

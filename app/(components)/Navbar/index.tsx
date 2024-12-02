@@ -4,10 +4,18 @@ import { BellAlertIcon } from "@heroicons/react/24/outline";
 import { Avatar, Badge } from "antd";
 import { Inbox } from "lucide-react";
 import moment from "moment";
+import { useState } from "react";
+import InboxForm from "./_components/inboxForm";
 
 const Navbar = () => {
+  const [showInboxForm, setShowInboxForm] = useState(false);
+
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   console.log(user);
+
+  const handleShowInboxForm = () => {
+    setShowInboxForm(true);
+  };
 
   // Date formatter
   const getCurrentFormattedDate = () => {
@@ -41,7 +49,15 @@ const Navbar = () => {
               size="small"
             />
           </Badge>
-          {user.role !== "admin" && <Inbox />}
+          {user.role !== "admin" && (
+            <Inbox className="cursor-pointer" onClick={handleShowInboxForm} />
+          )}
+          {showInboxForm && (
+            <InboxForm
+              showInboxForm={showInboxForm}
+              setShowInboxForm={setShowInboxForm}
+            />
+          )}
         </div>
         {/* Profile Image and Link */}
       </div>
