@@ -101,32 +101,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[url('/p1.jpeg')] pt-7">
-      {/* Sidebar */}
-      {/* <div className="fixed left-0 top-0 h-full w-64 bg-white border-r p-4">
-        <div className="flex items-center space-x-2 mb-8">
-          <CreditCard className="h-6 w-6 text-blue-600" />
-          <span className="font-bold text-xl">LoanPro</span>
-        </div>
-
-        <nav className="space-y-2">
-          <Button variant="ghost" className="w-full justify-start">
-            <Users className="mr-2 h-4 w-4" /> Clients
-          </Button>
-          <Button variant="ghost" className="w-full justify-start">
-            <Car className="mr-2 h-4 w-4" /> Vehicles
-          </Button>
-          <Button variant="ghost" className="w-full justify-start">
-            <Wallet className="mr-2 h-4 w-4" /> Loans
-          </Button>
-          <Button variant="ghost" className="w-full justify-start">
-            <Calendar className="mr-2 h-4 w-4" /> Payments
-          </Button>
-          <Button variant="ghost" className="w-full justify-start">
-            <Settings className="mr-2 h-4 w-4" /> Settings
-          </Button>
-        </nav>
-      </div> */}
-
       {/* Main Content */}
       <div className="ml-64 px-8 ">
         {/* Header */}
@@ -176,12 +150,9 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Recent Activity & Lists */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Statistcs */}
           <Statistics />
 
-          {/* Recent Clients */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -198,78 +169,7 @@ export default function DashboardPage() {
               ))}
             </CardContent>
           </Card>
-
-          {/* Vehicle List */}
-          {/* <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Vehicle Inventory</CardTitle>
-                <Button variant="outline" size="sm">
-                  <Filter className="mr-2 h-4 w-4" /> Filter
-                </Button>
-              </div>
-              <CardDescription>Currently financed vehicles</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-4">
-              {sampleVehicles.map((vehicle, index) => (
-                <VehicleCard key={index} vehicle={vehicle} />
-              ))}
-            </CardContent>
-          </Card> */}
         </div>
-
-        {/* Recent Payments Table */}
-        {/* <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Recent Payments</CardTitle>
-            <CardDescription>Latest payment transactions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Client
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Amount
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Date
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  <tr className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center space-x-3">
-                        <Avatar>JA</Avatar>
-                        <div>
-                          <p className="font-medium">John Anderson</p>
-                          <p className="text-sm text-gray-500">Tesla Model 3</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">$850.00</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4 text-gray-400" />
-                        <span>2024-11-08</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant="secondary">Completed</Badge>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card> */}
       </div>
     </div>
   );

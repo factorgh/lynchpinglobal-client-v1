@@ -23,6 +23,13 @@ export const InvestmentApi = baseApi.injectEndpoints({
         query: () => investmentCrud.getAll(),
         providesTags: ["Investment"],
       }),
+      getUserInvestments: builder.query({
+        query: (id) => ({
+          url: `/investments/user`,
+          method: "GET",
+        }),
+        providesTags: ["Investment"],
+      }),
       getSingleInvestment: builder.query({
         query: (id) => investmentCrud.getSingle(id),
         providesTags: ["Investment"],
@@ -35,7 +42,7 @@ export const {
   useGetAllInvestmentsQuery,
   useCreateInvestmentMutation,
   useDeleteInvestmentMutation,
-
+  useGetUserInvestmentsQuery,
   useGetSingleInvestmentQuery,
   useUpdateInvestmentMutation,
 } = InvestmentApi;

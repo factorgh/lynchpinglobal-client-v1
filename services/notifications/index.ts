@@ -27,6 +27,15 @@ export const NotificationApi = baseApi.injectEndpoints({
         query: (id) => NotificationCrud.getSingle(id),
         providesTags: ["Notifications"],
       }),
+
+      // Add the new service for reading all notifications
+      readAllNotifications: builder.mutation({
+        query: () => ({
+          url: "/notifications/readAll",
+          method: "POST",
+        }),
+        invalidatesTags: ["Notifications"],
+      }),
     };
   },
 });
@@ -37,4 +46,5 @@ export const {
   useGetNotificationsQuery,
   useGetSingleNotificationQuery,
   useUpdateNotificationMutation,
+  useReadAllNotificationsMutation, // Export the hook for the new service
 } = NotificationApi;

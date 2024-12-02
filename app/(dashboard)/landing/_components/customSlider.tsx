@@ -63,9 +63,9 @@ const CustomSlider = () => {
           {slides.map((slide, index) => (
             <div
               key={index}
-              className="flex-shrink-0 w-full h-[400px] bg-cover bg-center"
+              className="flex-shrink-0 w-full h-[300px] bg-cover bg-center"
               style={{
-                backgroundImage: `url(${slide.backgroundImage})`, // Correct way to set background image
+                backgroundImage: `url(${slide.backgroundImage})`, // Set the background image correctly
               }}
             >
               {/* Optional content for each slide */}
@@ -80,6 +80,20 @@ const CustomSlider = () => {
       </div>
 
       {/* Navigation buttons */}
+      {/* Optional: Add navigation buttons for manual slide change */}
+      {/* <button
+        onClick={goToPrevious}
+        className="absolute top-1/2 left-4 transform -translate-y-1/2 text-white bg-opacity-50 bg-black p-2 rounded-full hover:bg-opacity-75 transition"
+      >
+        &lt;
+      </button>
+
+      <button
+        onClick={goToNext}
+        className="absolute top-1/2 right-4 transform -translate-y-1/2 text-white bg-opacity-50 bg-black p-2 rounded-full hover:bg-opacity-75 transition"
+      >
+        &gt;
+      </button> */}
 
       {/* Slide indicators */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
