@@ -9,8 +9,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatPriceGHS } from "@/lib/helper";
-import { AlertCircle, Filter, Users, Wallet, Wallet2 } from "lucide-react";
-import { useState } from "react";
+import { useGetUsersQuery } from "@/services/auth";
+import { useGetAllInvestmentsQuery } from "@/services/investment";
+import { useGetLoansQuery } from "@/services/loan";
+import { AlertCircle, Users, Wallet, Wallet2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ClientRow } from "../_components/ClientRow";
 import { DashboardCard } from "../_components/DashboardItem";
 import Statistics from "../_components/Statistics";
@@ -48,6 +51,17 @@ interface Vehicle {
 
 export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { data: activeClients } = useGetUsersQuery(null);
+  const { data: userInvestments } = useGetAllInvestmentsQuery(null);
+  const { data: loans } = useGetLoansQuery(null);
+  const [loansTotals, setLoansTotals] = useState(0);
+  const [assetsUnderMgt, setAssetsUnderMgt] = useState(0);
+  const [outstandingPayments, setOutstandingPayments] = useState(0);
+  console.log(loans?.data.data);
+
+  console.log(
+    activeClients?.allUsers?.length ? activeClients?.allUsers?.length : 0
+  );
 
   // Sample data
   const dashboardData: DashboardData = {
@@ -98,52 +112,94 @@ export default function DashboardPage() {
       status: "Active",
     },
   ];
+  useEffect(() => {
+    if (userInvestments?.data) {
+      // Filter investments where archived is false
+      const activeInvestments = userInvestments.data.filter(
+        (investment: any) => !investment.archived
+      );
+      if (loans?.data.data) {
+        // Calculate the total loans
+        const loansData = loans.data.data;
+        const loansTotal = loansData.reduce(
+          (sum: any, loan: any) => sum + (loan.loanAmount || 0),
+          0
+        );
+        setLoansTotals(loansTotal);
+      }
+
+      let totalAssetsUnderManagement = 0;
+      let totalOutstandingPayments = 0;
+      let totalPrincipal = 0;
+      let totalAddOns = 0;
+      let totalAddonAccruedReturn = 0;
+      let totalAddOnIneterest = 0;
+      let totalAccruedInterest = 0;
+
+      // Loop through all the data and add those needed
+      activeInvestments.forEach((investment: any) => {
+        totalPrincipal += investment.principal;
+        totalAccruedInterest += investment.totalAccruedReturn;
+        totalAddOns += investment.addOns.reduce(
+          (sum: any, addOn: any) => sum + (addOn.amount || 0),
+          0
+        );
+
+        totalAddOnIneterest += investment.addOnAccruedReturn;
+
+        totalAddonAccruedReturn += investment.addOnAccruedReturn;
+
+        totalAssetsUnderManagement = totalPrincipal + totalAddOns;
+
+        totalOutstandingPayments = totalAccruedInterest + totalAddOnIneterest;
+
+        // Update state with the new values
+        setAssetsUnderMgt(totalAssetsUnderManagement);
+        setOutstandingPayments(totalOutstandingPayments);
+      });
+    }
+  }, [userInvestments]);
 
   return (
     <div className="min-h-screen bg-[url('/p1.jpeg')] pt-7">
       {/* Main Content */}
       <div className="ml-64 px-8 ">
         {/* Header */}
-        {/* <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Dashboard Overview
-            </h1>
-            <p className="text-gray-500">Welcome back, Admin</p>
-          </div>
-
-         
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <DashboardCard
-            title="Total Loans"
-            value={formatPriceGHS(Number(dashboardData.totalLoans))}
-            subtitle="Total amount disbursed"
+            title="Total Assets Under Mgt."
+            value={formatPriceGHS(Number(assetsUnderMgt))}
+            subtitle="Total assets"
             icon={Wallet}
             trend={dashboardData.trends.loans}
             color="blue"
           />
           <DashboardCard
             title="Active Clients"
-            value={dashboardData.activeClients}
-            subtitle="Total active borrowers"
+            value={
+              activeClients?.allUsers?.length
+                ? activeClients?.allUsers?.length
+                : 0
+            }
+            subtitle="Total active clients"
             icon={Users}
             trend={dashboardData.trends.clients}
             color="green"
           />
           <DashboardCard
             title="Payments"
-            value={dashboardData.totalVehicles}
-            subtitle="Total loan payments"
+            value={formatPriceGHS(Number(outstandingPayments))}
+            subtitle="Total Outstanding "
             icon={Wallet2}
             trend={dashboardData.trends.vehicles}
             color="purple"
           />
           <DashboardCard
-            title="Outstanding"
-            value={formatPriceGHS(Number(dashboardData.outstandingPayments))}
-            subtitle="Total pending payments"
+            title="Total Loans"
+            value={formatPriceGHS(Number(loansTotals))}
+            subtitle="Total Outstanding Loans"
             icon={AlertCircle}
             trend={dashboardData.trends.payments}
             color="red"
@@ -157,16 +213,16 @@ export default function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Recent Clients</CardTitle>
-                <Button variant="outline" size="sm">
-                  <Filter className="mr-2 h-4 w-4" /> Filter
-                </Button>
+                <Button variant="outline" size="sm"></Button>
               </div>
               <CardDescription>Latest client activities</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {sampleClients.map((client, index) => (
-                <ClientRow key={index} client={client} />
-              ))}
+              {activeClients?.allUsers
+                .slice(0, 5)
+                .map((client: any, index: any) => (
+                  <ClientRow key={index} client={client} />
+                ))}
             </CardContent>
           </Card>
         </div>

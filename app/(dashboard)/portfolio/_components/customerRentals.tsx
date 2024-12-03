@@ -1,8 +1,10 @@
 import { toTwoDecimalPlaces } from "@/lib/helper";
+import { useGetUserRentalsQuery } from "@/services/rental";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
 import { Button, Input, Space, Table } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
+import moment from "moment";
 import React, { useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
 
@@ -19,10 +21,15 @@ type DataIndex = keyof DataType;
 
 const data: DataType[] = [];
 
-const CustomerRentals: React.FC = () => {
+const CustomerRentalsOnly: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<InputRef>(null);
+  const { data: rentals, isFetching } = useGetUserRentalsQuery(null);
+  console.log(
+    "-------------------------Rentals Data-------------------------",
+    rentals?.data.data
+  );
 
   const handleSearch = (
     selectedKeys: string[],
@@ -154,23 +161,30 @@ const CustomerRentals: React.FC = () => {
       key: "amountDue",
       ...getColumnSearchProps("amountDue"),
     },
-    {
-      title: "Due Date",
-      dataIndex: "dueDate",
-      key: "dueDate",
-      ...getColumnSearchProps("dueDate"),
-      render: (value: number) => toTwoDecimalPlaces(value),
-    },
+
     {
       title: "Overdue Fee",
-      dataIndex: "overdueFee",
-      key: "overdueFee",
-      ...getColumnSearchProps("overdueFee"),
-      render: (value: number) => `${toTwoDecimalPlaces(value)}%`,
+      dataIndex: "overdueRate",
+      key: "overdueRate",
+
+      render: (value: number) => `${value}%`,
+    },
+    {
+      title: "Return Date",
+      dataIndex: "returnDate",
+      key: "returnDate",
+
+      render: (value: number) => moment(value).format("YYYY-MM-DD"),
     },
   ];
 
-  return <Table<DataType> columns={columns} dataSource={data} />;
+  return (
+    <Table<DataType>
+      loading={isFetching}
+      columns={columns}
+      dataSource={rentals?.data.data}
+    />
+  );
 };
 
-export default CustomerRentals;
+export default CustomerRentalsOnly;

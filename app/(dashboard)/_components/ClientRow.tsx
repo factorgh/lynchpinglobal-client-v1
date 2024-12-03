@@ -7,6 +7,7 @@ interface ClientRowProps {
     email: string;
     status: string;
     loanAmount: number;
+    license: string;
   };
 }
 
@@ -24,11 +25,13 @@ export const ClientRow = ({ client }: ClientRowProps) => (
       </div>
     </div>
     <div className="flex items-center space-x-4">
-      <Badge variant={client.status === "Active" ? "secondary" : "destructive"}>
-        {client.status}
+      <Badge
+        variant={client.status === "Active" ? "destructive" : "destructive"}
+      >
+        {client.license}
       </Badge>
       <div className="text-right">
-        <p className="font-semibold">GH{client.loanAmount.toLocaleString()}</p>
+        {/* <p className="font-semibold">{client.license}</p> */}
       </div>
     </div>
   </div>

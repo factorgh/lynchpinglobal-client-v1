@@ -7,6 +7,7 @@ const ContainerHeight = 400;
 
 const CustomList = ({ dataSource, loading }: any) => {
   const [data, setData] = useState<any[]>([]);
+  console.log(dataSource);
 
   // Update the list data when dataSource changes
   useEffect(() => {
@@ -43,7 +44,7 @@ const CustomList = ({ dataSource, loading }: any) => {
                 <a href="https://ant.design">{formatPriceGHS(item.amount)}</a>
               }
             />
-            <div>{moment(item.createdAt).fromNow()}</div>
+            <div>{moment(item.requestedDate).fromNow()}</div>
           </List.Item>
         )}
       />

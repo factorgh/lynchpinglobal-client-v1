@@ -1,4 +1,5 @@
-import { toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
+import { useGetLoansQuery } from "@/services/loan";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
 import { Button, Input, Space, Table } from "antd";
@@ -22,6 +23,7 @@ const CustomerLoan: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<InputRef>(null);
+  const { data: loans, isFetching } = useGetLoansQuery(null);
 
   const handleSearch = (
     selectedKeys: string[],
@@ -137,31 +139,35 @@ const CustomerLoan: React.FC = () => {
       dataIndex: "loanAmount",
       key: "loanAmount",
       ...getColumnSearchProps("loanAmount"),
-      render: (value: any) => toTwoDecimalPlaces(value), // Format principal
+      render: (value: any) => formatPriceGHS(value), // Format principal
     },
     {
-      title: "Guaranteed Return",
+      title: "Amount Due",
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),
     },
     {
-      title: "overdue Rate",
+      title: "overdue Fee",
       dataIndex: "overdueRate",
       key: "overdueRate",
       ...getColumnSearchProps("overdueRate"),
       render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
     },
     {
-      title: "Management Fee",
-      dataIndex: "managementFee",
-      key: "managementFee",
-      ...getColumnSearchProps("managementFee"),
-      render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
+      title: "Days Overdue",
+      dataIndex: "daysOverdue",
+      key: "daysOverdue",
     },
   ];
 
-  return <Table<DataType> columns={columns} dataSource={data} />;
+  return (
+    <Table<DataType>
+      loading={isFetching}
+      columns={columns}
+      dataSource={loans?.data.data}
+    />
+  );
 };
 
 export default CustomerLoan;

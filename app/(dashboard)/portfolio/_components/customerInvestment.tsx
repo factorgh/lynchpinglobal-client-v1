@@ -1,8 +1,8 @@
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
-import { SearchOutlined } from "@ant-design/icons";
+import { useGetUserInvestmentsQuery } from "@/services/investment";
+import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
-import { Button, Input, Space, Table } from "antd";
-import type { FilterDropdownProps } from "antd/es/table/interface";
+import { Button, Descriptions, Drawer, Input, Space, Table } from "antd";
 import React, { useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
 
@@ -18,16 +18,20 @@ interface DataType {
 
 type DataIndex = keyof DataType;
 
-const data: DataType[] = [];
-
 const CustomerInvestment: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [selectedInvestment, setSelectedInvestment] = useState<DataType | null>(
+    null
+  );
   const searchInput = useRef<InputRef>(null);
+  const { data: investments, isFetching } =
+    useGetUserInvestmentsQuery<any>(null);
 
   const handleSearch = (
     selectedKeys: string[],
-    confirm: FilterDropdownProps["confirm"],
+
     dataIndex: DataIndex
   ) => {
     confirm();
@@ -58,17 +62,13 @@ const CustomerInvestment: React.FC = () => {
           onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
           }
-          onPressEnter={() =>
-            handleSearch(selectedKeys as string[], confirm, dataIndex)
-          }
+          onPressEnter={() => handleSearch(selectedKeys as string[], dataIndex)}
           style={{ marginBottom: 8, display: "block" }}
         />
         <Space>
           <Button
             type="primary"
-            onClick={() =>
-              handleSearch(selectedKeys as string[], confirm, dataIndex)
-            }
+            onClick={() => handleSearch(selectedKeys as string[], dataIndex)}
             icon={<SearchOutlined />}
             size="small"
             style={{ width: 90 }}
@@ -100,7 +100,7 @@ const CustomerInvestment: React.FC = () => {
               close();
             }}
           >
-            close
+            Close
           </Button>
         </Space>
       </div>
@@ -175,21 +175,75 @@ const CustomerInvestment: React.FC = () => {
       render: (value: any) =>
         `${formatPriceGHS(Number(toTwoDecimalPlaces(value)))}`, // Format with currency
     },
-    // {
-    //   title: "Action",
-    //   key: "action",
-    //   render: (text: any, record: any) => (
-    //     <Dropdown
-    //       overlay={menu(record)}
-    //       trigger={["click"]}
-    //       placement="bottomRight"
-    //     >
-    //       <Button icon={<MoreOutlined />} type="text" />
-    //     </Dropdown>
-    //   ),
-    // },
+    {
+      title: "Action",
+      key: "action",
+      render: (text: any, record: any) => (
+        <div className="flex gap-3">
+          <EyeOutlined
+            className="text-blue-500"
+            onClick={() => showViewDrawer(record)}
+          />
+        </div>
+      ),
+    },
   ];
-  return <Table<DataType> columns={columns} dataSource={data} />;
+
+  // Drawer show/hide logic
+  const showViewDrawer = (investment: DataType) => {
+    setSelectedInvestment(investment);
+    setDrawerVisible(true);
+  };
+
+  const onCloseDrawer = () => {
+    setDrawerVisible(false);
+    setSelectedInvestment(null);
+  };
+
+  return (
+    <div>
+      <Table<DataType>
+        loading={isFetching}
+        columns={columns}
+        dataSource={investments?.data}
+      />
+
+      {/* Drawer for displaying detailed information */}
+      <Drawer
+        title="Investment Details"
+        visible={drawerVisible}
+        onClose={onCloseDrawer}
+        width={600}
+      >
+        {selectedInvestment && (
+          <Descriptions bordered column={1}>
+            <Descriptions.Item label="Admin">
+              {selectedInvestment.name}
+            </Descriptions.Item>
+            <Descriptions.Item label="Principal">
+              {toTwoDecimalPlaces(selectedInvestment.principal)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Guaranteed Return">
+              {selectedInvestment.guaranteedRate}%
+            </Descriptions.Item>
+            <Descriptions.Item label="Performance Yield">
+              {toTwoDecimalPlaces(selectedInvestment.performanceYield)}%
+            </Descriptions.Item>
+            <Descriptions.Item label="Management Fee">
+              {toTwoDecimalPlaces(selectedInvestment.managementFee)}%
+            </Descriptions.Item>
+            <Descriptions.Item label="Total Accrued Return">
+              {formatPriceGHS(
+                Number(
+                  toTwoDecimalPlaces(selectedInvestment.totalAccruedReturn)
+                )
+              )}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Drawer>
+    </div>
+  );
 };
 
 export default CustomerInvestment;
