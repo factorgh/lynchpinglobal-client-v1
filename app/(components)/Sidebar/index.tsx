@@ -65,8 +65,8 @@ const Sidebar = () => {
   return (
     <div className="flex flex-col h-screen fixed w-64 bg-gray-50 border-r border-gray-200 gap-5">
       {/* TOP LOGO */}
-      <div className="flex gap-3 justify-center md:justify-normal items-center pt-3 px-8 ">
-        <h1 className="block font-extrabold text-2xl ">Lynchpin Global</h1>
+      <div className="flex gap-3 justify-center  items-center pt-3 ">
+        <img className="w-40 h-10" src="/logo.png" alt="logo" />
       </div>
 
       {/* LINKS */}

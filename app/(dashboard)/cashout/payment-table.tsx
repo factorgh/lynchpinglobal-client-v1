@@ -1,5 +1,7 @@
 "use client";
 import { toTwoDecimalPlaces } from "@/lib/helper";
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
+import { useCreateNotificationMutation } from "@/services/notifications";
 import {
   useGetPaymentsQuery,
   useUpdatePaymentMutation,
@@ -37,11 +39,16 @@ const PaymentTable = ({ onEdit }: any) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [form] = Form.useForm();
   const [updatePayment, { isLoading }] = useUpdatePaymentMutation();
+  const [createNotification] = useCreateNotificationMutation();
+  const [createActivity] = useCreateActivityLogMutation();
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const [selectedUser, setSelectedUser] = useState<any[]>([]);
 
   const showEditDrawer = (payment: any) => {
     console.log(payment);
     setIsEditMode(true);
     setEditRentalId(payment._id);
+    setSelectedUser(payment.user);
 
     form.setFieldsValue({
       amount: toTwoDecimalPlaces(payment.amount),
@@ -67,6 +74,17 @@ const PaymentTable = ({ onEdit }: any) => {
         id: editRentalId,
         data: values,
       }).unwrap();
+      await createActivity({
+        activity: " Payment Updated",
+        description: "A payment update was made successfully",
+        user: loggedInUser._id,
+      }).unwrap();
+      // Send notifications
+      await createNotification({
+        title: "Payment Info",
+        message: "Payment has been updated successfully",
+        users: [selectedUser],
+      });
       toast.success("Payment updated successfully");
       form.resetFields();
       setIsDrawerVisible(false);
@@ -189,7 +207,7 @@ const PaymentTable = ({ onEdit }: any) => {
             <Select>
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Approved">Approved</Select.Option>
-              <Select.Option value="Processing">Processing</Select.Option>
+              <Select.Option value="Rejected">Rejected</Select.Option>
               <Select.Option value="Cancelled">Cancelled</Select.Option>
             </Select>
           </Form.Item>

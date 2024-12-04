@@ -7,6 +7,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import {
   Button,
   Col,
+  DatePicker,
   Drawer,
   Form,
   InputNumber,
@@ -32,6 +33,7 @@ const WealthForm: React.FC = () => {
     partnerForm: [],
     checklist: [],
     mandate: [],
+    others: [],
   });
 
   // UpLoading State
@@ -40,6 +42,7 @@ const WealthForm: React.FC = () => {
     partnerForm: false,
     checklist: false,
     mandate: false,
+    others: false,
   });
 
   // Update user list when data is fetched
@@ -94,6 +97,7 @@ const WealthForm: React.FC = () => {
       partnerForm: true,
       checklist: true,
       mandate: true,
+      others: true,
     });
 
     for (const category in fileCategories) {
@@ -110,16 +114,19 @@ const WealthForm: React.FC = () => {
       partnerForm: false,
       checklist: false,
       mandate: false,
+      others: false,
     });
 
     // Formatted values
-    const { certificate, mandate, partnerForm, checklist } = uploadedFiles;
+    const { certificate, mandate, partnerForm, checklist, others } =
+      uploadedFiles;
     const formattedValues = {
       ...values,
       certificate,
       mandate,
       partnerForm,
       checklist,
+      others,
     };
 
     // Check values
@@ -148,6 +155,7 @@ const WealthForm: React.FC = () => {
         partnerForm: false,
         checklist: false,
         mandate: false,
+        others: false,
       });
     }
   };
@@ -218,16 +226,7 @@ const WealthForm: React.FC = () => {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item
-                name="performanceYield"
-                label="Performance Yield"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter the performance yield",
-                  },
-                ]}
-              >
+              <Form.Item name="performanceYield" label="Performance Yield">
                 <InputNumber
                   placeholder="Enter performance yield"
                   style={{ width: "100%" }}
@@ -293,47 +292,53 @@ const WealthForm: React.FC = () => {
             </Col>
           </Row>
           <Row>
-            <Col span={24}>
-              <Form.Item
-                name="operationalCost"
-                label="Operational Cost"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter the operational cost",
-                  },
-                ]}
-              >
+            <Col span={12}>
+              <Form.Item name="operationalCost" label="Operational Cost">
                 <InputNumber
                   placeholder="Enter operational cost"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
             </Col>
+            <Col span={12}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+                rules={[
+                  { required: true, message: "Please select a start date" },
+                ]}
+              >
+                <DatePicker style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
           </Row>
 
           {/* File upload sections */}
           <Row gutter={16}>
-            {["certificate", "partnerForm", "checklist", "mandate"].map(
-              (category) => (
-                <Col key={category} span={6}>
-                  <Form.Item label={`Upload ${category}`}>
-                    <Upload
-                      listType="picture-card"
-                      fileList={
-                        fileCategories[category as keyof typeof fileCategories]
-                      }
-                      onChange={({ fileList }) =>
-                        handleFileChange(category, fileList)
-                      }
-                      beforeUpload={() => false} // Disable auto-upload
-                    >
-                      <Button type="dashed">Upload</Button>
-                    </Upload>
-                  </Form.Item>
-                </Col>
-              )
-            )}
+            {[
+              "certificate",
+              "partnerForm",
+              "checklist",
+              "mandate",
+              "others",
+            ].map((category) => (
+              <Col key={category} span={6}>
+                <Form.Item label={`Upload ${category}`}>
+                  <Upload
+                    listType="picture-card"
+                    fileList={
+                      fileCategories[category as keyof typeof fileCategories]
+                    }
+                    onChange={({ fileList }) =>
+                      handleFileChange(category, fileList)
+                    }
+                    beforeUpload={() => false} // Disable auto-upload
+                  >
+                    <Button type="dashed">Upload</Button>
+                  </Upload>
+                </Form.Item>
+              </Col>
+            ))}
           </Row>
 
           <Form.Item>

@@ -1,7 +1,7 @@
 import { toTwoDecimalPlaces } from "@/lib/helper";
 import { useGetUserAssetsQuery } from "@/services/assets";
 import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
-import { Button, Drawer, Image, Input, Space, Table } from "antd";
+import { Button, Descriptions, Drawer, Image, Input, Space, Table } from "antd";
 import moment from "moment";
 import React, { useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
@@ -232,31 +232,32 @@ const CustomerAssets: React.FC = () => {
       >
         {selectedRecord && (
           <div>
-            <p>
-              <strong>Asset Name:</strong> {selectedRecord.assetName}
-            </p>
-            <p>
-              <strong>Asset Class:</strong> {selectedRecord.assetClass}
-            </p>
-            <p>
-              <strong>Asset Designation:</strong>{" "}
-              {toTwoDecimalPlaces(selectedRecord.assetDesignation)}
-            </p>
-            <p>
-              <strong>Accrued Interest:</strong>{" "}
-              {toTwoDecimalPlaces(selectedRecord.accruedInterest)}
-            </p>
-            <p>
-              <strong>Management Fee:</strong>{" "}
-              {toTwoDecimalPlaces(selectedRecord.managementFee)}%
-            </p>
-            <p>
-              <strong>Quarter:</strong> {selectedRecord.quater}
-            </p>
-            <p>
-              <strong>Maturity Date:</strong>{" "}
-              {moment(selectedRecord.maturityDate).format("DD MMM YYYY")}
-            </p>
+            {/* Descriptions Component to show details at the top */}
+            <Descriptions bordered column={1} style={{ marginBottom: "20px" }}>
+              <Descriptions.Item label="Asset Name">
+                {selectedRecord.assetName}
+              </Descriptions.Item>
+              <Descriptions.Item label="Asset Class">
+                {selectedRecord.assetClass}
+              </Descriptions.Item>
+              <Descriptions.Item label="Asset Designation">
+                {toTwoDecimalPlaces(selectedRecord.assetDesignation)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Accrued Interest">
+                {toTwoDecimalPlaces(selectedRecord.accruedInterest)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Management Fee">
+                {toTwoDecimalPlaces(selectedRecord.managementFee)}%
+              </Descriptions.Item>
+              <Descriptions.Item label="Quarter">
+                {selectedRecord.quater}
+              </Descriptions.Item>
+              <Descriptions.Item label="Maturity Date">
+                {moment(selectedRecord.maturityDate).format("DD MMM YYYY")}
+              </Descriptions.Item>
+            </Descriptions>
+
+            {/* If there's an image, display it */}
             {selectedRecord.assetImage && (
               <div>
                 <strong>Asset Image:</strong>
@@ -267,7 +268,9 @@ const CustomerAssets: React.FC = () => {
                 />
               </div>
             )}
-            {selectedRecord.certificate &&
+
+            {/* If there are certificates, display them */}
+            {/* {selectedRecord.certificate &&
               selectedRecord.certificate.length > 0 && (
                 <div>
                   <strong>Certificates:</strong>
@@ -279,7 +282,7 @@ const CustomerAssets: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              )}
+              )} */}
           </div>
         )}
       </Drawer>

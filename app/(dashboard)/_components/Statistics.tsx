@@ -12,13 +12,13 @@ import {
 } from "recharts";
 
 const data = [
-  { month: "January", currentYear: 65, lastYear: 40 },
-  { month: "February", currentYear: 78, lastYear: 68 },
-  { month: "March", currentYear: 66, lastYear: 86 },
-  { month: "April", currentYear: 44, lastYear: 74 },
-  { month: "May", currentYear: 56, lastYear: 56 },
-  { month: "June", currentYear: 67, lastYear: 60 },
-  { month: "July", currentYear: 75, lastYear: 87 },
+  { month: "January", currentQuarter: 65, lastQuarter: 40 },
+  { month: "February", currentQuarter: 78, lastQuarter: 68 },
+  { month: "March", currentQuarter: 66, lastQuarter: 86 },
+  { month: "April", currentQuarter: 44, lastQuarter: 74 },
+  { month: "May", currentQuarter: 56, lastQuarter: 56 },
+  { month: "June", currentQuarter: 67, lastQuarter: 60 },
+  { month: "July", currentQuarter: 75, lastQuarter: 87 },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -34,10 +34,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       >
         <p style={{ margin: 0, fontWeight: "bold" }}>{label}</p>
         <p style={{ margin: 0, color: "#3182ce" }}>
-          Current Year: {payload[0]?.value}
+          Current Quarter: {payload[0]?.value}
         </p>
         <p style={{ margin: 0, color: "#ed64a6" }}>
-          Last Year: {payload[1]?.value}
+          Last Quarter: {payload[1]?.value}
         </p>
       </div>
     );
@@ -108,14 +108,14 @@ export default function Statistics() {
             />
             <Line
               type="monotone"
-              dataKey="currentYear"
+              dataKey="currentQuarter"
               stroke="#3182ce"
               strokeWidth={2}
               dot={false}
             />
             <Line
               type="monotone"
-              dataKey="lastYear"
+              dataKey="lastQuarter"
               stroke="#ed64a6"
               strokeWidth={2}
               dot={false}

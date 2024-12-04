@@ -1,5 +1,6 @@
 "use client";
 import { toTwoDecimalPlaces } from "@/lib/helper";
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import {
   useDeleteAssetsMutation,
   useGetAllAssetssQuery,
@@ -48,10 +49,11 @@ import Swal from "sweetalert2";
     const [isEditMode, setIsEditMode] = useState(false);
     const [users, setUsers] = useState([]);
     const [form] = Form.useForm();
-
+    const [createActivity] = useCreateActivityLogMutation();
     const [updateAssets, { isLoading }] = useUpdateAssetsMutation();
     const [deleteAsset] = useDeleteAssetsMutation();
     const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+    const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
     console.log(selectedFiles);
 
     const handleFileListChange = (fileList: any[]) => {
@@ -104,6 +106,11 @@ import Swal from "sweetalert2";
             data: formattedValues,
           }).unwrap();
           toast.success("Assets updated successfully");
+          await createActivity({
+            activity: "Asset Updated",
+            description: "An asset entry was updated successfully",
+            user: loggedInUser._id,
+          }).unwrap();
         } else {
           toast.success("New Asset added successfully");
         }
@@ -128,6 +135,11 @@ import Swal from "sweetalert2";
 
         if (result.isConfirmed) {
           await deleteAsset(id).unwrap();
+          await createActivity({
+            activity: "Asset Deleted",
+            description: "An asset entry was deleted successfully",
+            user: loggedInUser._id,
+          }).unwrap();
           toast.success("Entry deleted successfully");
         }
       } catch (error: any) {

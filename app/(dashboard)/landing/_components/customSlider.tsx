@@ -13,17 +13,32 @@ const CustomSlider = () => {
       description: "Description for Slide 1",
     },
     {
-      backgroundImage: "/showcase.jpg",
+      backgroundImage: "/showcase2.jpg",
       title: "Slide 2",
       description: "Description for Slide 2",
     },
     {
-      backgroundImage: "/showcase.jpg",
+      backgroundImage: "/showcase3.jpg",
       title: "Slide 3",
       description: "Description for Slide 3",
     },
     {
-      backgroundImage: "/showcase.jpg",
+      backgroundImage: "/showcase4.jpg",
+      title: "Slide 4",
+      description: "Description for Slide 4",
+    },
+    {
+      backgroundImage: "/showcase5.jpg",
+      title: "Slide 4",
+      description: "Description for Slide 4",
+    },
+    {
+      backgroundImage: "/showcase6.jpg",
+      title: "Slide 4",
+      description: "Description for Slide 4",
+    },
+    {
+      backgroundImage: "/showcase7.jpg",
       title: "Slide 4",
       description: "Description for Slide 4",
     },

@@ -1,6 +1,8 @@
 "use client";
 
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
+import { useCreateNotificationMutation } from "@/services/notifications";
 import { useCreateWithdrawalMutation } from "@/services/withdrawals";
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, DatePicker, Drawer, Form, Input, Select } from "antd";
@@ -12,6 +14,10 @@ const WithdrawalForm: React.FC = () => {
   const { data, isFetching } = useGetUsersQuery(null);
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const [selectedUser, setSelectedUser] = useState<any[]>([]);
+  const [createNotification] = useCreateNotificationMutation();
+  const [createActivity] = useCreateActivityLogMutation();
 
   // Hnadle file category
 
@@ -22,8 +28,18 @@ const WithdrawalForm: React.FC = () => {
 
   const handleFormSubmit = async (values: any) => {
     try {
-      console.log(values);
       await createPayment(values).unwrap();
+      await createActivity({
+        activity: " Withdrawal Entry",
+        description: "A withdrawal entry was made successfully",
+        user: loggedInUser._id,
+      }).unwrap();
+      // Send notifications
+      await createNotification({
+        title: "Payment Info",
+        message: "Payment has been made successfully",
+        users: [values.user],
+      });
       toast.success("Withdrawal  made successfully");
       form.resetFields();
       setOpen(false);
@@ -114,7 +130,7 @@ const WithdrawalForm: React.FC = () => {
             <Select>
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Approved">Approved</Select.Option>
-              <Select.Option value="Processing">Processing</Select.Option>
+              <Select.Option value="Rejected">Rejected</Select.Option>
               <Select.Option value="Cancelled">Cancelled</Select.Option>
             </Select>
           </Form.Item>

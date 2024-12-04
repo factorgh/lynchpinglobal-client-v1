@@ -1,5 +1,6 @@
 "use client";
 
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
 import { useCreateLoanMutation } from "@/services/loan";
 import { PlusOutlined } from "@ant-design/icons";
@@ -23,20 +24,18 @@ const LoanForm: React.FC = () => {
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+  const [createActivity] = useCreateActivityLogMutation();
   // Hnadle file category
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [fileCategories, setFileCategories] = useState({
-    certificate: [],
-    partnerForm: [],
-    checklist: [],
-    mandate: [],
+    agreements: [],
+    others: [],
   });
 
   const [uploading, setUploading] = useState({
-    certificate: false,
-    partnerForm: false,
-    checklist: false,
-    mandate: false,
+    agreements: false,
+    others: false,
   });
   const handleUploadToCloudinary = async (
     categoryFiles: any[]
@@ -80,10 +79,8 @@ const LoanForm: React.FC = () => {
 
   const handleFormSubmit = async (values: any) => {
     setUploading({
-      certificate: true,
-      partnerForm: true,
-      checklist: true,
-      mandate: true,
+      agreements: true,
+      others: true,
     });
     // Upload files and get URLs
     const uploadedFiles: Record<string, string[]> = {};
@@ -98,34 +95,34 @@ const LoanForm: React.FC = () => {
     }
 
     setUploading({
-      certificate: false,
-      partnerForm: false,
-      checklist: false,
-      mandate: false,
+      agreements: false,
+      others: false,
     });
 
     // Formatted values
-    const { certificate, mandate, partnerForm, checklist } = uploadedFiles;
+    const { agreements, others } = uploadedFiles;
     const formattedValues = {
       ...values,
-      certificate,
-      mandate,
-      partnerForm,
-      checklist,
+      agreements,
+
+      others,
     };
     try {
       await createLoan(formattedValues).unwrap();
       toast.success("Loan  created successfully");
+      await createActivity({
+        activity: "Loan Created",
+        description: "A new loan was created",
+        user: loggedInUser._id,
+      }).unwrap();
       form.resetFields();
       setOpen(false);
     } catch (error: any) {
       console.error("Error creating loan entry:", error);
       toast.error(error?.data?.message || "An error occurred");
       setUploading({
-        certificate: false,
-        partnerForm: false,
-        checklist: false,
-        mandate: false,
+        agreements: false,
+        others: false,
       });
     }
   };
@@ -235,7 +232,7 @@ const LoanForm: React.FC = () => {
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={24}>
               <Form.Item
                 name="loanRate"
                 label="Loan Rate"
@@ -249,26 +246,13 @@ const LoanForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item
-                name="amountDue"
-                label="Amount Due"
-                rules={[{ required: true, message: "Please enter amount due" }]}
-              >
-                <InputNumber
-                  placeholder="Enter amount due"
-                  style={{ width: "100%" }}
-                  min={1}
-                />
-              </Form.Item>
-            </Col>
           </Row>
           <Row gutter={16}>
             {/* Performance Yield */}
 
             {/* Guaranteed Rate */}
 
-            <Col span={24}>
+            <Col span={12}>
               <Form.Item
                 name="overdueDate"
                 label="Overdue Date"
@@ -279,29 +263,48 @@ const LoanForm: React.FC = () => {
                 <DatePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
+            <Col span={12}>
+              <Form.Item
+                name="status"
+                label="Status"
+                rules={[{ required: true, message: "Please select a status" }]}
+              >
+                <Select
+                  placeholder="Select a status"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  options={["Active", "InActive"].map((quater) => ({
+                    value: quater,
+                    label: quater,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
           </Row>
 
           <Row gutter={16}>
-            {["certificate", "partnerForm", "checklist", "mandate"].map(
-              (category) => (
-                <Col key={category} span={6}>
-                  <Form.Item label={`Upload ${category}`}>
-                    <Upload
-                      listType="picture-card"
-                      fileList={
-                        fileCategories[category as keyof typeof fileCategories]
-                      }
-                      onChange={({ fileList }) =>
-                        handleFileChange(category, fileList)
-                      }
-                      beforeUpload={() => false} // Disable auto-upload
-                    >
-                      <Button type="dashed">Upload</Button>
-                    </Upload>
-                  </Form.Item>
-                </Col>
-              )
-            )}
+            {["agreements", "others"].map((category) => (
+              <Col key={category} span={6}>
+                <Form.Item label={`Upload ${category}`}>
+                  <Upload
+                    listType="picture-card"
+                    fileList={
+                      fileCategories[category as keyof typeof fileCategories]
+                    }
+                    onChange={({ fileList }) =>
+                      handleFileChange(category, fileList)
+                    }
+                    beforeUpload={() => false} // Disable auto-upload
+                  >
+                    <Button type="dashed">Upload</Button>
+                  </Upload>
+                </Form.Item>
+              </Col>
+            ))}
           </Row>
           <Form.Item>
             <Button

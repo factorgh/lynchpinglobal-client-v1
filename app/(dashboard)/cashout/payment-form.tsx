@@ -1,6 +1,8 @@
 "use client";
 
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
+import { useCreateNotificationMutation } from "@/services/notifications";
 import { useCreatePaymentMutation } from "@/services/payments";
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, DatePicker, Drawer, Form, Input, Select } from "antd";
@@ -9,10 +11,14 @@ import { toast } from "react-toastify";
 const PaymentForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [createPayment, { isLoading }] = useCreatePaymentMutation();
+  const [createNotification] = useCreateNotificationMutation();
+  const [createActivity] = useCreateActivityLogMutation();
   const { data, isFetching } = useGetUsersQuery(null);
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
-
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const [selectedUser, setSelectedUser] = useState<any[]>([]);
+  console.log(users);
   // Hnadle file category
 
   // Update user list when data is fetched
@@ -24,6 +30,18 @@ const PaymentForm: React.FC = () => {
     try {
       console.log(values);
       await createPayment(values).unwrap();
+      await createActivity({
+        activity: " Payment Entry",
+        description: "A payment entry was made successfully",
+        user: loggedInUser._id,
+      }).unwrap();
+      // Send notifications
+      await createNotification({
+        title: "Payment Info",
+        message: "Payment has been made successfully",
+        users: [values.user],
+      });
+
       toast.success("Payment  created successfully");
       form.resetFields();
       setOpen(false);

@@ -3,14 +3,51 @@
 // Import necessary components
 import { useGetActivityLogsQuery } from "@/services/activity-logs";
 import { SmileOutlined } from "@ant-design/icons";
-import { Timeline } from "antd";
+import { Select, Timeline } from "antd";
+import moment from "moment";
+import React from "react";
 import Wrapper from "../wealth/_components/wapper";
 import TimelineWidget from "./_components/TimelineItem"; // Ensure this component is correct
+
+const { Option } = Select;
 
 const ActivityPage: React.FC = () => {
   const { data: activities, isLoading, error } = useGetActivityLogsQuery(null);
 
-  // Safeguard: If data is loading or an error occurred
+  const [filter, setFilter] = React.useState("all");
+
+  // Handle the filter change
+  const handleFilterChange = (value: string) => {
+    setFilter(value);
+  };
+
+  // Function to filter activities based on selected filter
+  const filteredActivities = React.useMemo(() => {
+    if (!activities?.data) return [];
+
+    let filtered = activities?.data.data;
+
+    if (filter === "7days") {
+      const sevenDaysAgo = moment().subtract(7, "days");
+      filtered = filtered.filter((activity: any) =>
+        moment(activity.createdAt).isAfter(sevenDaysAgo)
+      );
+    } else if (filter === "14days") {
+      const fourteenDaysAgo = moment().subtract(14, "days");
+      filtered = filtered.filter((activity: any) =>
+        moment(activity.createdAt).isAfter(fourteenDaysAgo)
+      );
+    } else if (filter === "1month") {
+      const oneMonthAgo = moment().subtract(1, "months");
+      filtered = filtered.filter((activity: any) =>
+        moment(activity.createdAt).isAfter(oneMonthAgo)
+      );
+    }
+
+    return filtered;
+  }, [activities?.data, filter]);
+
+  // Avoid state update in the render cycle
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -36,18 +73,39 @@ const ActivityPage: React.FC = () => {
           marginTop: "30px",
         }}
       >
-        <h2
+        <div
           style={{
-            fontSize: "28px",
-            fontWeight: "600",
-            color: "#111827",
-            marginBottom: "10px",
-            borderBottom: "2px solid #e5e7eb",
-            paddingBottom: "5px",
+            display: "flex",
+            justifyContent: "space-between", // Space between title and filter
+            alignItems: "center",
           }}
         >
-          Weekly Activity Report
-        </h2>
+          <h2
+            style={{
+              fontSize: "28px",
+              fontWeight: "600",
+              color: "#111827",
+              marginBottom: "10px",
+              borderBottom: "2px solid #e5e7eb",
+              paddingBottom: "5px",
+            }}
+          >
+            Activity Logs Report
+          </h2>
+
+          {/* Filter Dropdown */}
+          <Select
+            value={filter}
+            onChange={handleFilterChange}
+            style={{ width: 180 }}
+          >
+            <Option value="all">All Activities</Option>
+            <Option value="7days">Last 7 days</Option>
+            <Option value="14days">Last 14 days</Option>
+            <Option value="1month">Last 1 month</Option>
+          </Select>
+        </div>
+
         <p
           style={{
             fontSize: "16px",
@@ -60,7 +118,7 @@ const ActivityPage: React.FC = () => {
         </p>
 
         <Timeline>
-          {activities?.data.data.map((activity: any) => (
+          {filteredActivities.map((activity: any) => (
             <Timeline.Item
               key={activity._id}
               dot={

@@ -2,6 +2,7 @@
 import DotLoader from "@/app/(components)/dot-loader";
 import InvestmentDetailDrawer from "@/app/(components)/investemnt_drawer";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateAddOffMutation } from "@/services/addOff";
 import { useCreateAddOnMutation } from "@/services/addOn";
 import {
@@ -55,6 +56,8 @@ const WealthTable = () => {
 
   const [updateInvestment, { isLoading }] = useUpdateInvestmentMutation();
   const [createAddOn, { isLoading: addOnLoading }] = useCreateAddOnMutation();
+  const [createActivity] = useCreateActivityLogMutation();
+
   const [createAddOff, { isLoading: addOffLoading }] =
     useCreateAddOffMutation();
   const [deleteInvestment] = useDeleteInvestmentMutation();
@@ -69,6 +72,7 @@ const WealthTable = () => {
     checklist: [],
     mandate: [],
   });
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const onChange = (checked: boolean) => {
     console.log(`switch to ${checked}`);
@@ -216,8 +220,16 @@ const WealthTable = () => {
           status: values.status,
           investmentId: editRentalId,
         });
+
+        await createActivity({
+          activity: "New Add On",
+          description: "A new addon was added",
+          user: loggedInUser._id,
+        }).unwrap();
         closeAddOnDrawer();
+
         toast.success("Add On has been created successfully");
+
         form.resetFields(); // Reset form fiel
         console.log("Add On submitted", values);
       } else if (isAddOffDrawerVisible) {
@@ -228,8 +240,14 @@ const WealthTable = () => {
           rate: values.rate,
           investmentId: editRentalId,
         });
+        await createActivity({
+          activity: "One off Added",
+          description: "A new one off was Added",
+          user: loggedInUser._id,
+        }).unwrap();
         closeAddOffDrawer();
         console.log("Add Off submitted", values);
+
         toast.success("Add Off has been created successfully");
       } else {
         // Handle Investment submission (same logic as before)
@@ -239,9 +257,20 @@ const WealthTable = () => {
             id: editRentalId,
             data: values,
           }).unwrap();
-          toast.success("Wealth updated successfully");
+          await createActivity({
+            activity: "Investment Updated",
+            description: ` An investment was updated with id${editRentalId} and name ${values.name}`,
+            user: loggedInUser._id,
+          }).unwrap();
+
+          toast.success("Investment updated successfully");
         } else {
-          toast.success("New wealth added successfully");
+          toast.success("New invesrtment added successfully");
+          await createActivity({
+            activity: "New Investment",
+            description: "A new investment was created",
+            user: loggedInUser._id,
+          }).unwrap();
         }
 
         setIsDrawerVisible(false);
@@ -265,6 +294,11 @@ const WealthTable = () => {
 
       if (result.isConfirmed) {
         await deleteInvestment(id).unwrap();
+        await createActivity({
+          activity: "Investment Deleted",
+          description: `An investment with id ${id} was deleted`,
+          user: loggedInUser._id,
+        }).unwrap();
         toast.success("Entry deleted successfully");
       }
     } catch (error: any) {

@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   Col,
+  Descriptions,
   Drawer,
   Form,
   Image,
@@ -198,59 +199,48 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
     <>
       <Drawer
         title={`Investment Details - ${investment?.name}`}
-        width={800}
+        width={1000}
         onClose={onClose}
         visible={visible}
         bodyStyle={{ paddingBottom: 80 }}
       >
         {/* Investment Summary Section */}
         <Card title="Investment Summary" bordered={false}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Text strong>Transaction ID: </Text>
+          <Descriptions column={2} bordered>
+            <Descriptions.Item label="Transaction ID">
               {investment?.transactionId}
-            </Col>
-            <Col span={12}>
-              <Text strong>Name: </Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Name">
               {investment?.name}
-            </Col>
-
-            <Col span={12}>
-              <Text strong>Principal: </Text>GH{investment?.principal}
-            </Col>
-            <Col span={12}>
-              <Text strong>Guaranteed Rate: </Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Principal">
+              {formatPriceGHS(investment?.principal)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Guaranteed Rate">
               {investment?.guaranteedRate}%
-            </Col>
-            <Col span={12}>
-              <Text strong>Principal Accrued Return: </Text>
-              {formatPriceGHS(investment?.principalAccruedReturn.toFixed(2))}
-            </Col>
-            <Col span={12}>
-              <Text strong>Addon Accrued Return: </Text>
-              {formatPriceGHS(investment?.addOnAccruedReturn.toFixed(2))}
-            </Col>
-            <Col span={12}>
-              <Text strong>Total Accrued Return: </Text>
-              {formatPriceGHS(investment?.totalAccruedReturn.toFixed(2))}
-            </Col>
-            <Col span={12}>
-              <Text strong>Quarter End Date: </Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Principal Accrued Return">
+              {formatPriceGHS(investment?.principalAccruedReturn?.toFixed(2))}
+            </Descriptions.Item>
+            <Descriptions.Item label="Addon Accrued Return">
+              {formatPriceGHS(investment?.addOnAccruedReturn?.toFixed(2))}
+            </Descriptions.Item>
+            <Descriptions.Item label="Total Accrued Return">
+              {formatPriceGHS(investment?.totalAccruedReturn?.toFixed(2))}
+            </Descriptions.Item>
+            <Descriptions.Item label="Quarter End Date">
               {new Date(investment?.quarterEndDate).toLocaleDateString()}
-            </Col>
-            <Col span={12}>
-              <Text strong>Quarter: </Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Quarter">
               {investment?.quarter}
-            </Col>
-            <Col span={12}>
-              <Text strong>Management Fee: </Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Management Fee">
               {investment?.managementFee}%
-            </Col>
-            <Col span={12}>
-              <Text strong>Performance Yield: </Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Performance Yield">
               {formatPriceGHS(investment?.performanceYield)}
-            </Col>
-          </Row>
+            </Descriptions.Item>
+          </Descriptions>
         </Card>
 
         <Card title="Add-ons" bordered={false}>

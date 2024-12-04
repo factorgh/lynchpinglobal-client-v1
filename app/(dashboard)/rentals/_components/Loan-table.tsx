@@ -1,5 +1,6 @@
 "use client";
 import { toTwoDecimalPlaces } from "@/lib/helper";
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import {
   useDeleteLoanMutation,
   useGetLoansQuery,
@@ -53,7 +54,9 @@ import Swal from "sweetalert2";
     const [updateInvestment, { isLoading }] = useUpdateLoanMutation();
     const [deleteInvestment] = useDeleteLoanMutation();
     const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+    const [createActivity] = useCreateActivityLogMutation();
     console.log(selectedFiles);
+    const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
     const handleFileListChange = (fileList: any[]) => {
       setSelectedFiles(fileList);
@@ -96,6 +99,11 @@ import Swal from "sweetalert2";
             id: editRentalId,
             data: formattedValues,
           }).unwrap();
+          await createActivity({
+            activity: "Loan Updated",
+            description: "A loan entry was updated successfully",
+            user: loggedInUser._id,
+          }).unwrap();
           toast.success("Loan updated successfully");
         } else {
           toast.success("New Loan added successfully");
@@ -121,6 +129,11 @@ import Swal from "sweetalert2";
 
         if (result.isConfirmed) {
           await deleteInvestment(id).unwrap();
+          await createActivity({
+            activity: "Loan Deleted",
+            description: "A loan entry was deleted",
+            user: loggedInUser._id,
+          }).unwrap();
           toast.success("Entry deleted successfully");
         }
       } catch (error: any) {
@@ -183,13 +196,6 @@ import Swal from "sweetalert2";
         ...getColumnSearchProps("overdueRate"),
         render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
         // Format performance yield
-      },
-      {
-        title: "Amount Due",
-        dataIndex: "amountDue",
-        key: "amountDue",
-        ...getColumnSearchProps("amountDue"),
-        render: (value: any) => toTwoDecimalPlaces(value),
       },
 
       {
@@ -331,16 +337,24 @@ import Swal from "sweetalert2";
               </Col>
               <Col span={12}>
                 <Form.Item
-                  name="amountDue"
-                  label="Amount Due"
+                  name="status"
+                  label="Status"
                   rules={[
-                    { required: true, message: "Please enter amount due" },
+                    { required: true, message: "Please select a status" },
                   ]}
                 >
-                  <InputNumber
-                    placeholder="Enter amount due"
-                    style={{ width: "100%" }}
-                    min={1}
+                  <Select
+                    placeholder="Select a status"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={["Active", "InActive"].map((quater) => ({
+                      value: quater,
+                      label: quater,
+                    }))}
                   />
                 </Form.Item>
               </Col>

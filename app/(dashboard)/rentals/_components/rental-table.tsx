@@ -1,5 +1,6 @@
 "use client";
 import { toTwoDecimalPlaces } from "@/lib/helper";
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useDeleteInvestmentMutation } from "@/services/investment";
 import { useGetRentalsQuery, useUpdateRentalMutation } from "@/services/rental";
 import {
@@ -46,10 +47,12 @@ import Swal from "sweetalert2";
     const [isEditMode, setIsEditMode] = useState(false);
     const [users, setUsers] = useState([]);
     const [form] = Form.useForm();
+    const [createActivity] = useCreateActivityLogMutation();
 
     const [updateInvestment, { isLoading }] = useUpdateRentalMutation();
     const [deleteInvestment] = useDeleteInvestmentMutation();
     const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+    const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
     console.log(selectedFiles);
 
     const handleFileListChange = (fileList: any[]) => {
@@ -92,6 +95,11 @@ import Swal from "sweetalert2";
             id: editRentalId,
             data: formattedValues,
           }).unwrap();
+          await createActivity({
+            activity: "Rental Updated",
+            description: "A rental entry was updated successfully",
+            user: loggedInUser._id,
+          }).unwrap();
           toast.success("Asset Rental updated successfully");
         } else {
           toast.success("New Rental added successfully");
@@ -117,6 +125,11 @@ import Swal from "sweetalert2";
 
         if (result.isConfirmed) {
           await deleteInvestment(id).unwrap();
+          await createActivity({
+            activity: "Rental Deleted",
+            description: "A rental entry was deleted successfully",
+            user: loggedInUser._id,
+          }).unwrap();
           toast.success("Entry deleted successfully");
         }
       } catch (error: any) {
@@ -349,7 +362,7 @@ import Swal from "sweetalert2";
             </Row>
 
             <Row gutter={16}>
-              <Col span={24}>
+              <Col span={12}>
                 <Form.Item
                   name="amountDue"
                   label="Amount Due"
@@ -364,6 +377,29 @@ import Swal from "sweetalert2";
                     placeholder="Enter amount due"
                     style={{ width: "100%" }}
                     min={1}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="status"
+                  label="Status"
+                  rules={[
+                    { required: true, message: "Please select a status" },
+                  ]}
+                >
+                  <Select
+                    placeholder="Select a status"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={["Active", "InActive"].map((quater) => ({
+                      value: quater,
+                      label: quater,
+                    }))}
                   />
                 </Form.Item>
               </Col>

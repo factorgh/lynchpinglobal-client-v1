@@ -191,7 +191,7 @@ export default function DashboardPage() {
           <DashboardCard
             title="Payments"
             value={formatPriceGHS(Number(outstandingPayments))}
-            subtitle="Total Outstanding "
+            subtitle="Total Outstanding Payments"
             icon={Wallet2}
             trend={dashboardData.trends.vehicles}
             color="purple"

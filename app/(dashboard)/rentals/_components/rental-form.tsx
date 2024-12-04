@@ -26,10 +26,8 @@ const RentalForm: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   // Hnadle file category
   const [fileCategories, setFileCategories] = useState({
-    certificate: [],
-    partnerForm: [],
-    checklist: [],
-    mandate: [],
+    agreements: [],
+    others: [],
   });
 
   // Update user list when data is fetched
@@ -46,10 +44,8 @@ const RentalForm: React.FC = () => {
   };
 
   const [uploading, setUploading] = useState({
-    certificate: false,
-    partnerForm: false,
-    checklist: false,
-    mandate: false,
+    agreements: false,
+    others: false,
   });
   // Function to upload files to Cloudinary
   const handleUploadToCloudinary = async (
@@ -85,10 +81,8 @@ const RentalForm: React.FC = () => {
     const uploadedFiles: Record<string, string[]> = {};
 
     setUploading({
-      certificate: true,
-      partnerForm: true,
-      checklist: true,
-      mandate: true,
+      agreements: true,
+      others: true,
     });
     for (const category in fileCategories) {
       if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
@@ -99,32 +93,26 @@ const RentalForm: React.FC = () => {
       }
     }
 
-    const { certificate, mandate, partnerForm, checklist } = uploadedFiles;
+    const { agreements, others } = uploadedFiles;
     const formattedValues = {
       ...values,
-      certificate,
-      mandate,
-      partnerForm,
-      checklist,
+      agreements,
+      others,
     };
     try {
       await createRental(formattedValues).unwrap();
       toast.success("Rental created successfully");
       setUploading({
-        certificate: false,
-        partnerForm: false,
-        checklist: false,
-        mandate: false,
+        agreements: false,
+        others: false,
       });
       setOpen(false);
     } catch (error: any) {
       console.error("Error creating rental:", error);
       toast.error(error?.data?.message || "An error occurred");
       setUploading({
-        certificate: false,
-        partnerForm: false,
-        checklist: false,
-        mandate: false,
+        agreements: false,
+        others: false,
       });
     }
   };
@@ -191,76 +179,24 @@ const RentalForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            {/* Performance Yield */}
             <Col span={12}>
               <Form.Item
-                name="overdueRate"
-                label="Overdue Rate"
+                name="amountDue"
+                label="Amount Due"
                 rules={[
                   {
                     required: true,
-                    message: "Please enter overdue due",
+                    message: "Please enter the  amount due",
                   },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter overdue rate"
+                  placeholder="Enter amount due"
                   style={{ width: "100%" }}
+                  min={1}
                 />
               </Form.Item>
             </Col>
-
-            {/* Guaranteed Rate */}
-            <Col span={12}>
-              <Form.Item
-                name="returnDate"
-                label="Return Date"
-                rules={[
-                  { required: true, message: "Please select a maturity date" },
-                ]}
-              >
-                <DatePicker style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            {/* Management Fee */}
-            <Col span={12}>
-              <Form.Item
-                name="overdueDate"
-                label="Overdue Date"
-                rules={[
-                  { required: true, message: "Please select an overdue date" },
-                ]}
-              >
-                <DatePicker style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="quater"
-                label="Quater"
-                rules={[{ required: true, message: "Please select a quater" }]}
-              >
-                <Select
-                  placeholder="Select a quater"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={["Q1", "Q2", "Q3", "Q4"].map((quater) => ({
-                    value: quater,
-                    label: quater,
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 name="user"
@@ -282,47 +218,108 @@ const RentalForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
+          </Row>
+          <Row gutter={16}>
+            {/* Performance Yield */}
             <Col span={12}>
               <Form.Item
-                name="amountDue"
-                label="Amount Due"
+                name="returnDate"
+                label="Return Date"
+                rules={[
+                  { required: true, message: "Please select a maturity date" },
+                ]}
+              >
+                <DatePicker style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="overdueRate"
+                label="Overdue Rate"
                 rules={[
                   {
                     required: true,
-                    message: "Please enter the  amount due",
+                    message: "Please enter overdue due",
                   },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter amount due"
+                  placeholder="Enter overdue rate"
                   style={{ width: "100%" }}
-                  min={1}
+                />
+              </Form.Item>
+            </Col>
+
+            {/* Guaranteed Rate */}
+          </Row>
+
+          {/* Changes border line  */}
+          <Row gutter={16}>
+            {/* Management Fee */}
+
+            <Col span={12}>
+              <Form.Item
+                name="quater"
+                label="Quater"
+                rules={[{ required: true, message: "Please select a quater" }]}
+              >
+                <Select
+                  placeholder="Select a quater"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  options={["Q1", "Q2", "Q3", "Q4"].map((quater) => ({
+                    value: quater,
+                    label: quater,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="status"
+                label="Status"
+                rules={[{ required: true, message: "Please select a status" }]}
+              >
+                <Select
+                  placeholder="Select a status"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  options={["Active", "InActive"].map((quater) => ({
+                    value: quater,
+                    label: quater,
+                  }))}
                 />
               </Form.Item>
             </Col>
           </Row>
 
           <Row gutter={16}>
-            {["certificate", "partnerForm", "checklist", "mandate"].map(
-              (category) => (
-                <Col key={category} span={6}>
-                  <Form.Item label={`Upload ${category}`}>
-                    <Upload
-                      listType="picture-card"
-                      fileList={
-                        fileCategories[category as keyof typeof fileCategories]
-                      }
-                      onChange={({ fileList }) =>
-                        handleFileChange(category, fileList)
-                      }
-                      beforeUpload={() => false}
-                    >
-                      <Button type="dashed">Upload</Button>
-                    </Upload>
-                  </Form.Item>
-                </Col>
-              )
-            )}
+            {["agreements", "others"].map((category) => (
+              <Col key={category} span={6}>
+                <Form.Item label={`Upload ${category}`}>
+                  <Upload
+                    listType="picture-card"
+                    fileList={
+                      fileCategories[category as keyof typeof fileCategories]
+                    }
+                    onChange={({ fileList }) =>
+                      handleFileChange(category, fileList)
+                    }
+                    beforeUpload={() => false}
+                  >
+                    <Button type="dashed">Upload</Button>
+                  </Upload>
+                </Form.Item>
+              </Col>
+            ))}
           </Row>
           <Form.Item>
             <Button
