@@ -31,6 +31,7 @@ import {
   Row,
   Select,
   Table,
+  Upload,
 } from "antd";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -66,11 +67,13 @@ const WealthTable = () => {
   const [isAddOnDrawerVisible, setIsAddOnDrawerVisible] = useState(false);
   const [isAddOffDrawerVisible, setIsAddOffDrawerVisible] = useState(false);
   const [isActive, setIsActive] = useState(false);
+
   const [fileCategories, setFileCategories] = useState({
-    certificate: [],
-    partnerForm: [],
-    checklist: [],
-    mandate: [],
+    others: [],
+  });
+
+  const [uploading, setUploading] = useState({
+    others: false,
   });
   const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -253,9 +256,27 @@ const WealthTable = () => {
         // Handle Investment submission (same logic as before)
         console.log(values);
         if (isEditMode) {
+          // Update logic
+          const uploadedFiles: Record<string, string[]> = {};
+          for (const category in fileCategories) {
+            if (
+              Object.prototype.hasOwnProperty.call(fileCategories, category)
+            ) {
+              uploadedFiles[category as keyof typeof fileCategories] =
+                await handleUploadToCloudinary(
+                  fileCategories[category as keyof typeof fileCategories]
+                );
+            }
+          }
+          const { others } = uploadedFiles;
+          const formattedValues = {
+            ...values,
+            others,
+          };
+
           await updateInvestment({
             id: editRentalId,
-            data: values,
+            data: formattedValues,
           }).unwrap();
           await createActivity({
             activity: "Investment Updated",
@@ -515,28 +536,26 @@ const WealthTable = () => {
               </Form.Item>
             </Col>
           </Row>
-          {/* <Row gutter={16}>
-            {["certificate", "partnerForm", "checklist", "mandate"].map(
-              (category) => (
-                <Col key={category} span={6}>
-                  <Form.Item label={`Upload ${category}`}>
-                    <Upload
-                      listType="picture-card"
-                      fileList={
-                        fileCategories[category as keyof typeof fileCategories]
-                      }
-                      onChange={({ fileList }) =>
-                        handleFileChange(category, fileList)
-                      }
-                      beforeUpload={() => false} // Disable auto-upload
-                    >
-                      <Button type="dashed">Upload</Button>
-                    </Upload>
-                  </Form.Item>
-                </Col>
-              )
-            )}
-          </Row> */}
+          <Row gutter={16}>
+            {["others"].map((category) => (
+              <Col key={category} span={6}>
+                <Form.Item label={`Upload ${category}`}>
+                  <Upload
+                    listType="picture-card"
+                    fileList={
+                      fileCategories[category as keyof typeof fileCategories]
+                    }
+                    onChange={({ fileList }) =>
+                      handleFileChange(category, fileList)
+                    }
+                    beforeUpload={() => false}
+                  >
+                    <Button type="dashed">Upload</Button>
+                  </Upload>
+                </Form.Item>
+              </Col>
+            ))}
+          </Row>
           <Form.Item>
             {isLoading ? (
               <Button
@@ -552,7 +571,8 @@ const WealthTable = () => {
                 className="w-full mt-6"
                 type="primary"
                 htmlType="submit"
-                loading={isLoading}
+                loading={isLoading || Object.values(uploading).includes(true)}
+                disabled={Object.values(uploading).includes(true)}
               >
                 Submit
               </Button>

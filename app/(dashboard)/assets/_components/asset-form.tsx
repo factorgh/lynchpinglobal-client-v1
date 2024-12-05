@@ -1,5 +1,6 @@
 "use client";
 
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateAssetsMutation } from "@/services/assets";
 import { useGetUsersQuery } from "@/services/auth";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
@@ -17,129 +18,207 @@ import {
   Upload,
   UploadProps,
 } from "antd";
-
-import axios from "axios"; // We need axios to handle the file upload to backend
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-
 const AssetForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [createAssets, { isLoading }] = useCreateAssetsMutation();
+
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
-  const [fileCategories, setFileCategories] = useState<any>({
+  const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+  const { data, isFetching } = useGetUsersQuery(null);
+  const [assetImageUrl, setAssetImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState<boolean>(false);
+  const [createActivity] = useCreateActivityLogMutation();
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const [fileCategories, setFileCategories] = useState({
     certificate: [],
     partnerForm: [],
     checklist: [],
     mandate: [],
     others: [],
   });
+
   const [uploading, setUploading] = useState({
     certificate: false,
     partnerForm: false,
     checklist: false,
     mandate: false,
+    others: false,
   });
-
-  const { data } = useGetUsersQuery(null);
 
   useEffect(() => {
     setUsers(data?.allUsers || []);
   }, [data]);
 
+  // // File list change handler
+  // const handleFileListChange = (fileList: any[]) => {
+  //   setSelectedFiles(fileList);
+  // };
+  const handleUploadAssetImageToCloudinary = async (
+    file: any
+  ): Promise<string | null> => {
+    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
+    const uploadPreset = "burchells"; // Use the correct upload preset for your project
+
+    try {
+      setUploadingImage(true);
+      // Prepare FormData for the file upload
+      const formData = new FormData();
+      formData.append("file", file.originFileObj); // The file object
+      formData.append("upload_preset", uploadPreset);
+
+      // Upload the image to Cloudinary
+      const response = await fetch(cloudinaryUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload file: ${file.name}`);
+      }
+
+      // Parse the response from Cloudinary
+      const result = await response.json();
+      setUploadingImage(false);
+
+      // Return only the secure URL of the uploaded image
+      return result.secure_url;
+    } catch (error) {
+      console.error("Image upload error:", error);
+      setUploadingImage(false);
+      return null; // Return null if the upload failed
+    }
+  };
+
+  const handleAssetImageChange = async ({ file, fileList }: any) => {
+    if (file.status === "done") {
+      // Call the dedicated Cloudinary upload function for the asset image
+      const imageUrl: string | null = await handleUploadAssetImageToCloudinary(
+        file
+      );
+
+      if (imageUrl) {
+        console.log("Image URL:", imageUrl);
+        // Set the returned image URL (secure_url) in the state and the form field
+        setAssetImageUrl(imageUrl);
+        form.setFieldsValue({ assetImage: imageUrl }); // Update form field with the URL
+      } else {
+        message.error("Image upload failed.");
+      }
+    }
+  };
+
+  const handleUploadToCloudinary = async (
+    categoryFiles: any[]
+  ): Promise<string[]> => {
+    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
+    const uploadPreset = "burchells";
+
+    try {
+      const uploadPromises = categoryFiles.map((file) => {
+        const formData = new FormData();
+        formData.append("file", file.originFileObj);
+        formData.append("upload_preset", uploadPreset);
+
+        return fetch(cloudinaryUrl, {
+          method: "POST",
+          body: formData,
+        }).then((res) => {
+          if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
+          return res.json();
+        });
+      });
+
+      const uploadResults = await Promise.all(uploadPromises);
+      return uploadResults.map((result) => result.secure_url);
+    } catch (error) {
+      console.error("File upload error:", error);
+      return [];
+    }
+  };
   const handleFileChange = (category: string, fileList: any[]) => {
-    setFileCategories((prev: any) => ({
+    setFileCategories((prev) => ({
       ...prev,
       [category]: fileList,
     }));
   };
 
-  const handleFileUpload = async (
-    category: string,
-    files: any[]
-  ): Promise<string[]> => {
-    try {
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append("files", file.originFileObj);
-      });
-      formData.append("category", category); // Indicating the file category
-
-      // Send files to the backend
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/uploads`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      if (response.data.success) {
-        return response.data.urls; // List of URLs returned from S3
-      } else {
-        throw new Error("Failed to upload files");
-      }
-    } catch (error) {
-      console.error("File upload error:", error);
-      message.error("Error uploading files");
-      return [];
-    }
-  };
-
+  // Form submission handler
   const handleFormSubmit = async (values: any) => {
-    const uploadedFiles: Record<string, string[]> = {};
     setUploading({
       certificate: true,
       partnerForm: true,
       checklist: true,
       mandate: true,
+      others: true,
     });
+    // Upload files and get URLs
+    const uploadedFiles: Record<string, string[]> = {};
 
     for (const category in fileCategories) {
-      if (fileCategories[category].length > 0) {
-        uploadedFiles[category] = await handleFileUpload(
-          category,
-          fileCategories[category]
-        );
+      if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
+        uploadedFiles[category as keyof typeof fileCategories] =
+          await handleUploadToCloudinary(
+            fileCategories[category as keyof typeof fileCategories]
+          );
       }
     }
 
-    const formattedValues = {
-      ...values,
-      certificate: uploadedFiles.certificate || [],
-      mandate: uploadedFiles.mandate || [],
-      partnerForm: uploadedFiles.partnerForm || [],
-      checklist: uploadedFiles.checklist || [],
-      others: uploadedFiles.others || [],
-    };
     setUploading({
       certificate: false,
       partnerForm: false,
       checklist: false,
       mandate: false,
+      others: false,
     });
+
+    const { certificate, mandate, partnerForm, checklist, others } =
+      uploadedFiles;
+    const formattedValues = {
+      ...values,
+      certificate,
+      mandate,
+      partnerForm,
+      checklist,
+      others,
+      assetImage: assetImageUrl,
+    };
 
     try {
       await createAssets(formattedValues).unwrap();
+      await createActivity({
+        activity: " Assets Entry",
+        description: "An asset entry was made successfully",
+        user: loggedInUser._id,
+      }).unwrap();
       toast.success("Asset created successfully");
       setOpen(false);
     } catch (error: any) {
+      console.error("Error creating asset:", error);
+      toast.error(error?.data?.message || error.message || "An error occurred");
       setUploading({
         certificate: false,
         partnerForm: false,
         checklist: false,
         mandate: false,
+        others: false,
       });
-      toast.error(
-        "Error creating asset: " + (error?.data?.message || error.message)
-      );
     }
   };
 
-  const uploadProps: UploadProps = {
+  // Upload props
+  const props: UploadProps = {
     name: "file",
     multiple: true,
+    headers: {
+      authorization: "authorization-text",
+    },
     onChange(info) {
+      if (info.file.status !== "uploading") {
+        console.log(info.file, info.fileList);
+      }
       if (info.file.status === "done") {
         message.success(`${info.file.name} file uploaded successfully`);
       } else if (info.file.status === "error") {
@@ -148,24 +227,29 @@ const AssetForm: React.FC = () => {
     },
   };
 
+  // Show drawer
+  const showDrawer = () => setOpen(true);
+
+  // Close drawer
+  const onClose = () => setOpen(false);
+
   return (
     <>
-      <Button
-        type="primary"
-        onClick={() => setOpen(true)}
-        icon={<PlusOutlined />}
-      >
+      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
         New Asset
       </Button>
       <Drawer
         title="Create a New Asset"
         width={720}
-        onClose={() => setOpen(false)}
+        onClose={onClose}
         open={open}
       >
-        <Form form={form} onFinish={handleFormSubmit} layout="vertical">
-          {/* Other fields */}
-
+        <Form
+          form={form}
+          onFinish={handleFormSubmit}
+          layout="vertical"
+          hideRequiredMark
+        >
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -297,7 +381,6 @@ const AssetForm: React.FC = () => {
                   }
                   options={Array.from({ length: 100 }, (_, i) => ({
                     value: i + 1,
-                    // label: ${i + 1}%,
                     label: `${i + 1}%`,
                   }))}
                 />
@@ -356,7 +439,7 @@ const AssetForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            {/* <Col span={12}>
+            <Col span={12}>
               <Form.Item
                 name="assetImage"
                 label="Asset Image"
@@ -373,7 +456,7 @@ const AssetForm: React.FC = () => {
                   </Button>
                 </Upload>
               </Form.Item>
-            </Col> */}
+            </Col>
           </Row>
 
           <Row gutter={16}>
@@ -388,13 +471,15 @@ const AssetForm: React.FC = () => {
                 <Form.Item label={`Upload ${category}`}>
                   <Upload
                     listType="picture-card"
-                    fileList={fileCategories[category]}
+                    fileList={
+                      fileCategories[category as keyof typeof fileCategories]
+                    }
                     onChange={({ fileList }) =>
                       handleFileChange(category, fileList)
                     }
                     beforeUpload={() => false}
                   >
-                    <Button icon={<UploadOutlined />}>Upload</Button>
+                    <Button type="dashed">Upload</Button>
                   </Upload>
                 </Form.Item>
               </Col>
@@ -403,10 +488,17 @@ const AssetForm: React.FC = () => {
 
           <Form.Item>
             <Button
+              className="w-full mt-6"
               type="primary"
               htmlType="submit"
-              loading={isLoading || Object.values(uploading).includes(true)}
-              disabled={Object.values(uploading).includes(true)}
+              loading={
+                isLoading ||
+                Object.values(uploading).includes(true) ||
+                uploadingImage
+              }
+              disabled={
+                Object.values(uploading).includes(true) || uploadingImage
+              }
             >
               Submit
             </Button>

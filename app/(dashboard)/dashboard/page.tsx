@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatPriceGHS } from "@/lib/helper";
+import { useGetAllAssetssQuery } from "@/services/assets";
 import { useGetUsersQuery } from "@/services/auth";
 import { useGetAllInvestmentsQuery } from "@/services/investment";
 import { useGetLoansQuery } from "@/services/loan";
@@ -53,6 +54,8 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { data: activeClients } = useGetUsersQuery(null);
   const { data: userInvestments } = useGetAllInvestmentsQuery(null);
+  const { data: assets } = useGetAllAssetssQuery(null);
+  console.log(assets?.data.data);
   const { data: loans } = useGetLoansQuery(null);
   const [loansTotals, setLoansTotals] = useState(0);
   const [assetsUnderMgt, setAssetsUnderMgt] = useState(0);
@@ -135,6 +138,12 @@ export default function DashboardPage() {
       let totalAddonAccruedReturn = 0;
       let totalAddOnIneterest = 0;
       let totalAccruedInterest = 0;
+      let totalAssets = 0;
+
+      // Calculate total assets and outstanding payments
+      assets?.data.data.forEach((asset: any) => {
+        totalAssets += asset.assetDesignation;
+      });
 
       // Loop through all the data and add those needed
       activeInvestments.forEach((investment: any) => {
@@ -149,7 +158,7 @@ export default function DashboardPage() {
 
         totalAddonAccruedReturn += investment.addOnAccruedReturn;
 
-        totalAssetsUnderManagement = totalPrincipal + totalAddOns;
+        totalAssetsUnderManagement = totalPrincipal + totalAddOns + totalAssets;
 
         totalOutstandingPayments = totalAccruedInterest + totalAddOnIneterest;
 

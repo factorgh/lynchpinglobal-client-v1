@@ -104,7 +104,6 @@ const LoanForm: React.FC = () => {
     const formattedValues = {
       ...values,
       agreements,
-
       others,
     };
     try {

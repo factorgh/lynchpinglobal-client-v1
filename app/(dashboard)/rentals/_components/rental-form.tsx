@@ -1,5 +1,6 @@
 "use client";
 
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
 import { useCreateRentalMutation } from "@/services/rental";
 import { PlusOutlined } from "@ant-design/icons";
@@ -24,6 +25,9 @@ const RentalForm: React.FC = () => {
   const [users, setUsers] = useState([]);
   const [form] = Form.useForm();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+  const [createActivity] = useCreateActivityLogMutation();
+  // Hnadle file category
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
   // Hnadle file category
   const [fileCategories, setFileCategories] = useState({
     agreements: [],
@@ -101,6 +105,11 @@ const RentalForm: React.FC = () => {
     };
     try {
       await createRental(formattedValues).unwrap();
+      await createActivity({
+        activity: "Rental Created",
+        description: "A new rental was created",
+        user: loggedInUser._id,
+      }).unwrap();
       toast.success("Rental created successfully");
       setUploading({
         agreements: false,
@@ -292,7 +301,7 @@ const RentalForm: React.FC = () => {
                       .toLowerCase()
                       .includes(input.toLowerCase())
                   }
-                  options={["Active", "InActive"].map((quater) => ({
+                  options={["Active", "Inactive"].map((quater) => ({
                     value: quater,
                     label: quater,
                   }))}

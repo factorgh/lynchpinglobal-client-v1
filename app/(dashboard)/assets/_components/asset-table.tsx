@@ -9,6 +9,7 @@ import {
 import {
   DeleteOutlined,
   EditOutlined,
+  EyeOutlined,
   SearchOutlined,
   SmileOutlined,
 } from "@ant-design/icons";
@@ -23,11 +24,13 @@ import {
   Row,
   Select,
   Table,
+  Upload,
 } from "antd";
 import moment from "moment";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import AssetsDrawer from "./assets-drawer";
 
 /*************  ✨ Codeium Command ⭐  *************/
 /**
@@ -43,6 +46,7 @@ import Swal from "sweetalert2";
       useGetAllAssetssQuery<any>(null);
     console.log("-------------------------assetsData-------------------------");
     console.log(assetsData?.data);
+    const [selectedAsset, setSelectedAsset] = useState(null);
 
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [editRentalId, setEditRentalId] = useState(null);
@@ -54,10 +58,56 @@ import Swal from "sweetalert2";
     const [deleteAsset] = useDeleteAssetsMutation();
     const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
     const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const [assetsDetailsDrawerVisible, setAssetDetailsDrawerVisible] =
+      useState(false);
+    const [fileCategories, setFileCategories] = useState({
+      others: [],
+    });
+
+    const [uploading, setUploading] = useState({
+      others: false,
+    });
+
+    const handleUploadToCloudinary = async (
+      categoryFiles: any[]
+    ): Promise<string[]> => {
+      const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
+      const uploadPreset = "burchells";
+
+      try {
+        const uploadPromises = categoryFiles.map((file) => {
+          const formData = new FormData();
+          formData.append("file", file.originFileObj);
+          formData.append("upload_preset", uploadPreset);
+
+          return fetch(cloudinaryUrl, {
+            method: "POST",
+            body: formData,
+          }).then((res) => {
+            if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
+            return res.json();
+          });
+        });
+
+        const uploadResults = await Promise.all(uploadPromises);
+        return uploadResults.map((result) => result.secure_url);
+      } catch (error) {
+        console.error("File upload error:", error);
+        return [];
+      }
+    };
+
     console.log(selectedFiles);
 
     const handleFileListChange = (fileList: any[]) => {
       setSelectedFiles(fileList);
+    };
+
+    const handleFileChange = (category: string, fileList: any[]) => {
+      setFileCategories((prev) => ({
+        ...prev,
+        [category]: fileList,
+      }));
     };
 
     const handleCloseDrawer = () => {
@@ -88,8 +138,29 @@ import Swal from "sweetalert2";
       setIsDrawerVisible(true);
     };
 
+    const closeAssetsDetailsDrawer = () => {
+      setSelectedAsset(null);
+      setAssetDetailsDrawerVisible(false);
+    };
+    // Menu section
+    const showAssetsDetailsDrawer = (asset: any) => {
+      setSelectedAsset(asset);
+      setAssetDetailsDrawerVisible(true);
+    };
     const handleFormSubmit = async (values: any) => {
+      const uploadedFiles: Record<string, string[]> = {};
+
+      for (const category in fileCategories) {
+        if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
+          uploadedFiles[category as keyof typeof fileCategories] =
+            await handleUploadToCloudinary(
+              fileCategories[category as keyof typeof fileCategories]
+            );
+        }
+      }
+
       try {
+        const { others } = uploadedFiles;
         const formattedValues = {
           ...values,
           managementFee: toTwoDecimalPlaces(values.managementFee),
@@ -98,6 +169,7 @@ import Swal from "sweetalert2";
           maturityDate: values.maturityDate.toISOString(),
           timeCourse: values.timeCourse,
           quater: values.quater,
+          others,
         };
 
         if (isEditMode) {
@@ -220,6 +292,11 @@ import Swal from "sweetalert2";
         key: "action",
         render: (text: any, record: any) => (
           <div className="flex gap-3">
+            <EyeOutlined
+              className="text-emerald-500"
+              onClick={() => showAssetsDetailsDrawer(record)}
+            />
+
             <EditOutlined
               className="text-blue-500"
               onClick={() => showEditDrawer(record)}
@@ -430,19 +507,46 @@ import Swal from "sweetalert2";
                 </Form.Item>
               </Col>
             </Row>
+            <Row gutter={16}>
+              {["others"].map((category) => (
+                <Col key={category} span={6}>
+                  <Form.Item label={`Upload ${category}`}>
+                    <Upload
+                      listType="picture-card"
+                      fileList={
+                        fileCategories[category as keyof typeof fileCategories]
+                      }
+                      onChange={({ fileList }) =>
+                        handleFileChange(category, fileList)
+                      }
+                      beforeUpload={() => false}
+                    >
+                      <Button type="dashed">Upload</Button>
+                    </Upload>
+                  </Form.Item>
+                </Col>
+              ))}
+            </Row>
 
             <Form.Item>
               <Button
                 className="w-full mt-6"
                 type="primary"
                 htmlType="submit"
-                loading={isLoading}
+                loading={isLoading || Object.values(uploading).includes(true)}
+                disabled={Object.values(uploading).includes(true)}
               >
                 Submit
               </Button>
             </Form.Item>
           </Form>
         </Drawer>
+        {/* Investment Details Drawer */}
+        <AssetsDrawer
+          assets={selectedAsset}
+          visible={assetsDetailsDrawerVisible}
+          onClose={closeAssetsDetailsDrawer}
+        />
       </>
     );
   };
