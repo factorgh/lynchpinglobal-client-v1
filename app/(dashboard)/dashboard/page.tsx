@@ -167,7 +167,7 @@ export default function DashboardPage() {
         setOutstandingPayments(totalOutstandingPayments);
       });
     }
-  }, [userInvestments]);
+  }, [userInvestments, loans, assets]);
 
   return (
     <div className="min-h-screen bg-[url('/p1.jpeg')] pt-7">

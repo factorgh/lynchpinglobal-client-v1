@@ -247,10 +247,6 @@ const LoanForm: React.FC = () => {
             </Col>
           </Row>
           <Row gutter={16}>
-            {/* Performance Yield */}
-
-            {/* Guaranteed Rate */}
-
             <Col span={12}>
               <Form.Item
                 name="overdueDate"
@@ -276,7 +272,7 @@ const LoanForm: React.FC = () => {
                       .toLowerCase()
                       .includes(input.toLowerCase())
                   }
-                  options={["Active", "InActive"].map((quater) => ({
+                  options={["Active", "Inactive"].map((quater) => ({
                     value: quater,
                     label: quater,
                   }))}

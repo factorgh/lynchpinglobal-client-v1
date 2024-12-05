@@ -6,6 +6,7 @@ import { useGetRentalsQuery, useUpdateRentalMutation } from "@/services/rental";
 import {
   DeleteOutlined,
   EditOutlined,
+  EyeOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 import {
@@ -24,6 +25,7 @@ import moment from "moment";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import RentalDrawer from "./rental-drawer";
 
 /*************  ✨ Codeium Command ⭐  *************/
 /**
@@ -55,10 +57,22 @@ import Swal from "sweetalert2";
     const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
     console.log(selectedFiles);
 
+    const [rentalDrawerVisible, setRentalDrawerVisible] = useState(false);
+
+    const [selectedRental, setSelectedRental] = useState(null);
+
     const handleFileListChange = (fileList: any[]) => {
       setSelectedFiles(fileList);
     };
 
+    const closeRentalsDetailsDrawer = () => {
+      setSelectedRental(null);
+      setRentalDrawerVisible(false);
+    };
+    const showRentalDetailsDrawer = (asset: any) => {
+      setSelectedRental(asset);
+      setRentalDrawerVisible(true);
+    };
     const handleCloseDrawer = () => {
       setIsDrawerVisible(false);
       form.resetFields();
@@ -203,6 +217,10 @@ import Swal from "sweetalert2";
         key: "action",
         render: (text: any, record: any) => (
           <div className="flex gap-3">
+            <EyeOutlined
+              className="text-emerald-500"
+              onClick={() => showRentalDetailsDrawer(record)}
+            />
             <EditOutlined
               className="text-blue-500"
               onClick={() => showEditDrawer(record)}
@@ -417,6 +435,11 @@ import Swal from "sweetalert2";
             </Form.Item>
           </Form>
         </Drawer>
+        <RentalDrawer
+          rental={selectedRental}
+          visible={rentalDrawerVisible}
+          onClose={closeRentalsDetailsDrawer}
+        />
       </>
     );
   };

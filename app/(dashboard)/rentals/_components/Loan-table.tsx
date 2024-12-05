@@ -9,6 +9,7 @@ import {
 import {
   DeleteOutlined,
   EditOutlined,
+  EyeOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 import {
@@ -27,6 +28,7 @@ import moment from "moment";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import LoanDrawer from "./loan-drawer";
 
 /*************  ✨ Codeium Command ⭐  *************/
 /**
@@ -57,6 +59,19 @@ import Swal from "sweetalert2";
     const [createActivity] = useCreateActivityLogMutation();
     console.log(selectedFiles);
     const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+    const [loanDrawerVisible, setLoanDrawerVisible] = useState(false);
+
+    const [selectedLoan, setSelectedLoan] = useState(null);
+
+    const closeLoansDetailsDrawer = () => {
+      setSelectedLoan(null);
+      setLoanDrawerVisible(false);
+    };
+    const showLoanDetailsDrawer = (asset: any) => {
+      setSelectedLoan(asset);
+      setLoanDrawerVisible(true);
+    };
 
     const handleFileListChange = (fileList: any[]) => {
       setSelectedFiles(fileList);
@@ -203,6 +218,10 @@ import Swal from "sweetalert2";
         key: "action",
         render: (text: any, record: any) => (
           <div className="flex gap-3">
+            <EyeOutlined
+              className="text-emerald-500"
+              onClick={() => showLoanDetailsDrawer(record)}
+            />
             <EditOutlined
               className="text-blue-500"
               onClick={() => showEditDrawer(record)}
@@ -351,7 +370,7 @@ import Swal from "sweetalert2";
                         .toLowerCase()
                         .includes(input.toLowerCase())
                     }
-                    options={["Active", "InActive"].map((quater) => ({
+                    options={["Active", "Inactive"].map((quater) => ({
                       value: quater,
                       label: quater,
                     }))}
@@ -377,6 +396,11 @@ import Swal from "sweetalert2";
             </Form.Item>
           </Form>
         </Drawer>
+        <LoanDrawer
+          loan={selectedLoan}
+          visible={loanDrawerVisible}
+          onClose={closeLoansDetailsDrawer}
+        />
       </>
     );
   };

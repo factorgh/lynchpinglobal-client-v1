@@ -78,7 +78,7 @@ const TimelineWidget: React.FC<TimelineItemProps> = ({
               </p>
 
               {/* User info and timestamp */}
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", gap: 15, marginTop: 10 }}>
                 <p style={{ fontSize: "12px", color: "#4b5563" }}>
                   User: <strong>{user}</strong>
                 </p>
