@@ -1,4 +1,4 @@
-import { toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useGetUserAssetsQuery } from "@/services/assets";
 import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { Button, Descriptions, Drawer, Image, Input, Space, Table } from "antd";
@@ -172,7 +172,7 @@ const CustomerAssets: React.FC = () => {
       dataIndex: "accruedInterest",
       key: "accruedInterest",
       ...getColumnSearchProps("accruedInterest"),
-      render: (value: number) => toTwoDecimalPlaces(value),
+      render: (value: number) => formatPriceGHS(value),
     },
     {
       title: "Management Fee",
@@ -244,7 +244,7 @@ const CustomerAssets: React.FC = () => {
                 {toTwoDecimalPlaces(selectedRecord.assetDesignation)}
               </Descriptions.Item>
               <Descriptions.Item label="Accrued Interest">
-                {toTwoDecimalPlaces(selectedRecord.accruedInterest)}
+                {formatPriceGHS(selectedRecord.accruedInterest)}
               </Descriptions.Item>
               <Descriptions.Item label="Management Fee">
                 {toTwoDecimalPlaces(selectedRecord.managementFee)}%

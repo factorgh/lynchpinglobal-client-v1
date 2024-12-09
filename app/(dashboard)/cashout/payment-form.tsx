@@ -37,7 +37,7 @@ const PaymentForm: React.FC = () => {
       }).unwrap();
       // Send notifications
       await createNotification({
-        title: "Payment Info",
+        title: "Payment Information",
         message: "Payment has been made successfully",
         users: [values.user],
       });
@@ -137,7 +137,7 @@ const PaymentForm: React.FC = () => {
             <Select>
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Approved">Approved</Select.Option>
-              <Select.Option value="Processing">Processing</Select.Option>
+              <Select.Option value="Rejected">Rejected</Select.Option>
               <Select.Option value="Cancelled">Cancelled</Select.Option>
             </Select>
           </Form.Item>

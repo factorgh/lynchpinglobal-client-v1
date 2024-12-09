@@ -1,5 +1,5 @@
 "use client";
-import { toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import {
   useDeleteAssetsMutation,
@@ -265,10 +265,10 @@ import AssetsDrawer from "./assets-drawer";
         dataIndex: "accruedInterest",
         key: "accruedInterest",
         ...getColumnSearchProps("accruedInterest"),
-        render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
+        render: (value: any) => formatPriceGHS(value), // Format performance yield
       },
       {
-        title: "Management Fee",
+        title: "Management Fee Rate",
         dataIndex: "managementFee",
         key: "managementFee",
         ...getColumnSearchProps("managementFee"),

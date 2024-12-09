@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPriceGHS } from "@/lib/helper";
 import { useGetWithdrawalsQuery } from "@/services/withdrawals";
 import { Card, Form, message, Table, Tag } from "antd";
 import moment from "moment";
@@ -39,12 +40,14 @@ const WithdrawalPage = () => {
       title: "Amount",
       dataIndex: "amount",
       key: "amount",
+      render: (amount: number) => formatPriceGHS(amount),
     },
     {
       title: "Date",
       dataIndex: "requestedDate",
       key: "requestedDate",
-      render: (requestedDate: any) => moment(requestedDate).fromNow(), // Format the date relative to now
+      render: (requestedDate: any) =>
+        moment(requestedDate).format("YYYY-MM-DD"), // Format the date relative to now
     },
     {
       title: "Status",

@@ -1,4 +1,4 @@
-import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS } from "@/lib/helper";
 import { useGetLoansQuery } from "@/services/loan";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
@@ -143,16 +143,17 @@ const CustomerLoan: React.FC = () => {
     },
     {
       title: "Amount Due",
-      dataIndex: "guaranteedRate",
-      key: "guaranteedRate",
-      ...getColumnSearchProps("guaranteedRate"),
+      dataIndex: "amountDue",
+      key: "amountDue",
+
+      render: (value: any) => formatPriceGHS(value),
     },
     {
-      title: "overdue Fee",
-      dataIndex: "overdueRate",
-      key: "overdueRate",
-      ...getColumnSearchProps("overdueRate"),
-      render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
+      title: "Overdue Fee",
+      dataIndex: "overdueFee",
+      key: "overdueFee",
+
+      render: (value: any) => formatPriceGHS(value),
     },
     {
       title: "Days Overdue",

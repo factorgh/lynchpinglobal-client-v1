@@ -145,20 +145,21 @@ const CustomerInvestment: React.FC = () => {
       dataIndex: "principal",
       key: "principal",
       ...getColumnSearchProps("principal"),
-      render: (value: any) => toTwoDecimalPlaces(value), // Format principal
+      render: (value: any) => formatPriceGHS(value), // Format principal
     },
     {
       title: "Guaranteed Return",
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),
+      render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
     },
     {
       title: "Performance Yield",
       dataIndex: "performanceYield",
       key: "performanceYield",
       ...getColumnSearchProps("performanceYield"),
-      render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
+      render: (value: any) => formatPriceGHS(value), // Format performance yield
     },
     {
       title: "Management Fee",
@@ -172,8 +173,7 @@ const CustomerInvestment: React.FC = () => {
       dataIndex: "totalAccruedReturn",
       key: "totalAccruedReturn",
       ...getColumnSearchProps("totalAccruedReturn"),
-      render: (value: any) =>
-        `${formatPriceGHS(Number(toTwoDecimalPlaces(value)))}`, // Format with currency
+      render: (value: any) => formatPriceGHS(value), // Format with currency
     },
     {
       title: "Action",
@@ -221,13 +221,13 @@ const CustomerInvestment: React.FC = () => {
               {selectedInvestment.name}
             </Descriptions.Item>
             <Descriptions.Item label="Principal">
-              {toTwoDecimalPlaces(selectedInvestment.principal)}
+              {formatPriceGHS(selectedInvestment.principal)}
             </Descriptions.Item>
             <Descriptions.Item label="Guaranteed Return">
-              {selectedInvestment.guaranteedRate}%
+              {toTwoDecimalPlaces(selectedInvestment.guaranteedRate)}%
             </Descriptions.Item>
             <Descriptions.Item label="Performance Yield">
-              {toTwoDecimalPlaces(selectedInvestment.performanceYield)}%
+              {formatPriceGHS(selectedInvestment.performanceYield)}
             </Descriptions.Item>
             <Descriptions.Item label="Management Fee">
               {toTwoDecimalPlaces(selectedInvestment.managementFee)}%

@@ -32,7 +32,7 @@ const CustomList = ({ dataSource, loading }: any) => {
 
       <List
         className="demo-loadmore-list"
-        loading={loading} // Show loading spinner when loading is true
+        loading={loading}
         itemLayout="horizontal"
         dataSource={data}
         split={true} // This adds a divider between each list item
@@ -44,7 +44,7 @@ const CustomList = ({ dataSource, loading }: any) => {
                 <a href="https://ant.design">{formatPriceGHS(item.amount)}</a>
               }
             />
-            <div>{moment(item.requestedDate).fromNow()}</div>
+            <div>{moment(item.requestedDate).format("YYYY-MM-DD")}</div>
           </List.Item>
         )}
       />

@@ -7,6 +7,7 @@ interface DashboardCardProps {
   amount: string;
   percentageChange?: string;
   trendColor?: string;
+  color?: string;
 }
 
 const LandingCard: React.FC<DashboardCardProps> = ({
@@ -15,6 +16,7 @@ const LandingCard: React.FC<DashboardCardProps> = ({
   amount,
   percentageChange,
   trendColor,
+  color,
 }) => {
   return (
     <Card
@@ -39,7 +41,7 @@ const LandingCard: React.FC<DashboardCardProps> = ({
       </span>
 
       {/* Divider */}
-      <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full"></div>
+      <div className={`mt-4 h-1 w-full rounded-full ${color}`}></div>
     </Card>
   );
 };

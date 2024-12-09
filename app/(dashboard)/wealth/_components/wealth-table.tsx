@@ -365,7 +365,7 @@ const WealthTable = () => {
       dataIndex: "principal",
       key: "principal",
       ...getColumnSearchProps("principal"),
-      render: (value: any) => toTwoDecimalPlaces(value), // Format principal
+      render: (value: any) => formatPriceGHS(value), // Format principal
     },
     {
       title: "Guaranteed Return",
@@ -379,10 +379,10 @@ const WealthTable = () => {
       dataIndex: "performanceYield",
       key: "performanceYield",
       ...getColumnSearchProps("performanceYield"),
-      render: (value: any) => toTwoDecimalPlaces(value), // Format performance yield
+      render: (value: any) => formatPriceGHS(value), // Format performance yield
     },
     {
-      title: "Management Fee",
+      title: "Management Fee Rate",
       dataIndex: "managementFee",
       key: "managementFee",
       ...getColumnSearchProps("managementFee"),
@@ -393,8 +393,8 @@ const WealthTable = () => {
       dataIndex: "totalAccruedReturn",
       key: "totalAccruedReturn",
       ...getColumnSearchProps("totalAccruedReturn"),
-      render: (value: any) =>
-        `${formatPriceGHS(Number(toTwoDecimalPlaces(value)))}`, // Format with currency
+      render: (value: any) => formatPriceGHS(value),
+      // Format with currency
     },
     {
       title: "Action",

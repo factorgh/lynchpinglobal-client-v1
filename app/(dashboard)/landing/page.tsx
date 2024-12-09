@@ -67,7 +67,7 @@ const CustomerLanding = () => {
           0
         );
         totalOneOffs += investment.oneOffs.reduce(
-          (sum: any, oneOffs: any) => sum + (oneOffs.amount || 0),
+          (sum: any, oneOffs: any) => sum + (oneOffs.yield || 0),
           0
         );
         totalAddonAccruedReturn += investment.addOnAccruedReturn;
@@ -82,10 +82,16 @@ const CustomerLanding = () => {
         totalPrincipal +
         totalAccruedInterest +
         totalAddOns +
-        totalAddonAccruedReturn;
+        totalAddonAccruedReturn +
+        totalPerformanceYield +
+        totalOneOffs;
 
+      const totalDeductions = totalOperationalCost + totalManagementFee;
+
+      const totalCalculatedBalanceAfterDeductions =
+        totalCalculatedBalance - totalDeductions;
       // Set the calculated values to state
-      setTotalBalance(totalCalculatedBalance);
+      setTotalBalance(totalCalculatedBalanceAfterDeductions);
       setPrincipal(totalPrincipal);
       setAccruedInterest(totalAccruedInterest);
       setAddOns(totalAddOns);
@@ -119,21 +125,25 @@ const CustomerLanding = () => {
               icon={<HandCoins />}
               title="PRINCIPAL"
               amount={formatPriceGHS(principal)}
+              color={principal > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <LandingCard
               icon={<PieChartOutlined />}
               title="ACCRUED INTEREST"
               amount={formatPriceGHS(accruedInterest)}
+              color={accruedInterest > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <LandingCard
               icon={<PlusCircleOutlined />}
               title="ADD ONS"
               amount={formatPriceGHS(addOns)}
+              color={addOns > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <LandingCard
               icon={<PieChartOutlined />}
               title="ADD ON INTEREST"
               amount={formatPriceGHS(addonAccruedReturn)}
+              color={addonAccruedReturn > 0 ? "bg-green-400" : "bg-blue-400"}
             />
           </div>
 
@@ -146,23 +156,27 @@ const CustomerLanding = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
             <CustomCard
               icon={<PlusCircleOutlined />}
-              title="MANAGEMENT FEE"
-              amount={`${managementFee.toLocaleString()} %`}
-            />
-            <CustomCard
-              icon={<PlusCircleOutlined />}
-              title="ONE-OFFS"
+              title="ONE-OFF YIELD"
               amount={formatPriceGHS(oneOffs)}
+              color={oneOffs > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="PERFORMANCE YIELD"
               amount={formatPriceGHS(performanceYield)}
+              color={performanceYield > 0 ? "bg-green-400" : "bg-blue-400"}
+            />
+            <CustomCard
+              icon={<PlusCircleOutlined />}
+              title="MANAGEMENT FEE"
+              amount={formatPriceGHS(managementFee)}
+              color="bg-red-500"
             />
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="OPERATIONAL COST"
               amount={formatPriceGHS(operationalCost)}
+              color="bg-red-400"
             />
           </div>
           <Card className="p-3 ">

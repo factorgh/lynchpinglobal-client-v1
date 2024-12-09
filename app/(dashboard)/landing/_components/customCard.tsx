@@ -5,11 +5,17 @@ interface DashboardCardProps {
   icon: React.ReactNode;
   title: string;
   amount: string;
+  color?: string;
   percentageChange?: string;
   trendColor?: string;
 }
 
-const CustomCard: React.FC<DashboardCardProps> = ({ icon, title, amount }) => {
+const CustomCard: React.FC<DashboardCardProps> = ({
+  icon,
+  title,
+  amount,
+  color,
+}) => {
   return (
     <Card
       className="max-w-sm h-60 bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200 relative"
@@ -40,7 +46,7 @@ const CustomCard: React.FC<DashboardCardProps> = ({ icon, title, amount }) => {
       </div>
 
       {/* Divider */}
-      <div className="mt-4 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full"></div>
+      <div className={`mt-4 h-1 w-full rounded-full ${color}`}></div>
     </Card>
   );
 };

@@ -1,5 +1,5 @@
 "use client";
-import { toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useDeleteInvestmentMutation } from "@/services/investment";
 import { useGetRentalsQuery, useUpdateRentalMutation } from "@/services/rental";
@@ -196,13 +196,14 @@ import RentalDrawer from "./rental-drawer";
         dataIndex: "assetDesignation",
         key: "assetDesignation",
         ...getColumnSearchProps("assetDesignation"),
-        render: (value: any) => toTwoDecimalPlaces(value), // Format principal
+        // Format principal
       },
       {
         title: "Amount Due",
         dataIndex: "amountDue",
         key: "amountDue",
         ...getColumnSearchProps("amountDue"),
+        render: (value: any) => formatPriceGHS(value),
       },
       {
         title: "Due Date",

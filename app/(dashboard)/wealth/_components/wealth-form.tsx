@@ -259,8 +259,8 @@ const WealthForm: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="managementFee"
-                label="Management Fee"
+                name="managementFeeRate"
+                label="Management Fee Rate"
                 rules={[
                   { required: true, message: "Please select a management fee" },
                 ]}
@@ -291,7 +291,7 @@ const WealthForm: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
-          <Row>
+          <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="operationalCost" label="Operational Cost">
                 <InputNumber

@@ -46,7 +46,7 @@ const PortfolioPage = () => {
         <Tabs defaultValue="investment">
           {/* Tab List */}
           <TabsList className="mb-6">
-            <TabsTrigger value="investment">Investment</TabsTrigger>
+            <TabsTrigger value="investment">Wealth</TabsTrigger>
             <TabsTrigger value="assets">Assets</TabsTrigger>
             <TabsTrigger value="loans">Loans</TabsTrigger>
             <TabsTrigger value="rentals">Rentals</TabsTrigger>
@@ -54,7 +54,7 @@ const PortfolioPage = () => {
 
           {/* Tab Content */}
           <TabsContent value="investment">
-            <h2 className="text-lg font-semibold mb-2">Investment</h2>
+            <h2 className="text-lg font-semibold mb-2">Wealth</h2>
             <CustomerInvestment />
           </TabsContent>
 

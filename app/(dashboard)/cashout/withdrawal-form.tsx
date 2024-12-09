@@ -36,7 +36,7 @@ const WithdrawalForm: React.FC = () => {
       }).unwrap();
       // Send notifications
       await createNotification({
-        title: "Payment Info",
+        title: "Payment Information",
         message: "Payment has been made successfully",
         users: [values.user],
       });

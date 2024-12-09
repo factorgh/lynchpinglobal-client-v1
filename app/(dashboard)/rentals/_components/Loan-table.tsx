@@ -1,5 +1,5 @@
 "use client";
-import { toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import {
   useDeleteLoanMutation,
@@ -195,7 +195,7 @@ import LoanDrawer from "./loan-drawer";
         dataIndex: "loanAmount",
         key: "loanAmount",
         ...getColumnSearchProps("loanAmount"),
-        render: (value: any) => toTwoDecimalPlaces(value), // Format principal
+        render: (value: any) => formatPriceGHS(value), // Format principal
       },
       {
         title: "Overdue Date",

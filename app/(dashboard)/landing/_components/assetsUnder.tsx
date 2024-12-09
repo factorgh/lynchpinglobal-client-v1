@@ -33,12 +33,17 @@ const AssetsUnder = ({ dataSource, loading }: any) => {
         loading={loading} // Show loading spinner when loading is true
         itemLayout="horizontal"
         dataSource={data}
-        split={true} // This adds a divider between each list item
+        split={true}
         renderItem={(item: any) => (
           <List.Item key={item.assetName}>
             <List.Item.Meta
               avatar={<Avatar src={item.asseImage || ""} />}
               title={<a href="https://ant.design">{item.assetName}</a>}
+              // description={
+              //   <span>
+              //     <strong>Desig:</strong> {item.assetDesignation}
+              //   </span>
+              // }
             />
             <div>{moment(item.createdAt).fromNow()}</div>
           </List.Item>

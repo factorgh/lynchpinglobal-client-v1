@@ -8,6 +8,7 @@ import {
   Clipboard,
   Combine,
   Gauge,
+  Handshake,
   Layout,
   LucideIcon,
   Wallet,
@@ -80,6 +81,11 @@ const Sidebar = () => {
             />
             <SidebarLink href="/portfolio" icon={Gauge} label="My Portfolio" />
             <SidebarLink href="/withdrawal" icon={Wallet} label="Withdrawal" />
+            <SidebarLink
+              href="/terms"
+              icon={Handshake}
+              label="Terms & Conditions"
+            />
           </>
         ) : (
           <>

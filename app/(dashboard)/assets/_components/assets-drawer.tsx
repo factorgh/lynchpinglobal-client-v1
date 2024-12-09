@@ -82,14 +82,14 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
   return (
     <>
       <Drawer
-        title={`Investment Details - ${assets?.assetName}`}
+        title={`Asset Details - ${assets?.assetName}`}
         width={1000}
         onClose={onClose}
         visible={visible}
         bodyStyle={{ paddingBottom: 80 }}
       >
         {/* Investment Summary Section */}
-        <Card title="Investment Summary" bordered={false}>
+        <Card title="Asset Summary" bordered={false}>
           <Descriptions column={2} bordered>
             <Descriptions.Item label="Asset Name">
               {assets?.assetName}

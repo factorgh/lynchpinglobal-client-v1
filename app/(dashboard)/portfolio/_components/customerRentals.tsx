@@ -1,4 +1,4 @@
-import { toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useGetUserRentalsQuery } from "@/services/rental";
 import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
@@ -160,6 +160,7 @@ const CustomerRentalsOnly: React.FC = () => {
       dataIndex: "amountDue",
       key: "amountDue",
       ...getColumnSearchProps("amountDue"),
+      render: (value: number) => formatPriceGHS(value),
     },
 
     {
@@ -167,7 +168,7 @@ const CustomerRentalsOnly: React.FC = () => {
       dataIndex: "overdueRate",
       key: "overdueRate",
 
-      render: (value: number) => `${value}%`,
+      render: (value: number) => formatPriceGHS(value),
     },
     {
       title: "Return Date",

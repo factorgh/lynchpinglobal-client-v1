@@ -1,5 +1,5 @@
 "use client";
-import { toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateNotificationMutation } from "@/services/notifications";
 import {
@@ -80,9 +80,10 @@ const WithdrawalTable = ({ onEdit }: any) => {
         description: "A withdrawal update was made successfully",
         user: loggedInUser._id,
       }).unwrap();
+
       // Send notifications
       await createNotification({
-        title: "Withdrawal Info",
+        title: "Withdrawal Information",
         message: "Withdrawal has been updated successfully",
         users: [selectedUser],
       });
@@ -118,6 +119,7 @@ const WithdrawalTable = ({ onEdit }: any) => {
       title: "Amount",
       dataIndex: "amount",
       key: "amount",
+      render: (amount: number) => formatPriceGHS(amount),
     },
     {
       title: "Request Date",

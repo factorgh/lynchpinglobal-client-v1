@@ -6,9 +6,8 @@ const getToken = () => {
   let token = localStorage.getItem("token");
   return token;
 };
-
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
+// process.env.NEXT_PUBLIC_API_BASE_URL ||
+const BASE_URL = "http://localhost:8080/api/v1";
 
 // Define a service using a base URL and expected endpoints
 export const baseApi = createApi({

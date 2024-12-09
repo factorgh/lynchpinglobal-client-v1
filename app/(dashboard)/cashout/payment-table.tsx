@@ -1,5 +1,5 @@
 "use client";
-import { toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateNotificationMutation } from "@/services/notifications";
 import {
@@ -81,7 +81,7 @@ const PaymentTable = ({ onEdit }: any) => {
       }).unwrap();
       // Send notifications
       await createNotification({
-        title: "Payment Info",
+        title: "Payment Information",
         message: "Payment has been updated successfully",
         users: [selectedUser],
       });
@@ -117,6 +117,7 @@ const PaymentTable = ({ onEdit }: any) => {
       title: "Amount",
       dataIndex: "amount",
       key: "amount",
+      render: (amount: number) => formatPriceGHS(amount),
     },
     {
       title: "Request Date",
