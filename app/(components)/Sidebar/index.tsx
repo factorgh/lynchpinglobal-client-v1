@@ -11,6 +11,7 @@ import {
   Handshake,
   Layout,
   LucideIcon,
+  ReceiptText,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -106,6 +107,11 @@ const Sidebar = () => {
               href="/activity"
               icon={Activity}
               label="Activity Log"
+            />
+            <SidebarLink
+              href="/conditions"
+              icon={ReceiptText}
+              label="Terms Uploader"
             />
           </>
         )}

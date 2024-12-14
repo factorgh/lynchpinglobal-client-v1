@@ -124,7 +124,8 @@ export default function DashboardPage() {
       if (loans?.data.data) {
         // Calculate the total loans
         const loansData = loans.data.data;
-        const loansTotal = loansData.reduce(
+        const activeLoans = loansData.filter((loan: any) => !loan.Inactive);
+        const loansTotal = activeLoans.reduce(
           (sum: any, loan: any) => sum + (loan.loanAmount || 0),
           0
         );
@@ -139,6 +140,8 @@ export default function DashboardPage() {
       let totalAddOnIneterest = 0;
       let totalAccruedInterest = 0;
       let totalAssets = 0;
+      let totalOneOff = 0;
+      let totalPerformanceYield = 0;
 
       // Calculate total assets and outstanding payments
       assets?.data.data.forEach((asset: any) => {
@@ -153,14 +156,23 @@ export default function DashboardPage() {
           (sum: any, addOn: any) => sum + (addOn.amount || 0),
           0
         );
+        totalOneOff += investment.addOns.reduce(
+          (sum: any, oneOff: any) => sum + (oneOff.yield || 0),
+          0
+        );
 
         totalAddOnIneterest += investment.addOnAccruedReturn;
+        totalPerformanceYield += investment.performanceYield;
 
         totalAddonAccruedReturn += investment.addOnAccruedReturn;
 
         totalAssetsUnderManagement = totalPrincipal + totalAddOns + totalAssets;
 
-        totalOutstandingPayments = totalAccruedInterest + totalAddOnIneterest;
+        totalOutstandingPayments =
+          totalAccruedInterest +
+          totalAddOnIneterest +
+          totalOneOff +
+          totalPerformanceYield;
 
         // Update state with the new values
         setAssetsUnderMgt(totalAssetsUnderManagement);

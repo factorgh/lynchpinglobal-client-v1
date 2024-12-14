@@ -5,7 +5,11 @@ import { formatPriceGHS } from "@/lib/helper";
 import { useGetUserAssetsQuery } from "@/services/assets";
 import { useGetAllInvestmentsQuery } from "@/services/investment";
 import { useGetUserPaymentsQuery } from "@/services/payments";
-import { PieChartOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import {
+  MinusCircleOutlined,
+  PieChartOutlined,
+  PlusCircleOutlined,
+} from "@ant-design/icons";
 import { Divider, Pagination, Table } from "antd";
 import { HandCoins, LucideCreditCard } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -167,13 +171,13 @@ const CustomerLanding = () => {
               color={performanceYield > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <CustomCard
-              icon={<PlusCircleOutlined />}
+              icon={<MinusCircleOutlined />}
               title="MANAGEMENT FEE"
               amount={formatPriceGHS(managementFee)}
               color="bg-red-500"
             />
             <CustomCard
-              icon={<PlusCircleOutlined />}
+              icon={<MinusCircleOutlined />}
               title="OPERATIONAL COST"
               amount={formatPriceGHS(operationalCost)}
               color="bg-red-400"

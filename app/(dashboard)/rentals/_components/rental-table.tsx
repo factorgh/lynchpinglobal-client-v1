@@ -91,6 +91,7 @@ import RentalDrawer from "./rental-drawer";
         overdueDate: moment(investment.overdueDate),
         quater: investment.quater,
         amountDue: toTwoDecimalPlaces(investment.amountDue),
+        status: investment.status,
       });
 
       setIsDrawerVisible(true);

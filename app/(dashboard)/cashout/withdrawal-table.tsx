@@ -110,6 +110,12 @@ const WithdrawalTable = ({ onEdit }: any) => {
 
   const columns: ColumnsType<RecordType> = [
     {
+      title: "Customer Id",
+      dataIndex: "_id",
+      key: "_id",
+      // render: (values) => values.name,
+    },
+    {
       title: "Customer",
       dataIndex: "user",
       key: "user",

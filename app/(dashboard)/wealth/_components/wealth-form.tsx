@@ -1,5 +1,9 @@
 "use client";
 
+// Firebase imPORTS
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../../../../firebase/firebaseConfig"; // Import Firebase configuration
+
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
 import { useCreateInvestmentMutation } from "@/services/investment";
@@ -59,29 +63,47 @@ const WealthForm: React.FC = () => {
   };
 
   // Function to upload files to Cloudinary
-  const handleUploadToCloudinary = async (
+  // const handleUploadToCloudinary = async (
+  //   categoryFiles: any[]
+  // ): Promise<string[]> => {
+  //   const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
+  //   const uploadPreset = "burchells";
+
+  //   try {
+  //     const uploadPromises = categoryFiles.map((file) => {
+  //       const formData = new FormData();
+  //       formData.append("file", file.originFileObj);
+  //       formData.append("upload_preset", uploadPreset);
+
+  //       return fetch(cloudinaryUrl, {
+  //         method: "POST",
+  //         body: formData,
+  //       }).then((res) => {
+  //         if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
+  //         return res.json();
+  //       });
+  //     });
+
+  //     const uploadResults = await Promise.all(uploadPromises);
+  //     return uploadResults.map((result) => result.secure_url);
+  //   } catch (error) {
+  //     console.error("File upload error:", error);
+  //     return [];
+  //   }
+  // };
+
+  const handleUploadToFirebase = async (
     categoryFiles: any[]
   ): Promise<string[]> => {
-    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
-    const uploadPreset = "burchells";
-
     try {
-      const uploadPromises = categoryFiles.map((file) => {
-        const formData = new FormData();
-        formData.append("file", file.originFileObj);
-        formData.append("upload_preset", uploadPreset);
-
-        return fetch(cloudinaryUrl, {
-          method: "POST",
-          body: formData,
-        }).then((res) => {
-          if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
-          return res.json();
-        });
+      const uploadPromises = categoryFiles.map(async (file) => {
+        const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
+        const snapshot = await uploadBytes(storageRef, file.originFileObj);
+        return await getDownloadURL(snapshot.ref); // Get the file's download URL
       });
 
       const uploadResults = await Promise.all(uploadPromises);
-      return uploadResults.map((result) => result.secure_url);
+      return uploadResults; // Array of download URLs
     } catch (error) {
       console.error("File upload error:", error);
       return [];
@@ -103,12 +125,12 @@ const WealthForm: React.FC = () => {
     for (const category in fileCategories) {
       if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
         uploadedFiles[category as keyof typeof fileCategories] =
-          await handleUploadToCloudinary(
+          await handleUploadToFirebase(
             fileCategories[category as keyof typeof fileCategories]
           );
       }
     }
-    // After uploads
+
     setUploading({
       certificate: false,
       partnerForm: false,
@@ -117,9 +139,9 @@ const WealthForm: React.FC = () => {
       others: false,
     });
 
-    // Formatted values
     const { certificate, mandate, partnerForm, checklist, others } =
       uploadedFiles;
+
     const formattedValues = {
       ...values,
       certificate,
@@ -129,34 +151,20 @@ const WealthForm: React.FC = () => {
       others,
     };
 
-    // Check values
-    console.log(formattedValues);
     try {
       await createInvestment(formattedValues).unwrap();
-      // Create activity log
       await createActivity({
         activity: "New Investment",
         description: "A new investment was created",
         user: loggedInUser._id,
       }).unwrap();
 
-      // Reset form and close drawer after successful creation
-      toast.success("Investment created successfully");
-      setOpen(false);
-      form.resetFields();
       toast.success("Investment created successfully");
       setOpen(false);
       form.resetFields();
     } catch (error: any) {
       console.error("Error creating investment:", error);
       toast.error(error?.data?.message || "An error occurred");
-      setUploading({
-        certificate: false,
-        partnerForm: false,
-        checklist: false,
-        mandate: false,
-        others: false,
-      });
     }
   };
 
@@ -245,12 +253,9 @@ const WealthForm: React.FC = () => {
                   },
                 ]}
               >
-                <Select
-                  placeholder="Select guaranteed rate"
-                  options={Array.from({ length: 100 }, (_, i) => ({
-                    value: i + 1,
-                    label: `${i + 1}%`,
-                  }))}
+                <InputNumber
+                  placeholder="Enter guaranteed rate"
+                  style={{ width: "100%" }}
                 />
               </Form.Item>
             </Col>
@@ -265,12 +270,9 @@ const WealthForm: React.FC = () => {
                   { required: true, message: "Please select a management fee" },
                 ]}
               >
-                <Select
-                  placeholder="Select management fee"
-                  options={Array.from({ length: 100 }, (_, i) => ({
-                    value: i + 1,
-                    label: `${i + 1}%`,
-                  }))}
+                <InputNumber
+                  placeholder="Enter management fee"
+                  style={{ width: "100%" }}
                 />
               </Form.Item>
             </Col>
@@ -323,18 +325,28 @@ const WealthForm: React.FC = () => {
               "others",
             ].map((category) => (
               <Col key={category} span={6}>
-                <Form.Item label={`Upload ${category}`}>
+                <Form.Item
+                  label={`Upload ${category
+                    .charAt(0)
+                    .toUpperCase()}${category.slice(1)}`}
+                >
                   <Upload
-                    listType="picture-card"
+                    listType="text" // Use text for non-image files like PDFs
                     fileList={
                       fileCategories[category as keyof typeof fileCategories]
                     }
                     onChange={({ fileList }) =>
                       handleFileChange(category, fileList)
                     }
-                    beforeUpload={() => false} // Disable auto-upload
+                    beforeUpload={(file) => {
+                      const isPdf = file.type === "application/pdf";
+                      if (!isPdf) {
+                        toast.error("You can only upload PDF files.");
+                      }
+                      return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
+                    }}
                   >
-                    <Button type="dashed">Upload</Button>
+                    <Button type="dashed">Upload PDF</Button>
                   </Upload>
                 </Form.Item>
               </Col>

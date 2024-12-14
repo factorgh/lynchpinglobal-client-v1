@@ -1,4 +1,8 @@
 "use client";
+
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../../../../firebase/firebaseConfig"; // Import Firebase configuration
+
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import {
@@ -68,29 +72,18 @@ import AssetsDrawer from "./assets-drawer";
       others: false,
     });
 
-    const handleUploadToCloudinary = async (
+    const handleUploadToFirebase = async (
       categoryFiles: any[]
     ): Promise<string[]> => {
-      const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
-      const uploadPreset = "burchells";
-
       try {
-        const uploadPromises = categoryFiles.map((file) => {
-          const formData = new FormData();
-          formData.append("file", file.originFileObj);
-          formData.append("upload_preset", uploadPreset);
-
-          return fetch(cloudinaryUrl, {
-            method: "POST",
-            body: formData,
-          }).then((res) => {
-            if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
-            return res.json();
-          });
+        const uploadPromises = categoryFiles.map(async (file) => {
+          const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
+          const snapshot = await uploadBytes(storageRef, file.originFileObj);
+          return await getDownloadURL(snapshot.ref); // Get the file's download URL
         });
 
         const uploadResults = await Promise.all(uploadPromises);
-        return uploadResults.map((result) => result.secure_url);
+        return uploadResults; // Array of download URLs
       } catch (error) {
         console.error("File upload error:", error);
         return [];
@@ -133,6 +126,7 @@ import AssetsDrawer from "./assets-drawer";
         managementFee: investment.managementFee,
         timeCourse: investment.timeCourse,
         quater: investment.quater,
+        deduction: investment.deduction,
       });
 
       setIsDrawerVisible(true);
@@ -153,7 +147,7 @@ import AssetsDrawer from "./assets-drawer";
       for (const category in fileCategories) {
         if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
           uploadedFiles[category as keyof typeof fileCategories] =
-            await handleUploadToCloudinary(
+            await handleUploadToFirebase(
               fileCategories[category as keyof typeof fileCategories]
             );
         }
@@ -436,18 +430,9 @@ import AssetsDrawer from "./assets-drawer";
                     },
                   ]}
                 >
-                  <Select
-                    placeholder="Select management fee"
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.label ?? "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={Array.from({ length: 100 }, (_, i) => ({
-                      value: i + 1,
-                      label: `${i + 1}%`,
-                    }))}
+                  <InputNumber
+                    placeholder="Enter management fee"
+                    style={{ width: "100%" }}
                   />
                 </Form.Item>
               </Col>
@@ -506,22 +491,66 @@ import AssetsDrawer from "./assets-drawer";
                   />
                 </Form.Item>
               </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="status"
+                  label="Status"
+                  rules={[
+                    { required: true, message: "Please select a status" },
+                  ]}
+                >
+                  <Select
+                    placeholder="Select a status"
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={["Active", "Inactive"].map((quater) => ({
+                      value: quater,
+                      label: quater,
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item name="deduction" label="Outstanding Deduction">
+                  <InputNumber
+                    placeholder="Enter outstanding deduction"
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              </Col>
             </Row>
             <Row gutter={16}>
               {["others"].map((category) => (
                 <Col key={category} span={6}>
-                  <Form.Item label={`Upload ${category}`}>
+                  <Form.Item
+                    label={`Upload ${
+                      category.charAt(0).toUpperCase() + category.slice(1)
+                    }`}
+                  >
                     <Upload
-                      listType="picture-card"
+                      listType="text" // Use text for non-image files like PDFs
                       fileList={
                         fileCategories[category as keyof typeof fileCategories]
                       }
                       onChange={({ fileList }) =>
                         handleFileChange(category, fileList)
                       }
-                      beforeUpload={() => false}
+                      beforeUpload={(file) => {
+                        const isPdf = file.type === "application/pdf";
+                        if (!isPdf) {
+                          toast.error("You can only upload PDF files.");
+                        }
+                        return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
+                      }}
                     >
-                      <Button type="dashed">Upload</Button>
+                      <Button type="dashed">Upload PDF</Button>
                     </Upload>
                   </Form.Item>
                 </Col>

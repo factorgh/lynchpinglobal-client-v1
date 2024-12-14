@@ -1,5 +1,8 @@
 "use client";
 
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../../../../firebase/firebaseConfig"; // Import Firebase configuration
+
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
 import { useCreateRentalMutation } from "@/services/rental";
@@ -52,29 +55,18 @@ const RentalForm: React.FC = () => {
     others: false,
   });
   // Function to upload files to Cloudinary
-  const handleUploadToCloudinary = async (
+  const handleUploadToFirebase = async (
     categoryFiles: any[]
   ): Promise<string[]> => {
-    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
-    const uploadPreset = "burchells";
-
     try {
-      const uploadPromises = categoryFiles.map((file) => {
-        const formData = new FormData();
-        formData.append("file", file.originFileObj);
-        formData.append("upload_preset", uploadPreset);
-
-        return fetch(cloudinaryUrl, {
-          method: "POST",
-          body: formData,
-        }).then((res) => {
-          if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
-          return res.json();
-        });
+      const uploadPromises = categoryFiles.map(async (file) => {
+        const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
+        const snapshot = await uploadBytes(storageRef, file.originFileObj);
+        return await getDownloadURL(snapshot.ref); // Get the file's download URL
       });
 
       const uploadResults = await Promise.all(uploadPromises);
-      return uploadResults.map((result) => result.secure_url);
+      return uploadResults; // Array of download URLs
     } catch (error) {
       console.error("File upload error:", error);
       return [];
@@ -91,7 +83,7 @@ const RentalForm: React.FC = () => {
     for (const category in fileCategories) {
       if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
         uploadedFiles[category as keyof typeof fileCategories] =
-          await handleUploadToCloudinary(
+          await handleUploadToFirebase(
             fileCategories[category as keyof typeof fileCategories]
           );
       }
@@ -313,18 +305,28 @@ const RentalForm: React.FC = () => {
           <Row gutter={16}>
             {["agreements", "others"].map((category) => (
               <Col key={category} span={6}>
-                <Form.Item label={`Upload ${category}`}>
+                <Form.Item
+                  label={`Upload ${
+                    category.charAt(0).toUpperCase() + category.slice(1)
+                  }`}
+                >
                   <Upload
-                    listType="picture-card"
+                    listType="text" // Use text for non-image files like PDFs
                     fileList={
                       fileCategories[category as keyof typeof fileCategories]
                     }
                     onChange={({ fileList }) =>
                       handleFileChange(category, fileList)
                     }
-                    beforeUpload={() => false}
+                    beforeUpload={(file) => {
+                      const isPdf = file.type === "application/pdf";
+                      if (!isPdf) {
+                        toast.error("You can only upload PDF files.");
+                      }
+                      return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
+                    }}
                   >
-                    <Button type="dashed">Upload</Button>
+                    <Button type="dashed">Upload PDF</Button>
                   </Upload>
                 </Form.Item>
               </Col>

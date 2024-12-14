@@ -18,7 +18,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthProvider>
       <Provider store={store}>
-        <div className="flex text-gray-900 w-full min-h-screen bg-cover bg-center">
+        <div className="flex text-gray-900 w-full min-h-screen">
           <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
           {/* Main content area */}

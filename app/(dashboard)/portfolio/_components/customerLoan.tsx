@@ -157,8 +157,8 @@ const CustomerLoan: React.FC = () => {
     },
     {
       title: "Days Overdue",
-      dataIndex: "daysOverdue",
-      key: "daysOverdue",
+      dataIndex: " overdueDays",
+      key: " overdueDays",
     },
   ];
 

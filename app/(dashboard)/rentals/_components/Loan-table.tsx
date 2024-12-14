@@ -96,6 +96,7 @@ import LoanDrawer from "./loan-drawer";
         amountDue: toTwoDecimalPlaces(investment.amountDue),
         overdueDate: moment(investment.overdueDate),
         loanRate: toTwoDecimalPlaces(investment.loanRate),
+        status: investment.status,
       });
 
       setIsDrawerVisible(true);
@@ -199,13 +200,13 @@ import LoanDrawer from "./loan-drawer";
       },
       {
         title: "Overdue Date",
-        dataIndex: "overdueDate",
-        key: "overdueDate",
-        ...getColumnSearchProps("overdueDate"),
+        dataIndex: "dueDate",
+        key: "dueDate",
+        ...getColumnSearchProps("dueDate"),
         render: (value: any) => moment(value).format("YYYY-MM-DD"),
       },
       {
-        title: "overdue Rate",
+        title: "Overdue Rate",
         dataIndex: "overdueRate",
         key: "overdueRate",
         ...getColumnSearchProps("overdueRate"),
@@ -266,10 +267,10 @@ import LoanDrawer from "./loan-drawer";
               {/* User Selection */}
               <Col span={12}>
                 <Form.Item
-                  name="overdueDate"
-                  label="Overdue Date"
+                  name="dueDate"
+                  label="Due Date"
                   rules={[
-                    { required: true, message: "Please select overdue date" },
+                    { required: true, message: "Please select due date" },
                   ]}
                 >
                   <DatePicker style={{ width: "100%" }} />
@@ -317,7 +318,7 @@ import LoanDrawer from "./loan-drawer";
               <Col span={12}>
                 <Form.Item
                   name="quater"
-                  label="Quater"
+                  label="Quarter"
                   rules={[
                     { required: true, message: "Please select a quater" },
                   ]}

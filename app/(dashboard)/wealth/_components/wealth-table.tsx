@@ -5,6 +5,9 @@ import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateAddOffMutation } from "@/services/addOff";
 import { useCreateAddOnMutation } from "@/services/addOn";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { storage } from "../../../../firebase/firebaseConfig"; // Import Firebase configuration
+
 import {
   useDeleteInvestmentMutation,
   useGetAllInvestmentsQuery,
@@ -148,7 +151,7 @@ const WealthTable = () => {
         icon={<PlusCircleOutlined />}
         onClick={showAddOffDrawer}
       >
-        Create Add Off
+        Create One Off
       </Menu.Item>
     </Menu>
   );
@@ -184,29 +187,18 @@ const WealthTable = () => {
     setIsEditMode(true);
     setEditRentalId(investment.id);
   };
-  const handleUploadToCloudinary = async (
+  const handleUploadToFirebase = async (
     categoryFiles: any[]
   ): Promise<string[]> => {
-    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
-    const uploadPreset = "burchells";
-
     try {
-      const uploadPromises = categoryFiles.map((file) => {
-        const formData = new FormData();
-        formData.append("file", file.originFileObj);
-        formData.append("upload_preset", uploadPreset);
-
-        return fetch(cloudinaryUrl, {
-          method: "POST",
-          body: formData,
-        }).then((res) => {
-          if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
-          return res.json();
-        });
+      const uploadPromises = categoryFiles.map(async (file) => {
+        const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
+        const snapshot = await uploadBytes(storageRef, file.originFileObj);
+        return await getDownloadURL(snapshot.ref); // Get the file's download URL
       });
 
       const uploadResults = await Promise.all(uploadPromises);
-      return uploadResults.map((result) => result.secure_url);
+      return uploadResults; // Array of download URLs
     } catch (error) {
       console.error("File upload error:", error);
       return [];
@@ -263,7 +255,7 @@ const WealthTable = () => {
               Object.prototype.hasOwnProperty.call(fileCategories, category)
             ) {
               uploadedFiles[category as keyof typeof fileCategories] =
-                await handleUploadToCloudinary(
+                await handleUploadToFirebase(
                   fileCategories[category as keyof typeof fileCategories]
                 );
             }
@@ -469,18 +461,9 @@ const WealthTable = () => {
                   },
                 ]}
               >
-                <Select
-                  placeholder="Select guaranteed rate"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={Array.from({ length: 100 }, (_, i) => ({
-                    value: i + 1,
-                    label: `${i + 1}%`,
-                  }))}
+                <InputNumber
+                  placeholder="Enter guaranteed rate"
+                  style={{ width: "100%" }}
                 />
               </Form.Item>
             </Col>
@@ -499,18 +482,9 @@ const WealthTable = () => {
                   },
                 ]}
               >
-                <Select
-                  placeholder="Select management fee"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={Array.from({ length: 100 }, (_, i) => ({
-                    value: i + 1,
-                    label: `${i + 1}%`,
-                  }))}
+                <InputNumber
+                  placeholder="Enter management fee"
+                  style={{ width: "100%" }}
                 />
               </Form.Item>
             </Col>
@@ -539,18 +513,28 @@ const WealthTable = () => {
           <Row gutter={16}>
             {["others"].map((category) => (
               <Col key={category} span={6}>
-                <Form.Item label={`Upload ${category}`}>
+                <Form.Item
+                  label={`Upload ${category
+                    .charAt(0)
+                    .toUpperCase()}${category.slice(1)}}`}
+                >
                   <Upload
-                    listType="picture-card"
+                    listType="text" // Use text for non-image files like PDFs
                     fileList={
                       fileCategories[category as keyof typeof fileCategories]
                     }
                     onChange={({ fileList }) =>
                       handleFileChange(category, fileList)
                     }
-                    beforeUpload={() => false}
+                    beforeUpload={(file) => {
+                      const isPdf = file.type === "application/pdf";
+                      if (!isPdf) {
+                        toast.error("You can only upload PDF files.");
+                      }
+                      return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
+                    }}
                   >
-                    <Button type="dashed">Upload</Button>
+                    <Button type="dashed">Upload PDF</Button>
                   </Upload>
                 </Form.Item>
               </Col>
@@ -636,7 +620,7 @@ const WealthTable = () => {
       </Drawer>
 
       <Drawer
-        title="Create Add Off"
+        title="Create One Off"
         placement="right"
         width="50%"
         onClose={closeAddOffDrawer}
@@ -645,7 +629,7 @@ const WealthTable = () => {
         <Form form={form} onFinish={handleFormSubmit} layout="vertical">
           <Form.Item
             name="amount"
-            label="Add Off Amount"
+            label="One Off Amount"
             rules={[{ required: true, message: "Please enter an add-off" }]}
           >
             <Input placeholder="Enter add-off details" />
@@ -661,19 +645,7 @@ const WealthTable = () => {
               },
             ]}
           >
-            <Select
-              placeholder="Select rate"
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={Array.from({ length: 100 }, (_, i) => ({
-                value: i + 1,
-                label: `${i + 1}%`,
-              }))}
-            />
+            <InputNumber placeholder="Enter rate" style={{ width: "100%" }} />
           </Form.Item>
 
           <Form.Item
