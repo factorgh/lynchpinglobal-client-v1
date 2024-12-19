@@ -1,17 +1,11 @@
 "use client";
 
-import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { message } from "antd";
 import { getDownloadURL, listAll, ref } from "firebase/storage";
 import { useEffect, useState } from "react";
-import { pdfjs } from "react-pdf";
 
 import { storage } from "../../../firebase/firebaseConfig";
 import Wrapper from "../wealth/_components/wapper";
-
-pdfjs.GlobalWorkerOptions.workerSrc =
-  "https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js";
 
 const TermsPage = () => {
   const [pdfUrls, setPdfUrls] = useState<any>([]);
