@@ -62,36 +62,6 @@ const WealthForm: React.FC = () => {
     }));
   };
 
-  // Function to upload files to Cloudinary
-  // const handleUploadToCloudinary = async (
-  //   categoryFiles: any[]
-  // ): Promise<string[]> => {
-  //   const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
-  //   const uploadPreset = "burchells";
-
-  //   try {
-  //     const uploadPromises = categoryFiles.map((file) => {
-  //       const formData = new FormData();
-  //       formData.append("file", file.originFileObj);
-  //       formData.append("upload_preset", uploadPreset);
-
-  //       return fetch(cloudinaryUrl, {
-  //         method: "POST",
-  //         body: formData,
-  //       }).then((res) => {
-  //         if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
-  //         return res.json();
-  //       });
-  //     });
-
-  //     const uploadResults = await Promise.all(uploadPromises);
-  //     return uploadResults.map((result) => result.secure_url);
-  //   } catch (error) {
-  //     console.error("File upload error:", error);
-  //     return [];
-  //   }
-  // };
-
   const handleUploadToFirebase = async (
     categoryFiles: any[]
   ): Promise<string[]> => {

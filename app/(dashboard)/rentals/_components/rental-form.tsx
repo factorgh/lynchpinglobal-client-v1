@@ -236,16 +236,16 @@ const RentalForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="overdueRate"
-                label="Overdue Rate"
+                label="Overdue Fee"
                 rules={[
                   {
                     required: true,
-                    message: "Please enter overdue due",
+                    message: "Please enter overdue due fee",
                   },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter overdue rate"
+                  placeholder="Enter overdue fee"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -261,7 +261,7 @@ const RentalForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="quater"
-                label="Quater"
+                label="Quarter"
                 rules={[{ required: true, message: "Please select a quater" }]}
               >
                 <Select
