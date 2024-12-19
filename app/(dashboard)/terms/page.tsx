@@ -42,7 +42,9 @@ const TermsPage = () => {
 
   return (
     <Wrapper>
-      <h1 className="text-2xl font-bold text-center ">Terms & Conditions</h1>
+      <div className="flex items-center justify-center p-3">
+        <h1 className="text-2xl font-bold text-center ">Terms & Conditions</h1>
+      </div>
 
       <div className="flex gap-4 mb-6">
         {pdfUrls.length > 1 &&
