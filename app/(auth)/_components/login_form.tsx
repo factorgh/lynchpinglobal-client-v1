@@ -17,7 +17,7 @@ const LoginForm = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/v1/auth/login`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`,
         {
           email,
           password,
