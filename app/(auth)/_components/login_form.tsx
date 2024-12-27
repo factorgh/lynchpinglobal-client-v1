@@ -16,7 +16,7 @@ const LoginForm = () => {
   // Basic email regex for validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const isPasswordValid = (pwd: string) => pwd.length >= 8;
+  const isPasswordValid = (pwd: string) => pwd.length >= 3;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
