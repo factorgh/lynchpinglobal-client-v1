@@ -10,18 +10,33 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(""); // To show error messages
   const router = useRouter();
+
+  // Basic email regex for validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const isPasswordValid = (pwd: string) => pwd.length >= 8;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    // Client-side validations
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!isPasswordValid(password)) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`,
-        {
-          email,
-          password,
-        }
+        { email, password }
       );
 
       console.log("Login successful:", response.data);
@@ -36,9 +51,13 @@ const LoginForm = () => {
       } else if (user.role === "user") {
         router.replace("/landing");
       }
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Login failed:", err);
+    } catch (err: any) {
+      console.error(
+        "Login failed:",
+        err.response?.data?.message || err.message
+      );
+      setError("Invalid email or password.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -58,6 +77,9 @@ const LoginForm = () => {
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
           Login to Lynchpin Global
         </h2>
+        {error && (
+          <p className="text-sm text-red-600 mb-4 text-center">{error}</p>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
@@ -92,6 +114,9 @@ const LoginForm = () => {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
+            <p className="text-sm text-gray-500 mt-1">
+              Password must be at least 8 characters long.
+            </p>
           </div>
           <button
             type="submit"
