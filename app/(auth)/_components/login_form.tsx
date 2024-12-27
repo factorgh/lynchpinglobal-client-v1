@@ -5,6 +5,7 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -52,10 +53,8 @@ const LoginForm = () => {
         router.replace("/landing");
       }
     } catch (err: any) {
-      console.error(
-        "Login failed:",
-        err.response?.data?.message || err.message
-      );
+      toast.error("Login failed: " + err.message);
+
       setError("Invalid email or password.");
     } finally {
       setIsLoading(false);
@@ -114,9 +113,6 @@ const LoginForm = () => {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-            <p className="text-sm text-gray-500 mt-1">
-              Password must be at least 8 characters long.
-            </p>
           </div>
           <button
             type="submit"
