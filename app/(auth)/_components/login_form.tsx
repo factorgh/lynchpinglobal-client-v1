@@ -28,7 +28,7 @@ const LoginForm = () => {
       return;
     }
     if (!isPasswordValid(password)) {
-      setError("Password must be at least 8 characters long.");
+      setError("Password must be at least 3 characters long.");
       return;
     }
 

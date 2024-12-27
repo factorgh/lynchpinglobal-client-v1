@@ -134,7 +134,7 @@ const WealthTable = () => {
       <Menu.Item
         key="delete"
         icon={<DeleteOutlined />}
-        onClick={() => handleDelete(record.id)}
+        onClick={() => handleDelete(record._id)}
       >
         Delete
       </Menu.Item>
@@ -375,10 +375,10 @@ const WealthTable = () => {
     },
     {
       title: "Management Fee Rate",
-      dataIndex: "managementFee",
-      key: "managementFee",
-      ...getColumnSearchProps("managementFee"),
-      render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
+      dataIndex: "managementFeeRate",
+      key: "managementFeeRate",
+      ...getColumnSearchProps("managementFeeRate"),
+      render: (value: any) => formatPriceGHS(value), // Add "%" suffix
     },
     {
       title: "Total Accrued Return",

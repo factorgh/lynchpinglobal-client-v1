@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/app/components/ui/button";
 import {
   Card,
   CardContent,
@@ -234,7 +233,6 @@ export default function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Recent Clients</CardTitle>
-                <Button variant="outline" size="sm"></Button>
               </div>
               <CardDescription>Latest client activities</CardDescription>
             </CardHeader>
