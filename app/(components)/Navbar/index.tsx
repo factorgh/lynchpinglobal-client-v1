@@ -3,7 +3,7 @@ import {
   useReadAllNotificationsMutation,
 } from "@/services/notifications";
 import { BellAlertIcon } from "@heroicons/react/24/outline";
-import { Avatar, Badge } from "antd";
+import { Avatar, Badge, Tag } from "antd";
 import { Inbox } from "lucide-react";
 import moment from "moment";
 import { useState } from "react";
@@ -55,7 +55,7 @@ const Navbar = () => {
         {/* Notification Bell Icon */}
         <div className="flex items-center gap-3 cursor-pointer px-4 py-2 bg-gray-100 rounded-md shadow-sm hover:bg-blue-50 transition duration-300 ease-in-out">
           <span className="text-gray-700 font-semibold text-sm">
-            Welcome, <span className="text-ray-500">{user.name}</span>
+            <Tag color="geekblue">{user.name}</Tag>
           </span>
         </div>
 
