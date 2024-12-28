@@ -8,6 +8,7 @@ import {
   Clipboard,
   Combine,
   Gauge,
+  Group,
   Handshake,
   Layout,
   LucideIcon,
@@ -103,6 +104,7 @@ const Sidebar = () => {
               label="Loans & Rentals"
             />
             <SidebarLink href="/cashout" icon={Combine} label="Cashouts" />
+            <SidebarLink href="/users" icon={Group} label="User Mgt." />
             <SidebarLink
               href="/activity"
               icon={Activity}

@@ -24,6 +24,7 @@ export const baseApi = createApi({
     "ActivityLogs",
     "Payments",
     "Withdrawals",
+    "Users",
   ],
   reducerPath: "baseApi",
   baseQuery: fetchBaseQuery({

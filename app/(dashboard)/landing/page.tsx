@@ -119,7 +119,7 @@ const CustomerLanding = () => {
               <h3 className="mt-6 text-md">TOTAL BALANCE</h3>
               <LucideCreditCard className="text-2xl" />
             </div>
-            <p className="text-2xl font-bold">{formatPriceGHS(totalBalance)}</p>
+            <p className="text-xl font-bold">{formatPriceGHS(totalBalance)}</p>
             <p>Current Quarter: {quarter}</p>
             <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full "></div>
           </Card>

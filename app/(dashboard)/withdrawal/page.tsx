@@ -1,8 +1,9 @@
 "use client";
 
+import InboxForm from "@/app/(components)/Navbar/_components/inboxForm";
 import { formatPriceGHS } from "@/lib/helper";
 import { useGetWithdrawalsQuery } from "@/services/withdrawals";
-import { Card, Form, message, Table, Tag } from "antd";
+import { Button, Card, Form, message, Table, Tag } from "antd";
 import moment from "moment";
 import { useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
@@ -14,6 +15,7 @@ const WithdrawalPage = () => {
   const [form] = Form.useForm();
   const [editingWithdrawal, setEditingWithdrawal] = useState<any>(null);
   const { data: withdrawals, isFetching } = useGetWithdrawalsQuery(null);
+  const [showInboxForm, setShowInboxForm] = useState(false);
   console.log(withdrawals?.data.data);
 
   // Function to open the drawer for creating/editing withdrawals
@@ -23,6 +25,9 @@ const WithdrawalPage = () => {
     setIsDrawerVisible(true);
   };
 
+  const handleShowInboxForm = () => {
+    setShowInboxForm(true);
+  };
   // Function to handle drawer closing
   const onCloseDrawer = () => {
     setIsDrawerVisible(false);
@@ -81,7 +86,20 @@ const WithdrawalPage = () => {
   return (
     <div>
       <Wrapper>
-        <h1 className="text-2xl font-bold mb-4 text-white mt-7">Withdrawals</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold mb-4 text-white mt-7">
+            Withdrawals
+          </h1>
+          <Button type="primary" onClick={handleShowInboxForm}>
+            Make Withdrawal
+          </Button>
+        </div>
+        {showInboxForm && (
+          <InboxForm
+            showInboxForm={showInboxForm}
+            setShowInboxForm={setShowInboxForm}
+          />
+        )}
         <Card className="mt-3">
           <Table
             loading={isFetching}
