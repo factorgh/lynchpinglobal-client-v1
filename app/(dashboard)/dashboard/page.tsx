@@ -155,10 +155,22 @@ export default function DashboardPage() {
           (sum: any, addOn: any) => sum + (addOn.amount || 0),
           0
         );
-        totalOneOff += investment.addOns.reduce(
-          (sum: any, oneOff: any) => sum + (oneOff.yield || 0),
-          0
-        );
+        const exchangeRateUSDToGHS = 11; // Replace this with the actual exchange rate
+
+        // Calculate the total for one-off investments
+        totalOneOff += investment.OneOff.reduce((sum: any, oneOff: any) => {
+          // Check the currency of the one-off investment
+          if (oneOff.currency === "USD") {
+            // Convert to GHS and add to the sum
+            return sum + (oneOff.yield || 0) * exchangeRateUSDToGHS;
+          } else if (oneOff.currency === "GHS") {
+            // Add directly to the sum
+            return sum + (oneOff.yield || 0);
+          } else {
+            console.warn(`Unhandled currency: ${oneOff.currency}`);
+            return sum; // Ignore unhandled currencies
+          }
+        }, 0);
 
         totalAddOnIneterest += investment.addOnAccruedReturn;
         totalPerformanceYield += investment.performanceYield;

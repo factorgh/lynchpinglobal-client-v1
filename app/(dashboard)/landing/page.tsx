@@ -70,10 +70,22 @@ const CustomerLanding = () => {
           (sum: any, addOn: any) => sum + (addOn.amount || 0),
           0
         );
-        totalOneOffs += investment.oneOffs.reduce(
-          (sum: any, oneOffs: any) => sum + (oneOffs.yield || 0),
-          0
-        );
+        const exchangeRateUSDToGHS = 11; // Replace this with the actual exchange rate
+
+        // Calculate the total for one-off investments
+        totalOneOffs += investment.OneOff.reduce((sum: any, oneOff: any) => {
+          // Check the currency of the one-off investment
+          if (oneOff.currency === "USD") {
+            // Convert to GHS and add to the sum
+            return sum + (oneOff.yield || 0) * exchangeRateUSDToGHS;
+          } else if (oneOff.currency === "GHS") {
+            // Add directly to the sum
+            return sum + (oneOff.yield || 0);
+          } else {
+            console.warn(`Unhandled currency: ${oneOff.currency}`);
+            return sum; // Ignore unhandled currencies
+          }
+        }, 0);
         totalAddonAccruedReturn += investment.addOnAccruedReturn;
         totalManagementFee += investment.managementFee || 0; // Assuming managementFee is a field
         totalPerformanceYield += investment.performanceYield || 0; // Assuming performanceYield is a field

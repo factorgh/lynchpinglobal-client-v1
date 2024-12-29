@@ -42,7 +42,7 @@ const TermsPage = () => {
 
   return (
     <Wrapper>
-      <div className="flex items-center justify-center p-3 bg-white">
+      <div className="flex items-center justify-center p-3 bg-white mt-3">
         <h1 className="text-2xl font-bold text-center ">Terms & Conditions</h1>
       </div>
 
