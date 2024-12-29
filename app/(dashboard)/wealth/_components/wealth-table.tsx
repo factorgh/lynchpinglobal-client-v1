@@ -347,10 +347,10 @@ const WealthTable = () => {
 
   const columns = [
     {
-      title: "Admin",
-      dataIndex: "name",
-      key: "name",
-      ...getColumnSearchProps("name"),
+      title: "Customer",
+      dataIndex: "userId",
+      key: "userId",
+      ...getColumnSearchProps("userId"),
     },
     {
       title: "Principal",

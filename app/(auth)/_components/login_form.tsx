@@ -5,7 +5,6 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { toast } from "react-toastify";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -24,13 +23,12 @@ const LoginForm = () => {
     e.preventDefault();
     setError("");
 
-    // Client-side validations
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address.");
+    if (!identifier.trim()) {
+      setError("Please enter your email or username.");
       return;
     }
-    if (!isPasswordValid(password)) {
-      setError("Password must be at least 3 characters long.");
+    if (!password.trim()) {
+      setError("Please enter your password.");
       return;
     }
 
@@ -41,22 +39,18 @@ const LoginForm = () => {
         { identifier, password }
       );
 
-      console.log("Login successful:", response.data);
       const { token, user } = response.data;
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("roles", JSON.stringify(user.role));
 
-      // Redirect based on user role
       if (user.role === "admin") {
         router.replace("/dashboard");
       } else if (user.role === "user") {
         router.replace("/landing");
       }
     } catch (err: any) {
-      toast.error("Login failed: " + err.message);
-
-      setError("Invalid email or password.");
+      setError("Invalid email/username or password.");
     } finally {
       setIsLoading(false);
     }

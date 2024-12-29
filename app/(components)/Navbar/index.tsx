@@ -55,7 +55,7 @@ const Navbar = () => {
         {/* Notification Bell Icon */}
         <div className="flex items-center gap-3 cursor-pointer px-4 py-2 bg-gray-100 rounded-md shadow-sm hover:bg-blue-50 transition duration-300 ease-in-out">
           <span className="text-gray-700 font-semibold text-sm">
-            <Tag color="geekblue">{user.name}</Tag>
+            <Tag color="geekblue">{user.displayName}</Tag>
           </span>
         </div>
 
