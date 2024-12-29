@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "FinVest",
+  title: "Lynchpin Global",
   description: "A financial management system",
 };
 
