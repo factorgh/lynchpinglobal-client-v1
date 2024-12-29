@@ -1,8 +1,11 @@
 "use client";
 
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
-import { useGetUsersQuery } from "@/services/auth";
-import { useDeleteUserMutation, useUpdateUserMutation } from "@/services/users";
+import {
+  useDeleteUserMutation,
+  useGetAllUsersQuery,
+  useUpdateUserMutation,
+} from "@/services/users";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, Card, Drawer, Form, Input, Space, Table, Tag } from "antd";
 import { useState } from "react";
@@ -13,7 +16,7 @@ import Wrapper from "../wealth/_components/wapper";
 const Users = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const { data: dataSource, isFetching } = useGetUsersQuery(null);
+  const { data: dataSource, isFetching } = useGetAllUsersQuery(null);
   const [deleteUser] = useDeleteUserMutation();
   const [updateUser] = useUpdateUserMutation();
   const [createActivity] = useCreateActivityLogMutation();
@@ -108,7 +111,7 @@ const Users = () => {
   const handleFormSubmit = async (values: any) => {
     console.log("Form Values:", values);
     if (selectedUser) {
-      await updateUser({ id: selectedUser._id, data: selectedUser });
+      await updateUser({ id: selectedUser._id, data: values }).unwrap();
       await createActivity({
         activity: "User Updated",
         description: `A user with id ${selectedUser._id} was updated`,
