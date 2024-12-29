@@ -348,9 +348,9 @@ const WealthTable = () => {
   const columns = [
     {
       title: "Customer",
-      dataIndex: "userId",
+      dataIndex: "userId", // This contains the user object
       key: "userId",
-      ...getColumnSearchProps("userId"),
+      render: (user: any) => user?.displayName || "Unknown User", // Access displayName directly
     },
     {
       title: "Principal",

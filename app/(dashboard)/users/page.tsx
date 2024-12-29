@@ -1,18 +1,23 @@
 "use client";
 
+import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
 import { useDeleteUserMutation, useUpdateUserMutation } from "@/services/users";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, Card, Drawer, Form, Input, Space, Table, Tag } from "antd";
 import { useState } from "react";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import Wrapper from "../wealth/_components/wapper";
 
 const Users = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const { data: dataSource, isFetching } = useGetUsersQuery(null);
-  const [] = useDeleteUserMutation();
-  const [] = useUpdateUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
+  const [updateUser] = useUpdateUserMutation();
+  const [createActivity] = useCreateActivityLogMutation();
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   console.log(dataSource);
   const [form] = Form.useForm();
@@ -56,7 +61,7 @@ const Users = () => {
 
           <DeleteOutlined
             className="text-red-500"
-            onClick={() => handleDeleteUser(record)}
+            onClick={() => handleDeleteUser(record._id)}
           />
         </Space>
       ),
@@ -69,9 +74,29 @@ const Users = () => {
     setDrawerVisible(true);
   };
 
-  const handleDeleteUser = (user: any) => {
-    console.log("Delete user:", user);
-    // Add delete logic here
+  const handleDeleteUser = async (id: any) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to delete this entry?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        await deleteUser(id).unwrap();
+        await createActivity({
+          activity: "Investment Deleted",
+          description: `An investment with id ${id} was deleted`,
+          user: loggedInUser._id,
+        }).unwrap();
+        toast.success("Entry deleted successfully");
+      }
+    } catch (error: any) {
+      toast.error("Failed to delete entry: " + error?.message);
+    }
   };
 
   const handleAddUser = () => {
@@ -80,10 +105,16 @@ const Users = () => {
     setDrawerVisible(true);
   };
 
-  const handleFormSubmit = (values: any) => {
+  const handleFormSubmit = async (values: any) => {
     console.log("Form Values:", values);
     if (selectedUser) {
-      // Add update logic here
+      await updateUser({ id: selectedUser._id, data: selectedUser });
+      await createActivity({
+        activity: "User Updated",
+        description: `A user with id ${selectedUser._id} was updated`,
+        user: loggedInUser._id,
+      }).unwrap();
+      toast.success("User updated successfully");
       setSelectedUser(null);
       setDrawerVisible(false);
     } else {
