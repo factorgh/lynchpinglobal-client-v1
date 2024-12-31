@@ -24,7 +24,7 @@ const LoanDrawer = ({
 }: {
   visible: boolean;
   onClose: () => void;
-  loan?: Loan;
+  loan?: any;
 }) => {
   const handlePreviewOut = (url: string) => {
     window.open(url, "_blank");
@@ -36,7 +36,7 @@ const LoanDrawer = ({
         <div>
           <Title level={4}>Agreements</Title>
           <Row gutter={16}>
-            {loan?.agreements.map((fileUrl, index) => (
+            {loan?.agreements.map((fileUrl: any, index: any) => (
               <Col span={8} key={index}>
                 <Card hoverable onClick={() => handlePreviewOut(fileUrl)}>
                   <Text>{`Agreements ${index + 1}`}</Text>
@@ -55,7 +55,7 @@ const LoanDrawer = ({
         <div>
           <Title level={4}>Mandates</Title>
           <Row gutter={16}>
-            {loan.others.map((fileUrl, index) => (
+            {loan.others.map((fileUrl: any, index: any) => (
               <Col span={8} key={index}>
                 <Card hoverable onClick={() => handlePreviewOut(fileUrl)}>
                   <Text>{`Agreements ${index + 1}`}</Text>
