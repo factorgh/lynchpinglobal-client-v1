@@ -43,12 +43,12 @@ const RentalDrawer = ({ visible, onClose, rental }: any) => {
     if (rental?.others?.length) {
       return (
         <div>
-          <Title level={4}>Mandates</Title>
+          <Title level={4}>Others</Title>
           <Row gutter={16}>
             {rental.others.map((fileUrl: any, index: any) => (
               <Col span={8} key={index}>
                 <Card hoverable onClick={() => handlePreviewOut(fileUrl)}>
-                  <Text>{`Agreements ${index + 1}`}</Text>
+                  <Text>{`Others ${index + 1}`}</Text>
                 </Card>
               </Col>
             ))}
@@ -79,7 +79,7 @@ const RentalDrawer = ({ visible, onClose, rental }: any) => {
               {formatPriceGHS(rental.amountDue)}
             </Descriptions.Item>
             <Descriptions.Item label="Overdue Rate">
-              {rental.overdueRate}%
+              {formatPriceGHS(rental.overdueFee)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
               <Tag color="blue">{rental.quater}</Tag>

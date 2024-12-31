@@ -234,7 +234,7 @@ const RentalForm: React.FC = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="overdueRate"
+                name="overdueFee"
                 label="Overdue Fee"
                 rules={[
                   {

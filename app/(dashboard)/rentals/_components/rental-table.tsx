@@ -1,8 +1,11 @@
 "use client";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
-import { useDeleteInvestmentMutation } from "@/services/investment";
-import { useGetRentalsQuery, useUpdateRentalMutation } from "@/services/rental";
+import {
+  useDeleteRentalMutation,
+  useGetRentalsQuery,
+  useUpdateRentalMutation,
+} from "@/services/rental";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -52,7 +55,7 @@ import RentalDrawer from "./rental-drawer";
     const [createActivity] = useCreateActivityLogMutation();
 
     const [updateInvestment, { isLoading }] = useUpdateRentalMutation();
-    const [deleteInvestment] = useDeleteInvestmentMutation();
+    const [deleteRental] = useDeleteRentalMutation();
     const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
     const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
     console.log(selectedFiles);
@@ -139,7 +142,7 @@ import RentalDrawer from "./rental-drawer";
         });
 
         if (result.isConfirmed) {
-          await deleteInvestment(id).unwrap();
+          await deleteRental(id).unwrap();
           await createActivity({
             activity: "Rental Deleted",
             description: "A rental entry was deleted successfully",
@@ -228,7 +231,7 @@ import RentalDrawer from "./rental-drawer";
               onClick={() => showEditDrawer(record)}
             />
             <DeleteOutlined
-              onClick={() => handleDelete(record.id)}
+              onClick={() => handleDelete(record._id)}
               className="text-red-500"
               style={{ marginLeft: "10px" }}
             />
