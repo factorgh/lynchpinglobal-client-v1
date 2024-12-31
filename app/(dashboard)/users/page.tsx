@@ -26,11 +26,6 @@ const Users = () => {
   const [form] = Form.useForm();
 
   const columns = [
-    // {
-    //   title: "Display Name",
-    //   dataIndex: "displayName",
-    //   key: "displayName",
-    // },
     {
       title: "Username",
       dataIndex: "name",

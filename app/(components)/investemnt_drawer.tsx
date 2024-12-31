@@ -177,6 +177,10 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
 
   // Utility function to render document previews (Image or Button for PDFs)
   const renderDocumentPreview = (fileUrl: string, index: number) => {
+    console.log(
+      "----------------------------------------Doc Preview----------------"
+    );
+    console.log(fileUrl);
     if (fileUrl.endsWith(".pdf")) {
       return (
         <Button type="link" onClick={() => handlePreview(fileUrl)}>
@@ -253,10 +257,10 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
               size="small"
             />
           ) : (
-            <Tag color="orange">No add-ons</Tag>
+            <Tag color="orange">No add-ons added</Tag>
           )}
         </Card>
-        <Card title="Add-Offs" bordered={false}>
+        <Card title="One-Offs" bordered={false}>
           {investment?.oneOffs.length > 0 ? (
             <Table
               columns={addOffColumns}
@@ -266,7 +270,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
               size="small"
             />
           ) : (
-            <Tag color="orange">No add-ons</Tag>
+            <Tag color="orange">No One Offs added </Tag>
           )}
         </Card>
 

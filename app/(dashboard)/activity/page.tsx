@@ -129,7 +129,7 @@ const ActivityPage: React.FC = () => {
                 dotColor="#0ea5e9"
                 title={activity.activity}
                 description={activity.description}
-                user={activity.user.name}
+                user={activity.user?.name}
                 timestamp={activity.createdAt} // Format the timestamp
                 icon={<SmileOutlined />}
               />

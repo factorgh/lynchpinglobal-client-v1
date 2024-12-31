@@ -73,7 +73,7 @@ const CustomerLanding = () => {
         const exchangeRateUSDToGHS = 11; // Replace this with the actual exchange rate
 
         // Calculate the total for one-off investments
-        totalOneOffs += investment.OneOff.reduce((sum: any, oneOff: any) => {
+        totalOneOffs += investment.oneOffs.reduce((sum: any, oneOff: any) => {
           // Check the currency of the one-off investment
           if (oneOff.currency === "USD") {
             // Convert to GHS and add to the sum

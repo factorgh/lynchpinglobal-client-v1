@@ -14,6 +14,7 @@ import { storage } from "../../../firebase/firebaseConfig"; // Import Firebase S
 const ConditionsUploader = () => {
   const [files, setFiles] = useState([]); // List of files from Firebase
   const [loading, setLoading] = useState(false);
+  console.log(files);
 
   // Fetch all terms and conditions from Firebase on component mount
   useEffect(() => {
@@ -29,6 +30,7 @@ const ConditionsUploader = () => {
       const fileUrls: any = await Promise.all(
         response.items.map(async (item) => {
           const url = await getDownloadURL(item);
+          console.log(url);
           return { name: item.name, url }; // Return file name and URL
         })
       );

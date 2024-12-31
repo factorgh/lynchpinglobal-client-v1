@@ -3,7 +3,8 @@
 import Navbar from "@/app/(components)/Navbar";
 import Sidebar from "@/app/(components)/Sidebar";
 import dynamic from "next/dynamic";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { store } from "../../services/store";
 
@@ -15,6 +16,33 @@ const AuthProvider = dynamic(
 ) as React.ComponentType<{ children: React.ReactNode }>;
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
+  const [user, setUser] = useState<{ role?: string } | null>(null);
+
+  // Fetch user from localStorage on the client
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse user from localStorage", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === "admin") {
+        router.push("/dashboard"); // Redirect admins to the admin dashboard.
+      } else if (user.role === "user") {
+        router.push("/landing"); // Redirect regular users to their dashboard.
+      } else {
+        router.push("/signup"); // Handle unauthorized roles.
+      }
+    }
+  }, [user, router]);
+
   return (
     <AuthProvider>
       <Provider store={store}>

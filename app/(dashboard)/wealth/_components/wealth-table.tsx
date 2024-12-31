@@ -378,7 +378,7 @@ const WealthTable = () => {
       dataIndex: "managementFeeRate",
       key: "managementFeeRate",
       ...getColumnSearchProps("managementFeeRate"),
-      render: (value: any) => formatPriceGHS(value), // Add "%" suffix
+      render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
     },
     {
       title: "Total Accrued Return",
