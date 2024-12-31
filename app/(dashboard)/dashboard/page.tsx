@@ -144,7 +144,7 @@ export default function DashboardPage() {
 
       // Calculate total assets and outstanding payments
       assets?.data.data.forEach((asset: any) => {
-        totalAssets += asset.assetDesignation;
+        totalAssets += asset.assetValue;
       });
 
       // Loop through all the data and add those needed

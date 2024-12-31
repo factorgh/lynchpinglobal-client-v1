@@ -99,6 +99,7 @@ const LoanForm: React.FC = () => {
       agreements,
       others,
     };
+    console.log(formattedValues);
     try {
       await createLoan(formattedValues).unwrap();
       toast.success("Loan  created successfully");
@@ -243,7 +244,7 @@ const LoanForm: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="overdueDate"
+                name="dueDate"
                 label="Due Date"
                 rules={[
                   { required: true, message: "Please select a due date" },

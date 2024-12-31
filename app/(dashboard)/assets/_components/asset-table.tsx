@@ -241,6 +241,12 @@ import AssetsDrawer from "./assets-drawer";
 
     const columns = [
       {
+        title: "Customer",
+        dataIndex: "user", // This contains the user object
+        key: "user",
+        render: (user: any) => user?.displayName || "Unknown User", // Access displayName directly
+      },
+      {
         title: "Asset Class",
         dataIndex: "assetClass",
         key: "assetClass",
@@ -251,7 +257,6 @@ import AssetsDrawer from "./assets-drawer";
         dataIndex: "assetDesignation",
         key: "assetDesignation",
         ...getColumnSearchProps("assetDesignation"),
-        render: (value: any) => toTwoDecimalPlaces(value), // Format assetDesignation
       },
 
       {
@@ -262,11 +267,11 @@ import AssetsDrawer from "./assets-drawer";
         render: (value: any) => formatPriceGHS(value), // Format performance yield
       },
       {
-        title: "Management Fee Rate",
+        title: "Management Fee ",
         dataIndex: "managementFee",
         key: "managementFee",
         ...getColumnSearchProps("managementFee"),
-        render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
+        render: (value: any) => formatPriceGHS(value), // Add "%" suffix
       },
       {
         title: "Quarter",

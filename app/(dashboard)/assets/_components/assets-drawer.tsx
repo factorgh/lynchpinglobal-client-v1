@@ -1,15 +1,5 @@
 import { formatPriceGHS } from "@/lib/helper";
-import {
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  Drawer,
-  Image,
-  Row,
-  Tag,
-  Typography,
-} from "antd";
+import { Card, Col, Descriptions, Drawer, Row, Tag, Typography } from "antd";
 import Title from "antd/es/typography/Title";
 import { useState } from "react";
 
@@ -60,23 +50,27 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
   };
 
   // Utility function to render document previews (Image or Button for PDFs)
-  const renderDocumentPreview = (fileUrl: string, index: number) => {
-    if (fileUrl.endsWith(".pdf")) {
-      return (
-        <Button type="link" onClick={() => handlePreview(fileUrl)}>
-          <Text strong>Preview PDF {index + 1}</Text>
-        </Button>
-      );
-    } else {
-      return (
-        <Image
-          src={fileUrl}
-          alt={`Document ${index + 1}`}
-          onClick={() => handlePreview(fileUrl)}
-          style={{ cursor: "pointer" }}
-        />
-      );
-    }
+  // const renderDocumentPreview = (fileUrl: string, index: number) => {
+  //   if (fileUrl.endsWith(".pdf")) {
+  //     return (
+  //       <Button type="link" onClick={() => handlePreview(fileUrl)}>
+  //         <Text strong>Preview PDF {index + 1}</Text>
+  //       </Button>
+  //     );
+  //   } else {
+  //     return (
+  //       <Image
+  //         src={fileUrl}
+  //         alt={`Document ${index + 1}`}
+  //         onClick={() => handlePreview(fileUrl)}
+  //         style={{ cursor: "pointer" }}
+  //       />
+  //     );
+  //   }
+  // };
+  const handlePreviewOut = (previewFile: string, index: number) => {
+    setEditModalVisible(false);
+    window.open(previewFile, "_blank");
   };
 
   return (
@@ -98,7 +92,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
               {assets?.assetClass}
             </Descriptions.Item>
             <Descriptions.Item label="Asset Designation">
-              {formatPriceGHS(assets?.assetDesignation)}
+              {assets?.assetDesignation}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
               {assets?.quater}
@@ -110,7 +104,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
               {new Date(assets?.maturityDate).toLocaleDateString()}
             </Descriptions.Item>
             <Descriptions.Item label="Management Fee">
-              {assets?.managementFee}
+              {formatPriceGHS(assets?.managementFee)}
             </Descriptions.Item>
           </Descriptions>
         </Card>
@@ -125,7 +119,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
                   <Col span={8} key={index}>
                     <Card
                       hoverable
-                      cover={renderDocumentPreview(fileUrl, index)}
+                      onClick={() => handlePreviewOut(fileUrl, index)}
                     >
                       <Text>{`Certificate ${index + 1}`}</Text>
                     </Card>
@@ -143,7 +137,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
                   <Col span={8} key={index}>
                     <Card
                       hoverable
-                      cover={renderDocumentPreview(fileUrl, index)}
+                      onClick={() => handlePreviewOut(fileUrl, index)}
                     >
                       <Text>{`Checklist ${index + 1}`}</Text>
                     </Card>
@@ -161,7 +155,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
                   <Col span={8} key={index}>
                     <Card
                       hoverable
-                      cover={renderDocumentPreview(fileUrl, index)}
+                      onClick={() => handlePreviewOut(fileUrl, index)}
                     >
                       <Text>{`Mandate ${index + 1}`}</Text>
                     </Card>
@@ -179,7 +173,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
                   <Col span={8} key={index}>
                     <Card
                       hoverable
-                      cover={renderDocumentPreview(fileUrl, index)}
+                      onClick={() => handlePreviewOut(fileUrl, index)}
                     >
                       <Text>{`Partner Form ${index + 1}`}</Text>
                     </Card>

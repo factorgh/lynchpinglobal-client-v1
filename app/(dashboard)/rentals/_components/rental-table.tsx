@@ -292,10 +292,9 @@ import RentalDrawer from "./rental-drawer";
                     },
                   ]}
                 >
-                  <InputNumber
+                  <Input
                     placeholder="Enter asset designation"
                     style={{ width: "100%" }}
-                    min={1}
                   />
                 </Form.Item>
               </Col>

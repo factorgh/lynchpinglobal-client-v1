@@ -8,7 +8,6 @@ import {
   Descriptions,
   Drawer,
   Form,
-  Image,
   message,
   Modal,
   Row,
@@ -19,6 +18,7 @@ import {
 } from "antd";
 import Title from "antd/es/typography/Title";
 import moment from "moment";
+import Image from "next/image";
 import { useState } from "react";
 
 const { Text } = Typography;
@@ -47,7 +47,7 @@ interface InvestmentData {
   active: boolean;
   managementFee: number;
   performanceYield: number;
-  certificate: string[]; // Array of document URLs (certificates)
+  certificate: string[];
   checklist: string[]; // Array of document URLs (checklists)
   mandate: string[]; // Array of document URLs (mandates)
   partnerForm: string[]; // Array of document URLs (partner forms)
@@ -176,29 +176,46 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
   };
 
   // Utility function to render document previews (Image or Button for PDFs)
-  const renderDocumentPreview = (fileUrl: string, index: number) => {
-    console.log(
-      "----------------------------------------Doc Preview----------------"
-    );
-    console.log(fileUrl);
-    if (fileUrl.endsWith(".pdf")) {
-      return (
-        <Button type="link" onClick={() => handlePreview(fileUrl)}>
-          <Text strong>Preview PDF {index + 1}</Text>
-        </Button>
-      );
-    } else {
-      return (
-        <Image
-          src={fileUrl}
-          alt={`Document ${index + 1}`}
-          onClick={() => handlePreview(fileUrl)}
-          style={{ cursor: "pointer" }}
-        />
-      );
-    }
-  };
+  // const renderDocumentPreview = (fileUrl: string, index: number) => {
+  //   console.log(
+  //     "----------------------------------------Doc Preview----------------"
+  //   );
+  //   console.log(fileUrl);
 
+  //   // // Handle PDF preview as a link
+  //   // if (fileUrl.endsWith(".pdf")) {
+  //   //   return (
+  //   //     <Button type="link" onClick={() => handlePreview(fileUrl)}>
+  //   //       <Text strong>Preview PDF {index + 1}</Text>
+  //   //     </Button>
+  //   //   );
+  //   // } else {
+  //   //   // Use a normal <img> tag for images
+  //   return (
+  //     <div
+  //       // onClick={() => handlePreview(fileUrl)}
+  //       style={{ cursor: "pointer", display: "inline-block" }}
+  //     >
+  //       <img
+  //         src={fileUrl} // URL of the image
+  //         alt={`Document ${index + 1}`}
+  //         width={500}
+  //         style={{
+  //           maxWidth: "100%", // Adjust for responsiveness
+  //           maxHeight: "300px", // Limit the height
+  //           objectFit: "contain", // Make sure the image fits nicely
+  //           border: "1px solid #ccc", // Optional styling for better visibility
+  //           borderRadius: "8px",
+  //         }}
+  //       />
+  //     </div>
+  //   );
+  // };
+
+  const handlePreviewOut = (previewFile: string, index: number) => {
+    setEditModalVisible(false);
+    window.open(previewFile, "_blank");
+  };
   return (
     <>
       <Drawer
@@ -285,7 +302,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
                     <Col span={8} key={index}>
                       <Card
                         hoverable
-                        cover={renderDocumentPreview(fileUrl, index)}
+                        onClick={() => handlePreviewOut(fileUrl, index)}
                       >
                         <Text>{`Certificate ${index + 1}`}</Text>
                       </Card>
@@ -303,8 +320,8 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
                 {investment?.checklist.map((fileUrl: string, index: number) => (
                   <Col span={8} key={index}>
                     <Card
+                      onClick={() => handlePreviewOut(fileUrl, index)}
                       hoverable
-                      cover={renderDocumentPreview(fileUrl, index)}
                     >
                       <Text>{`Checklist ${index + 1}`}</Text>
                     </Card>
@@ -322,9 +339,10 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
                   <Col span={8} key={index}>
                     <Card
                       hoverable
-                      cover={renderDocumentPreview(fileUrl, index)}
+                      onClick={() => handlePreviewOut(fileUrl, index)}
                     >
                       <Text>{`Mandate ${index + 1}`}</Text>
+                      <br />
                     </Card>
                   </Col>
                 ))}
@@ -341,7 +359,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
                     <Col span={8} key={index}>
                       <Card
                         hoverable
-                        cover={renderDocumentPreview(fileUrl, index)}
+                        onClick={() => handlePreviewOut(fileUrl, index)}
                       >
                         <Text>{`Partner Form ${index + 1}`}</Text>
                       </Card>
