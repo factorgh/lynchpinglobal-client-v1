@@ -1,4 +1,4 @@
-import { formatPriceGHS } from "@/lib/helper";
+import { formatMultipleCurrency, formatPriceGHS } from "@/lib/helper";
 import { useUpdateAddOnMutation } from "@/services/addOn";
 import { EditOutlined } from "@ant-design/icons";
 import {
@@ -106,7 +106,8 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       title: "Amount",
       dataIndex: "amount",
       key: "amount",
-      render: (amount: number) => `GH₵${amount.toFixed(2)}`,
+      render: (amount: number, record: any) =>
+        formatMultipleCurrency(amount, record.currency),
     },
 
     {
@@ -116,10 +117,11 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
     },
 
     {
-      title: "Rate",
-      dataIndex: "rate",
-      key: "rate",
-      render: (rate: number) => `${rate.toFixed(2)}%`,
+      title: "Yield",
+      dataIndex: "oneOffYield",
+      key: "oneOffYield",
+      render: (rate: number, record: any) =>
+        formatMultipleCurrency(rate, record.currency),
     },
     {
       title: "Date Added",

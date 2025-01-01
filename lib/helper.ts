@@ -43,7 +43,14 @@ const uploadToCloudinary = async (file: any, uploadPreset: any) => {
   return response.json();
 };
 
-function formatMultipleCurrency(amount: any, currency: any) {
+export function formatMultipleCurrency(
+  amount: number,
+  currency: string
+): string {
+  if (!currency || typeof currency !== "string") {
+    throw new Error("Currency code is required and must be a string.");
+  }
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,

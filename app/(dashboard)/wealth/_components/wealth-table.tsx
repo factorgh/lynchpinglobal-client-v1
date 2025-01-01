@@ -91,7 +91,8 @@ const WealthTable = () => {
     setIsAddOnDrawerVisible(true);
   };
 
-  const showAddOffDrawer = () => {
+  const showAddOffDrawer = (investment: any) => {
+    setEditRentalId(investment._id);
     setIsAddOffDrawerVisible(true);
   };
 
@@ -149,7 +150,7 @@ const WealthTable = () => {
       <Menu.Item
         key="addOff"
         icon={<PlusCircleOutlined />}
-        onClick={showAddOffDrawer}
+        onClick={() => showAddOffDrawer(record)}
       >
         Create One Off
       </Menu.Item>
@@ -231,8 +232,8 @@ const WealthTable = () => {
         // Handle Add Off submission
         await createAddOff({
           amount: values.amount,
-          currency: values.currnecy,
-          rate: values.rate,
+          currency: values.currency,
+          oneOffYield: values.oneOffYield,
           investmentId: editRentalId,
         });
         await createActivity({
@@ -243,7 +244,7 @@ const WealthTable = () => {
         closeAddOffDrawer();
         console.log("Add Off submitted", values);
 
-        toast.success("Add Off has been created successfully");
+        toast.success("One Off has been created successfully");
       } else {
         // Handle Investment submission (same logic as before)
         console.log(values);
@@ -636,16 +637,16 @@ const WealthTable = () => {
           </Form.Item>
 
           <Form.Item
-            name="Rate"
-            label="Rate"
+            name="oneOffYield"
+            label="Yield"
             rules={[
               {
                 required: true,
-                message: "Please select a  rate",
+                message: "Please enter a yield",
               },
             ]}
           >
-            <InputNumber placeholder="Enter rate" style={{ width: "100%" }} />
+            <InputNumber placeholder="Enter yield" style={{ width: "100%" }} />
           </Form.Item>
 
           <Form.Item
