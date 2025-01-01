@@ -77,10 +77,10 @@ const CustomerLanding = () => {
           // Check the currency of the one-off investment
           if (oneOff.currency === "USD") {
             // Convert to GHS and add to the sum
-            return sum + (oneOff.yield || 0) * exchangeRateUSDToGHS;
+            return sum + (oneOff.oneOffYield || 0) * exchangeRateUSDToGHS;
           } else if (oneOff.currency === "GHS") {
             // Add directly to the sum
-            return sum + (oneOff.yield || 0);
+            return sum + (oneOff.oneOffYield || 0);
           } else {
             console.warn(`Unhandled currency: ${oneOff.currency}`);
             return sum; // Ignore unhandled currencies
