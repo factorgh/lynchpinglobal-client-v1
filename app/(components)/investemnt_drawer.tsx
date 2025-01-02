@@ -221,7 +221,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
   return (
     <>
       <Drawer
-        title={`Investment Details - ${investment?.name}`}
+        title={`Investment Details `}
         width={1000}
         onClose={onClose}
         visible={visible}
@@ -234,7 +234,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
               {investment?.transactionId}
             </Descriptions.Item>
             <Descriptions.Item label="Name">
-              {investment?.name}
+              {investment?.userId.displayName}
             </Descriptions.Item>
             <Descriptions.Item label="Principal">
               {formatPriceGHS(investment?.principal)}
