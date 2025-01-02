@@ -13,7 +13,7 @@ interface DataType {
   totalAccruedReturn: number;
   guaranteedRate: number;
   performanceYield: number;
-  managementFee: number;
+  managementFeeRate: number;
 }
 
 type DataIndex = keyof DataType;
@@ -162,10 +162,10 @@ const CustomerInvestment: React.FC = () => {
       render: (value: any) => formatPriceGHS(value), // Format performance yield
     },
     {
-      title: "Management Fee",
-      dataIndex: "managementFee",
-      key: "managementFee",
-      ...getColumnSearchProps("managementFee"),
+      title: "Management Fee Rate",
+      dataIndex: "managementFeeRate",
+      key: "managementFeeRate",
+
       render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
     },
     {
@@ -230,7 +230,7 @@ const CustomerInvestment: React.FC = () => {
               {formatPriceGHS(selectedInvestment.performanceYield)}
             </Descriptions.Item>
             <Descriptions.Item label="Management Fee">
-              {toTwoDecimalPlaces(selectedInvestment.managementFee)}%
+              {toTwoDecimalPlaces(selectedInvestment.managementFeeRate)}%
             </Descriptions.Item>
             <Descriptions.Item label="Total Accrued Return">
               {formatPriceGHS(
