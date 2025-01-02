@@ -25,6 +25,7 @@ import {
 import {
   Button,
   Col,
+  DatePicker,
   Drawer,
   Dropdown,
   Form,
@@ -215,6 +216,7 @@ const WealthTable = () => {
           amount: values.amount,
           status: values.status,
           investmentId: editRentalId,
+          startDate: values.startDate,
         });
 
         await createActivity({
@@ -235,6 +237,8 @@ const WealthTable = () => {
           currency: values.currency,
           oneOffYield: values.oneOffYield,
           investmentId: editRentalId,
+          startDate: values.startDate,
+          endDate: values.endDate,
         });
         await createActivity({
           activity: "One off Added",
@@ -588,6 +592,14 @@ const WealthTable = () => {
           </Form.Item>
 
           <Form.Item
+            name="startDate"
+            label="Start Date"
+            rules={[{ required: true, message: "Please select a start date" }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item
             name="status"
             label="Status"
             rules={[{ required: true, message: "Please select a status" }]}
@@ -647,6 +659,21 @@ const WealthTable = () => {
             ]}
           >
             <InputNumber placeholder="Enter yield" style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item
+            name="startDate"
+            label="Start Date"
+            rules={[{ required: true, message: "Please select a start date" }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item
+            name="enDate"
+            label="End Date"
+            rules={[{ required: true, message: "Please select a end date" }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
           </Form.Item>
 
           <Form.Item
