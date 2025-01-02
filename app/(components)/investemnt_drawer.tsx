@@ -242,9 +242,9 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Descriptions.Item label="Guaranteed Rate">
               {investment?.guaranteedRate}%
             </Descriptions.Item>
-            <Descriptions.Item label="Principal Accrued Return">
+            {/* <Descriptions.Item label="Principal Accrued Return">
               {formatPriceGHS(investment?.principalAccruedReturn?.toFixed(2))}
-            </Descriptions.Item>
+            </Descriptions.Item> */}
             <Descriptions.Item label="Addon Accrued Return">
               {formatPriceGHS(investment?.addOnAccruedReturn?.toFixed(2))}
             </Descriptions.Item>
