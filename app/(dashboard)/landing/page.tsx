@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { formatPriceGHS } from "@/lib/helper";
 import { useGetUserAssetsQuery } from "@/services/assets";
-import { useGetAllInvestmentsQuery } from "@/services/investment";
+import { useGetUserInvestmentsQuery } from "@/services/investment";
 import { useGetUserPaymentsQuery } from "@/services/payments";
 import {
   MinusCircleOutlined,
@@ -21,7 +21,7 @@ import CustomSlider from "./_components/customSlider";
 import LandingCard from "./_components/landingCard";
 
 const CustomerLanding = () => {
-  const { data: userInvestments } = useGetAllInvestmentsQuery(null);
+  const { data: userInvestments } = useGetUserInvestmentsQuery(null);
   const { data: userPayments, isFetching: isFetchingPayment } =
     useGetUserPaymentsQuery(null);
 
