@@ -23,6 +23,7 @@ import {
   Row,
   Select,
   Table,
+  Upload,
 } from "antd";
 import moment from "moment";
 import { useRef, useState } from "react";
@@ -63,6 +64,21 @@ import LoanDrawer from "./loan-drawer";
     const [loanDrawerVisible, setLoanDrawerVisible] = useState(false);
 
     const [selectedLoan, setSelectedLoan] = useState(null);
+    const [fileCategories, setFileCategories] = useState({
+      agreements: [],
+      others: [],
+    });
+
+    const [uploading, setUploading] = useState({
+      agreements: false,
+      others: false,
+    });
+    const handleFileChange = (category: string, fileList: any[]) => {
+      setFileCategories((prev) => ({
+        ...prev,
+        [category]: fileList,
+      }));
+    };
 
     const closeLoansDetailsDrawer = () => {
       setSelectedLoan(null);
@@ -87,20 +103,36 @@ import LoanDrawer from "./loan-drawer";
       setIsEditMode(true);
       setEditRentalId(investment._id);
 
+      // Ensure safe defaults for file categories
+      setFileCategories({
+        agreements: Array.isArray(investment.agreements)
+          ? investment.agreements
+          : [],
+        others: Array.isArray(investment.others) ? investment.others : [],
+      });
+
+      // Safely set form values
       form.setFieldsValue({
-        name: investment.name,
+        name: investment.name || "",
         loanAmount: toTwoDecimalPlaces(investment.loanAmount),
         managementFee: toTwoDecimalPlaces(investment.managementFee),
         overdueRate: toTwoDecimalPlaces(investment.overdueRate),
-        quater: investment.quater,
+        quater: investment.quater || "", // Ensure `quater` exists
         amountDue: toTwoDecimalPlaces(investment.amountDue),
-        overdueDate: moment(investment.overdueDate),
+        overdueDate: investment.overdueDate
+          ? moment(investment.overdueDate)
+          : moment(),
         loanRate: toTwoDecimalPlaces(investment.loanRate),
-        status: investment.status,
+        status: investment.status || "", // Handle undefined status
+        agreements: Array.isArray(investment.agreements)
+          ? investment.agreements
+          : [],
+        others: Array.isArray(investment.others) ? investment.others : [],
       });
 
       setIsDrawerVisible(true);
     };
+
     const handleFormSubmit = async (values: any) => {
       try {
         const formattedValues = {
@@ -379,8 +411,37 @@ import LoanDrawer from "./loan-drawer";
                 </Form.Item>
               </Col>
             </Row>
+
+            {/* Performance Yield */}
             <Row gutter={16}>
-              {/* Performance Yield */}
+              {["agreements", "others"].map((category) => (
+                <Col key={category} span={12}>
+                  <Form.Item
+                    label={`Upload ${
+                      category.charAt(0).toUpperCase() + category.slice(1)
+                    }`}
+                  >
+                    <Upload
+                      listType="text" // Use text for non-image files like PDFs
+                      fileList={
+                        fileCategories[category as keyof typeof fileCategories]
+                      }
+                      onChange={({ fileList }) =>
+                        handleFileChange(category, fileList)
+                      }
+                      beforeUpload={(file) => {
+                        const isPdf = file.type === "application/pdf";
+                        if (!isPdf) {
+                          toast.error("You can only upload PDF files.");
+                        }
+                        return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
+                      }}
+                    >
+                      <Button type="dashed">Upload PDF</Button>
+                    </Upload>
+                  </Form.Item>
+                </Col>
+              ))}
 
               {/* Guaranteed Rate */}
             </Row>

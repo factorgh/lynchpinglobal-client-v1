@@ -102,8 +102,8 @@ const LoanDrawer = ({
               </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="Overdue Date">
-              {loan.overdueDate
-                ? moment(loan.overdueDate).format("MMM D, YYYY")
+              {loan.dueDate
+                ? moment(loan.dueDate).format("MMM D, YYYY")
                 : "N/A"}
             </Descriptions.Item>
           </Descriptions>

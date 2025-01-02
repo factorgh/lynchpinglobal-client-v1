@@ -89,7 +89,7 @@ import RentalDrawer from "./rental-drawer";
       form.setFieldsValue({
         assetClass: investment.assetClass,
         assetDesignation: investment.assetDesignation,
-        overdueRate: toTwoDecimalPlaces(investment.overdueRate),
+        overdueRate: toTwoDecimalPlaces(investment.overdueFee),
         returnDate: moment(investment.returnDate),
         overdueDate: moment(investment.overdueDate),
         quater: investment.quater,
@@ -307,17 +307,17 @@ import RentalDrawer from "./rental-drawer";
               {/* Performance Yield */}
               <Col span={12}>
                 <Form.Item
-                  name="overdueRate"
-                  label="Overdue Rate"
+                  name="overdueFee"
+                  label="Overdue Fee"
                   rules={[
                     {
                       required: true,
-                      message: "Please enter overdue due",
+                      message: "Please enter overdue fee",
                     },
                   ]}
                 >
                   <InputNumber
-                    placeholder="Enter overdue rate"
+                    placeholder="Enter overdue fee"
                     style={{ width: "100%" }}
                     min={1}
                     max={100}

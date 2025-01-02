@@ -300,6 +300,19 @@ const RentalForm: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
+          <Row>
+            <Col span={24}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+                rules={[
+                  { required: true, message: "Please select a start date" },
+                ]}
+              >
+                <DatePicker style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Row gutter={16}>
             {["agreements", "others"].map((category) => (
