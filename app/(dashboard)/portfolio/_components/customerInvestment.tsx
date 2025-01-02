@@ -134,12 +134,12 @@ const CustomerInvestment: React.FC = () => {
   });
 
   const columns: TableColumnType<DataType>[] = [
-    {
-      title: "Admin",
-      dataIndex: "name",
-      key: "name",
-      ...getColumnSearchProps("name"),
-    },
+    // {
+    //   title: "Admin",
+    //   dataIndex: "name",
+    //   key: "name",
+    //   ...getColumnSearchProps("name"),
+    // },
     {
       title: "Principal",
       dataIndex: "principal",
