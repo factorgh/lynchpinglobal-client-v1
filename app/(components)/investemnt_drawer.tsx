@@ -368,6 +368,23 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
               </Row>
             </div>
           )}
+          {investment?.others.length > 0 && (
+            <div>
+              <Title level={4}>Others</Title>
+              <Row gutter={16}>
+                {investment?.others.map((fileUrl: string, index: number) => (
+                  <Col span={8} key={index}>
+                    <Card
+                      hoverable
+                      onClick={() => handlePreviewOut(fileUrl, index)}
+                    >
+                      <Text>{`Others ${index + 1}`}</Text>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          )}
 
           {!investment?.certificate.length &&
             !investment?.checklist.length &&
