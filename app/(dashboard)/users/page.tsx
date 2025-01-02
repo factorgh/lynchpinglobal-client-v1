@@ -170,11 +170,7 @@ const Users = () => {
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            name="role"
-            label="Role"
-            rules={[{ required: true, message: "Please enter the role" }]}
-          >
+          <Form.Item name="designation" label="Designation">
             <Input />
           </Form.Item>
         </Form>
