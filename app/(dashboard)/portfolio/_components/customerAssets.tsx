@@ -241,7 +241,7 @@ const CustomerAssets: React.FC = () => {
                 {selectedRecord.assetClass}
               </Descriptions.Item>
               <Descriptions.Item label="Asset Designation">
-                {toTwoDecimalPlaces(selectedRecord.assetDesignation)}
+                {selectedRecord.assetDesignation}
               </Descriptions.Item>
               <Descriptions.Item label="Accrued Interest">
                 {formatPriceGHS(selectedRecord.accruedInterest)}

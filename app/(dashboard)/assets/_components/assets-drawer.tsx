@@ -16,7 +16,8 @@ export interface AssetModel {
   user: string; // Reference to the User model
   assetName: string; // Name of the asset
   assetClass: string; // Class/category of the asset
-  assetDesignation: number; // Designation or identifier for the asset
+  assetDesignation: string; // Designation or identifier for the asset
+  assetValue: number; // Designation or identifier for the asset
   accruedInterest: number; // Accrued interest on the asset
   maturityDate: Date; // Maturity date of the asset
   managementFee: number; // Management fee associated with the asset
@@ -93,6 +94,9 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
             </Descriptions.Item>
             <Descriptions.Item label="Asset Designation">
               {assets?.assetDesignation}
+            </Descriptions.Item>
+            <Descriptions.Item label="Asset Value">
+              {formatPriceGHS(assets?.assetValue)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
               {assets?.quater}
