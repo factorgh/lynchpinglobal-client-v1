@@ -38,7 +38,7 @@ const AssetsUnder = ({ dataSource, loading }: any) => {
           <List.Item key={item.assetName}>
             <List.Item.Meta
               avatar={<Avatar src={item.asseImage || ""} />}
-              title={<a href="https://ant.design">{item.assetName}</a>}
+              title={<a href="#">{item.assetName}</a>}
               // description={
               //   <span>
               //     <strong>Desig:</strong> {item.assetDesignation}

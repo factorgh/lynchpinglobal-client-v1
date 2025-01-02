@@ -254,8 +254,8 @@ const PaginatedTable = ({ data }: { data: Array<any> }) => {
       <Table
         columns={columns}
         dataSource={paginatedData}
-        pagination={false} // Disable AntD pagination as we will use custom pagination
-        rowKey="key" // Key should match the unique field in dataSource
+        pagination={false}
+        rowKey="key"
       />
 
       {/* Pagination */}
