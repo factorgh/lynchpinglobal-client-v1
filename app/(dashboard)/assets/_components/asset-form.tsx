@@ -55,61 +55,86 @@ const AssetForm: React.FC = () => {
     setUsers(data?.allUsers || []);
   }, [data]);
 
-  // // File list change handler
-  // const handleFileListChange = (fileList: any[]) => {
-  //   setSelectedFiles(fileList);
+  // const handleUploadAssetImageToCloudinary = async (
+  //   file: any
+  // ): Promise<string | null> => {
+  //   const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
+  //   const uploadPreset = "burchells"; // Use the correct upload preset for your project
+
+  //   try {
+  //     setUploadingImage(true);
+  //     // Prepare FormData for the file upload
+  //     const formData = new FormData();
+  //     formData.append("file", file.originFileObj); // The file object
+  //     formData.append("upload_preset", uploadPreset);
+
+  //     // Upload the image to Cloudinary
+  //     const response = await fetch(cloudinaryUrl, {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to upload file: ${file.name}`);
+  //     }
+
+  //     // Parse the response from Cloudinary
+  //     const result = await response.json();
+  //     setUploadingImage(false);
+
+  //     // Return only the secure URL of the uploaded image
+  //     return result.secure_url;
+  //   } catch (error) {
+  //     console.error("Image upload error:", error);
+  //     setUploadingImage(false);
+  //     return null; // Return null if the upload failed
+  //   }
   // };
-  const handleUploadAssetImageToCloudinary = async (
-    file: any
-  ): Promise<string | null> => {
-    const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dzvwqvww2/upload";
-    const uploadPreset = "burchells"; // Use the correct upload preset for your project
 
-    try {
-      setUploadingImage(true);
-      // Prepare FormData for the file upload
-      const formData = new FormData();
-      formData.append("file", file.originFileObj); // The file object
-      formData.append("upload_preset", uploadPreset);
-
-      // Upload the image to Cloudinary
-      const response = await fetch(cloudinaryUrl, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to upload file: ${file.name}`);
-      }
-
-      // Parse the response from Cloudinary
-      const result = await response.json();
-      setUploadingImage(false);
-
-      // Return only the secure URL of the uploaded image
-      return result.secure_url;
-    } catch (error) {
-      console.error("Image upload error:", error);
-      setUploadingImage(false);
-      return null; // Return null if the upload failed
-    }
-  };
-
-  const handleAssetImageChange = async ({ file, fileList }: any) => {
+  const handleAssetImageChange = async ({ file }: any) => {
     if (file.status === "done") {
+      console.log("-----------------------Asset Image Change ----------------");
+      console.log(file);
       // Call the dedicated Cloudinary upload function for the asset image
-      const imageUrl: string | null = await handleUploadAssetImageToCloudinary(
-        file
-      );
+      const imageUrl: string | null = await handleSingleUploadToFirebase(file);
 
       if (imageUrl) {
         console.log("Image URL:", imageUrl);
-        // Set the returned image URL (secure_url) in the state and the form field
         setAssetImageUrl(imageUrl);
-        form.setFieldsValue({ assetImage: imageUrl }); // Update form field with the URL
+        form.setFieldsValue({ assetImage: imageUrl });
       } else {
         message.error("Image upload failed.");
       }
+    }
+  };
+
+  const handleSingleUploadToFirebase = async (
+    selectedFile: any
+  ): Promise<string> => {
+    try {
+      if (!selectedFile) {
+        throw new Error("No file selected for upload");
+      }
+
+      // Create a reference to the storage location
+      const storageRef = ref(
+        storage,
+        `others/${selectedFile.name}-${Date.now()}`
+      );
+
+      // Upload the file to Firebase
+      const snapshot = await uploadBytes(
+        storageRef,
+        selectedFile.originFileObj
+      );
+
+      // Get the download URL of the uploaded file
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      return downloadURL; // Return the download URL
+    } catch (error) {
+      console.error("File upload error:", error);
+      throw error;
     }
   };
 
@@ -124,7 +149,7 @@ const AssetForm: React.FC = () => {
       });
 
       const uploadResults = await Promise.all(uploadPromises);
-      return uploadResults; // Array of download URLs
+      return uploadResults;
     } catch (error) {
       console.error("File upload error:", error);
       return [];
@@ -440,6 +465,7 @@ const AssetForm: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
+
           {/* Upload Files */}
           <Row gutter={16}>
             <Col span={12}>
@@ -479,6 +505,20 @@ const AssetForm: React.FC = () => {
                     Click to Upload Asset Image
                   </Button>
                 </Upload>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={12}>
+            <Col span={24}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+                rules={[
+                  { required: true, message: "Please select a start date" },
+                ]}
+              >
+                <DatePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>

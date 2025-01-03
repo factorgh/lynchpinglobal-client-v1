@@ -388,6 +388,7 @@ const WealthTable = () => {
     {
       title: "Total Accrued Return",
       dataIndex: "totalAccruedReturn",
+
       key: "totalAccruedReturn",
       ...getColumnSearchProps("totalAccruedReturn"),
       render: (value: any) => formatPriceGHS(value),

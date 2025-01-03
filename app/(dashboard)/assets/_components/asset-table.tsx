@@ -301,7 +301,7 @@ import AssetsDrawer from "./assets-drawer";
               onClick={() => showEditDrawer(record)}
             />
             <DeleteOutlined
-              onClick={() => handleDelete(record.id)}
+              onClick={() => handleDelete(record._id)}
               className="text-red-500"
               style={{ marginLeft: "10px" }}
             />
