@@ -1,11 +1,12 @@
 import { formatPriceGHS } from "@/lib/helper";
 import { useGetLoansQuery } from "@/services/loan";
-import { SearchOutlined } from "@ant-design/icons";
+import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
 import { Button, Input, Space, Table } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import React, { useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
+import LoanDrawer from "../../rentals/_components/loan-drawer";
 
 interface DataType {
   key: string;
@@ -24,6 +25,16 @@ const CustomerLoan: React.FC = () => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<InputRef>(null);
   const { data: loans, isFetching } = useGetLoansQuery(null);
+  const [loanDrawerVisible, setLoanDrawerVisible] = useState(false);
+  const [selectedLoan, setSelectedLoan] = useState(null);
+  const closeLoansDetailsDrawer = () => {
+    setSelectedLoan(null);
+    setLoanDrawerVisible(false);
+  };
+  const showLoanDetailsDrawer = (asset: any) => {
+    setSelectedLoan(asset);
+    setLoanDrawerVisible(true);
+  };
 
   const handleSearch = (
     selectedKeys: string[],
@@ -157,17 +168,38 @@ const CustomerLoan: React.FC = () => {
     },
     {
       title: "Days Overdue",
-      dataIndex: " overdueDays",
-      key: " overdueDays",
+      dataIndex: "overdueDays",
+      key: "overdueDays",
+
+      render: (value: any) => (value === 0 ? "0 days " : `${value} days`),
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (text: any, record: any) => (
+        <div className="flex gap-3">
+          <EyeOutlined
+            className="text-emerald-500"
+            onClick={() => showLoanDetailsDrawer(record)}
+          />
+        </div>
+      ),
     },
   ];
 
   return (
-    <Table<DataType>
-      loading={isFetching}
-      columns={columns}
-      dataSource={loans?.data.data}
-    />
+    <>
+      <Table<DataType>
+        loading={isFetching}
+        columns={columns}
+        dataSource={loans?.data.data}
+      />
+      <LoanDrawer
+        loan={selectedLoan}
+        visible={loanDrawerVisible}
+        onClose={closeLoansDetailsDrawer}
+      />
+    </>
   );
 };
 

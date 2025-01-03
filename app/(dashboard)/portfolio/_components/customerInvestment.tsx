@@ -1,21 +1,55 @@
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useGetUserInvestmentsQuery } from "@/services/investment";
-import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
-import { Button, Descriptions, Drawer, Input, Space, Table } from "antd";
+import {
+  Button,
+  Card,
+  Col,
+  Descriptions,
+  Drawer,
+  Input,
+  Row,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
+import Title from "antd/es/typography/Title";
 import React, { useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
+
+interface AddOn {
+  id: string;
+  name: string;
+  value: number;
+}
 
 interface DataType {
   key: string;
   name: string;
   principal: number;
-  totalAccruedReturn: number;
   guaranteedRate: number;
+  addOns: AddOn[];
+  oneOffs: any[];
+  principalAccruedReturn: number;
+  addOnAccruedReturn: number;
+  oneOffAccruedReturn: number;
+  totalAccruedReturn: number;
+  quarterEndDate: string;
+  quarter: string;
+  archived: boolean;
+  active: boolean;
+  managementFee: number;
   performanceYield: number;
-  managementFeeRate: number;
+  certificate: string[];
+  checklist: string[];
+  mandate: string[];
+  partnerForm: string[];
+  others: string[]; // Add "others" to the DataType
+  lastModified: string;
 }
 
+const { Text } = Typography;
 type DataIndex = keyof DataType;
 
 const CustomerInvestment: React.FC = () => {
@@ -31,7 +65,7 @@ const CustomerInvestment: React.FC = () => {
 
   const handleSearch = (
     selectedKeys: string[],
-
+    confirm: any,
     dataIndex: DataIndex
   ) => {
     confirm();
@@ -62,47 +96,49 @@ const CustomerInvestment: React.FC = () => {
           onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
           }
-          onPressEnter={() => handleSearch(selectedKeys as string[], dataIndex)}
+          onPressEnter={() =>
+            handleSearch(selectedKeys as string[], confirm, dataIndex)
+          }
           style={{ marginBottom: 8, display: "block" }}
         />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys as string[], dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Search
-          </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Reset
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              confirm({ closeDropdown: false });
-              setSearchText((selectedKeys as string[])[0]);
-              setSearchedColumn(dataIndex);
-            }}
-          >
-            Filter
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close();
-            }}
-          >
-            Close
-          </Button>
-        </Space>
+        <Button
+          type="primary"
+          onClick={() =>
+            handleSearch(selectedKeys as string[], confirm, dataIndex)
+          }
+          icon={<SearchOutlined />}
+          size="small"
+          style={{ width: 90 }}
+        >
+          Search
+        </Button>
+        <Button
+          onClick={() => clearFilters && handleReset(clearFilters)}
+          size="small"
+          style={{ width: 90 }}
+        >
+          Reset
+        </Button>
+        <Button
+          type="link"
+          size="small"
+          onClick={() => {
+            confirm({ closeDropdown: false });
+            setSearchText((selectedKeys as string[])[0]);
+            setSearchedColumn(dataIndex);
+          }}
+        >
+          Filter
+        </Button>
+        <Button
+          type="link"
+          size="small"
+          onClick={() => {
+            close();
+          }}
+        >
+          Close
+        </Button>
       </div>
     ),
     filterIcon: (filtered: boolean) => (
@@ -134,62 +170,42 @@ const CustomerInvestment: React.FC = () => {
   });
 
   const columns: TableColumnType<DataType>[] = [
-    // {
-    //   title: "Admin",
-    //   dataIndex: "name",
-    //   key: "name",
-    //   ...getColumnSearchProps("name"),
-    // },
     {
       title: "Principal",
       dataIndex: "principal",
       key: "principal",
       ...getColumnSearchProps("principal"),
-      render: (value: any) => formatPriceGHS(value), // Format principal
+      render: (value) => formatPriceGHS(value),
     },
     {
       title: "Guaranteed Return",
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),
-      render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
+      render: (value) => `${toTwoDecimalPlaces(value)}%`,
     },
     {
       title: "Performance Yield",
       dataIndex: "performanceYield",
       key: "performanceYield",
       ...getColumnSearchProps("performanceYield"),
-      render: (value: any) => formatPriceGHS(value), // Format performance yield
+      render: (value) => formatPriceGHS(value),
     },
     {
       title: "Management Fee Rate",
-      dataIndex: "managementFeeRate",
-      key: "managementFeeRate",
-
-      render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
+      dataIndex: "managementFee",
+      key: "managementFee",
+      render: (value) => `${toTwoDecimalPlaces(value)}%`,
     },
     {
       title: "Total Accrued Return",
       dataIndex: "totalAccruedReturn",
       key: "totalAccruedReturn",
       ...getColumnSearchProps("totalAccruedReturn"),
-      render: (value: any) => formatPriceGHS(value), // Format with currency
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (text: any, record: any) => (
-        <div className="flex gap-3">
-          <EyeOutlined
-            className="text-blue-500"
-            onClick={() => showViewDrawer(record)}
-          />
-        </div>
-      ),
+      render: (value) => formatPriceGHS(value),
     },
   ];
 
-  // Drawer show/hide logic
   const showViewDrawer = (investment: DataType) => {
     setSelectedInvestment(investment);
     setDrawerVisible(true);
@@ -198,6 +214,11 @@ const CustomerInvestment: React.FC = () => {
   const onCloseDrawer = () => {
     setDrawerVisible(false);
     setSelectedInvestment(null);
+  };
+
+  const handlePreviewOut = (previewFile: string, index: number) => {
+    setDrawerVisible(false);
+    window.open(previewFile, "_blank");
   };
 
   return (
@@ -230,16 +251,153 @@ const CustomerInvestment: React.FC = () => {
               {formatPriceGHS(selectedInvestment.performanceYield)}
             </Descriptions.Item>
             <Descriptions.Item label="Management Fee">
-              {toTwoDecimalPlaces(selectedInvestment.managementFeeRate)}%
+              {toTwoDecimalPlaces(selectedInvestment.managementFee)}%
             </Descriptions.Item>
             <Descriptions.Item label="Total Accrued Return">
-              {formatPriceGHS(
-                Number(
-                  toTwoDecimalPlaces(selectedInvestment.totalAccruedReturn)
-                )
-              )}
+              {formatPriceGHS(selectedInvestment.totalAccruedReturn)}
             </Descriptions.Item>
           </Descriptions>
+        )}
+
+        {/* Add-ons */}
+        {selectedInvestment && (
+          <>
+            {" "}
+            <Card title="Add-ons" bordered={false}>
+              {selectedInvestment?.addOns.length > 0 ? (
+                <Table
+                  rowKey="id"
+                  columns={[{ title: "Name", dataIndex: "name", key: "name" }]}
+                  dataSource={selectedInvestment?.addOns}
+                  pagination={false}
+                  size="small"
+                />
+              ) : (
+                <Tag color="orange">No add-ons added</Tag>
+              )}
+            </Card>
+            <Card title="One-Offs" bordered={false}>
+              {selectedInvestment?.oneOffs.length > 0 ? (
+                <Table
+                  rowKey="id"
+                  columns={[
+                    { title: "One-Off", dataIndex: "name", key: "name" },
+                  ]}
+                  dataSource={selectedInvestment?.oneOffs}
+                  pagination={false}
+                  size="small"
+                />
+              ) : (
+                <Tag color="orange">No One Offs added</Tag>
+              )}
+            </Card>
+          </>
+        )}
+
+        {/* Documents Section */}
+        {selectedInvestment && (
+          <Card title="Investment Documents" bordered={false}>
+            {selectedInvestment?.certificate.length > 0 && (
+              <div>
+                <Title level={4}>Certificates</Title>
+                <Row gutter={16}>
+                  {selectedInvestment?.certificate.map((fileUrl, index) => (
+                    <Col span={8} key={index}>
+                      <Card
+                        hoverable
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        <Text>{`Certificate ${index + 1}`}</Text>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            )}
+
+            {/* Other document sections (checklist, mandate, partner form) */}
+            {selectedInvestment?.checklist.length > 0 && (
+              <div>
+                <Title level={4}>Checklists</Title>
+                <Row gutter={16}>
+                  {selectedInvestment?.checklist.map((fileUrl, index) => (
+                    <Col span={8} key={index}>
+                      <Card
+                        hoverable
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        <Text>{`Checklist ${index + 1}`}</Text>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            )}
+
+            {selectedInvestment?.mandate.length > 0 && (
+              <div>
+                <Title level={4}>Mandates</Title>
+                <Row gutter={16}>
+                  {selectedInvestment?.mandate.map((fileUrl, index) => (
+                    <Col span={8} key={index}>
+                      <Card
+                        hoverable
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        <Text>{`Mandate ${index + 1}`}</Text>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            )}
+
+            {selectedInvestment?.partnerForm.length > 0 && (
+              <div>
+                <Title level={4}>Partner Forms</Title>
+                <Row gutter={16}>
+                  {selectedInvestment?.partnerForm.map((fileUrl, index) => (
+                    <Col span={8} key={index}>
+                      <Card
+                        hoverable
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        <Text>{`Partner Form ${index + 1}`}</Text>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            )}
+
+            {/* Display Others if available */}
+            {selectedInvestment?.others.length > 0 && (
+              <div>
+                <Title level={4}>Others</Title>
+                <Row gutter={16}>
+                  {selectedInvestment?.others.map((fileUrl, index) => (
+                    <Col span={8} key={index}>
+                      <Card
+                        hoverable
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        <Text>{`Others ${index + 1}`}</Text>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            )}
+
+            {/* No documents */}
+            {!selectedInvestment?.certificate.length &&
+              !selectedInvestment?.checklist.length &&
+              !selectedInvestment?.mandate.length &&
+              !selectedInvestment?.partnerForm.length &&
+              !selectedInvestment?.others.length && (
+                <Tag color="red">No Documents available</Tag>
+              )}
+          </Card>
         )}
       </Drawer>
     </div>

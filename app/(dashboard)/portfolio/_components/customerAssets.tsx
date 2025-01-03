@@ -1,10 +1,24 @@
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useGetUserAssetsQuery } from "@/services/assets";
 import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
-import { Button, Descriptions, Drawer, Image, Input, Space, Table } from "antd";
+import {
+  Button,
+  Card,
+  Col,
+  Descriptions,
+  Drawer,
+  Image,
+  Input,
+  Row,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from "antd";
 import moment from "moment";
 import React, { useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
+const { Text, Title } = Typography;
 
 // Updated DataType interface with all asset properties
 interface DataType {
@@ -21,6 +35,11 @@ interface DataType {
   maturityDate: string;
   quater: string;
   timeCourse: string;
+  mandate: string[];
+  others: string[];
+  partnerForm: string[];
+  assetValue: number;
+  active: boolean;
   updatedAt: string;
   user: string;
   __v: number;
@@ -269,20 +288,83 @@ const CustomerAssets: React.FC = () => {
               </div>
             )}
 
-            {/* If there are certificates, display them */}
-            {/* {selectedRecord.certificate &&
-              selectedRecord.certificate.length > 0 && (
+            {/* Investment Documents Section */}
+            <Card title="Assets Documents" bordered={false}>
+              {selectedRecord.certificate.length > 0 && (
                 <div>
-                  <strong>Certificates:</strong>
-                  {selectedRecord.certificate.map((cert, idx) => (
-                    <div key={idx}>
-                      <a href={cert} target="_blank" rel="noopener noreferrer">
-                        Certificate {idx + 1}
-                      </a>
-                    </div>
-                  ))}
+                  <Title level={4}>Certificates</Title>
+                  <Row gutter={16}>
+                    {selectedRecord.certificate.map(
+                      (fileUrl: string, index: number) => (
+                        <Col span={8} key={index}>
+                          <Card hoverable>
+                            <Text>{`Certificate ${index + 1}`}</Text>
+                          </Card>
+                        </Col>
+                      )
+                    )}
+                  </Row>
                 </div>
-              )} */}
+              )}
+
+              {selectedRecord.checklist.length > 0 && (
+                <div>
+                  <Title level={4}>Checklists</Title>
+                  <Row gutter={16}>
+                    {selectedRecord.checklist.map(
+                      (fileUrl: string, index: number) => (
+                        <Col span={8} key={index}>
+                          <Card hoverable>
+                            <Text>{`Checklist ${index + 1}`}</Text>
+                          </Card>
+                        </Col>
+                      )
+                    )}
+                  </Row>
+                </div>
+              )}
+
+              {selectedRecord.mandate.length > 0 && (
+                <div>
+                  <Title level={4}>Mandates</Title>
+                  <Row gutter={16}>
+                    {selectedRecord.mandate.map(
+                      (fileUrl: string, index: number) => (
+                        <Col span={8} key={index}>
+                          <Card hoverable>
+                            <Text>{`Mandate ${index + 1}`}</Text>
+                          </Card>
+                        </Col>
+                      )
+                    )}
+                  </Row>
+                </div>
+              )}
+
+              {selectedRecord.partnerForm.length > 0 && (
+                <div>
+                  <Title level={4}>Partner Forms</Title>
+                  <Row gutter={16}>
+                    {selectedRecord.partnerForm.map(
+                      (fileUrl: string, index: number) => (
+                        <Col span={8} key={index}>
+                          <Card hoverable>
+                            <Text>{`Partner Form ${index + 1}`}</Text>
+                          </Card>
+                        </Col>
+                      )
+                    )}
+                  </Row>
+                </div>
+              )}
+
+              {!selectedRecord.certificate.length &&
+                !selectedRecord.checklist.length &&
+                !selectedRecord.mandate.length &&
+                !selectedRecord.partnerForm.length && (
+                  <Tag color="red">No Documents available</Tag>
+                )}
+            </Card>
           </div>
         )}
       </Drawer>

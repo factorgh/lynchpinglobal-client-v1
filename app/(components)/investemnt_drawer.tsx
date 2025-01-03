@@ -257,6 +257,9 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Descriptions.Item label="Management Fee Rate">
               {investment?.managementFeeRate}%
             </Descriptions.Item>
+            <Descriptions.Item label="Management Fee">
+              {investment?.managementFee}%
+            </Descriptions.Item>
             <Descriptions.Item label="Performance Yield">
               {formatPriceGHS(investment?.performanceYield)}
             </Descriptions.Item>
