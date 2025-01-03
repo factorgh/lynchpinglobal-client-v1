@@ -1,12 +1,13 @@
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useGetUserRentalsQuery } from "@/services/rental";
-import { SearchOutlined } from "@ant-design/icons";
+import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
 import { Button, Input, Space, Table } from "antd";
 import type { FilterDropdownProps } from "antd/es/table/interface";
 import moment from "moment";
 import React, { useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
+import RentalDrawer from "../../rentals/_components/rental-drawer";
 
 interface DataType {
   key: string;
@@ -26,6 +27,11 @@ const CustomerRentalsOnly: React.FC = () => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<InputRef>(null);
   const { data: rentals, isFetching } = useGetUserRentalsQuery(null);
+
+  const [rentalDrawerVisible, setRentalDrawerVisible] = useState(false);
+
+  const [selectedRental, setSelectedRental] = useState(null);
+
   console.log(
     "-------------------------Rentals Data-------------------------",
     rentals?.data.data
@@ -39,6 +45,14 @@ const CustomerRentalsOnly: React.FC = () => {
     confirm();
     setSearchText(selectedKeys[0]);
     setSearchedColumn(dataIndex);
+  };
+  const closeRentalsDetailsDrawer = () => {
+    setSelectedRental(null);
+    setRentalDrawerVisible(false);
+  };
+  const showRentalDetailsDrawer = (asset: any) => {
+    setSelectedRental(asset);
+    setRentalDrawerVisible(true);
   };
 
   const handleReset = (clearFilters: () => void) => {
@@ -177,14 +191,34 @@ const CustomerRentalsOnly: React.FC = () => {
 
       render: (value: number) => moment(value).format("YYYY-MM-DD"),
     },
+    {
+      title: "Action",
+      key: "action",
+      render: (text: any, record: any) => (
+        <div className="flex gap-3">
+          <EyeOutlined
+            className="text-emerald-500"
+            onClick={() => showRentalDetailsDrawer(record)}
+          />
+        </div>
+      ),
+    },
   ];
 
   return (
-    <Table<DataType>
-      loading={isFetching}
-      columns={columns}
-      dataSource={rentals?.data.data}
-    />
+    <>
+      <Table<DataType>
+        loading={isFetching}
+        columns={columns}
+        dataSource={rentals?.data.data}
+      />
+
+      <RentalDrawer
+        rental={selectedRental}
+        visible={rentalDrawerVisible}
+        onClose={closeRentalsDetailsDrawer}
+      />
+    </>
   );
 };
 
