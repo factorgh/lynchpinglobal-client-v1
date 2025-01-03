@@ -1,5 +1,15 @@
 import { formatPriceGHS } from "@/lib/helper";
-import { Card, Col, Descriptions, Drawer, Row, Tag, Typography } from "antd";
+import {
+  Card,
+  Col,
+  Descriptions,
+  Drawer,
+  Image,
+  Modal,
+  Row,
+  Tag,
+  Typography,
+} from "antd";
 import Title from "antd/es/typography/Title";
 import { useState } from "react";
 
@@ -33,12 +43,14 @@ export interface AssetModel {
   createdAt?: Date; // Auto-generated creation timestamp
   updatedAt?: Date; // Auto-generated update timestamp
 }
+
 const AssetsDrawer = ({ assets, visible, onClose }: any) => {
   const [previewFile, setPreviewFile] = useState<string | null>(null);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
 
-  // Handle preview modal
+  // Handle preview modal for files
   const handlePreview = (fileUrl: string) => {
     setPreviewFile(fileUrl); // Set the file URL to preview
     setIsPreviewVisible(true); // Open the modal for preview
@@ -50,25 +62,17 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
     setPreviewFile(null);
   };
 
-  // Utility function to render document previews (Image or Button for PDFs)
-  // const renderDocumentPreview = (fileUrl: string, index: number) => {
-  //   if (fileUrl.endsWith(".pdf")) {
-  //     return (
-  //       <Button type="link" onClick={() => handlePreview(fileUrl)}>
-  //         <Text strong>Preview PDF {index + 1}</Text>
-  //       </Button>
-  //     );
-  //   } else {
-  //     return (
-  //       <Image
-  //         src={fileUrl}
-  //         alt={`Document ${index + 1}`}
-  //         onClick={() => handlePreview(fileUrl)}
-  //         style={{ cursor: "pointer" }}
-  //       />
-  //     );
-  //   }
-  // };
+  // Handle preview of the asset image
+  const handleImagePreview = (imageUrl: string) => {
+    setPreviewFile(imageUrl);
+    setImagePreviewVisible(true);
+  };
+
+  const handleImageClose = () => {
+    setImagePreviewVisible(false);
+    setPreviewFile(null);
+  };
+
   const handlePreviewOut = (previewFile: string, index: number) => {
     setEditModalVisible(false);
     window.open(previewFile, "_blank");
@@ -99,7 +103,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
               {formatPriceGHS(assets?.assetValue)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
-              {assets?.quater}
+              {assets?.quarter}
             </Descriptions.Item>
             <Descriptions.Item label="Time Course">
               {assets?.timeCourse}
@@ -107,11 +111,27 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
             <Descriptions.Item label="Maturity Date">
               {new Date(assets?.maturityDate).toLocaleDateString()}
             </Descriptions.Item>
+            <Descriptions.Item label="Start Date">
+              {new Date(assets?.startDate).toLocaleDateString()}
+            </Descriptions.Item>
             <Descriptions.Item label="Management Fee">
               {formatPriceGHS(assets?.managementFee)}
             </Descriptions.Item>
           </Descriptions>
         </Card>
+
+        {/* Asset Image Section */}
+        {assets?.assetImage && (
+          <Card title="Asset Image" bordered={false}>
+            <Image
+              width={200}
+              src={assets?.assetImage}
+              alt="Asset Image"
+              onClick={() => handleImagePreview(assets?.assetImage!)}
+              style={{ cursor: "pointer" }}
+            />
+          </Card>
+        )}
 
         {/* Investment Documents Section */}
         <Card title="Assets Documents" bordered={false}>
@@ -195,6 +215,20 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
             )}
         </Card>
       </Drawer>
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={imagePreviewVisible}
+        footer={null}
+        onCancel={handleImageClose}
+        width={800}
+      >
+        <Image
+          alt="Asset Image Preview"
+          src={previewFile!}
+          style={{ width: "100%", height: "auto" }}
+        />
+      </Modal>
     </>
   );
 };
