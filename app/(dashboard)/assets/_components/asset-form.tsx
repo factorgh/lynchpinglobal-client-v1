@@ -274,7 +274,7 @@ const AssetForm: React.FC = () => {
                 ]}
               >
                 <Input
-                  placeholder="Enter principal"
+                  placeholder="Enter asset name"
                   style={{ width: "100%" }}
                 />
               </Form.Item>

@@ -114,7 +114,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
         </Card>
 
         {/* Investment Documents Section */}
-        <Card title="Investment Documents" bordered={false}>
+        <Card title="Assets Documents" bordered={false}>
           {assets?.certificate.length > 0 && (
             <div>
               <Title level={4}>Certificates</Title>
