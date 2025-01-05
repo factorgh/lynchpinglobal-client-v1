@@ -184,7 +184,7 @@ const CustomerAssets: React.FC = () => {
       dataIndex: "assetDesignation",
       key: "assetDesignation",
       ...getColumnSearchProps("assetDesignation"),
-      render: (value: number) => toTwoDecimalPlaces(value),
+      render: (value: any) => value,
     },
     {
       title: "Accrued Interest",
