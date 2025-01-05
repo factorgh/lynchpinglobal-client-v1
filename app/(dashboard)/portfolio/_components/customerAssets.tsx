@@ -1,4 +1,4 @@
-import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
+import { formatPriceGHS } from "@/lib/helper";
 import { useGetUserAssetsQuery } from "@/services/assets";
 import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import {
@@ -266,7 +266,7 @@ const CustomerAssets: React.FC = () => {
                 {formatPriceGHS(selectedRecord.accruedInterest)}
               </Descriptions.Item>
               <Descriptions.Item label="Management Fee">
-                {toTwoDecimalPlaces(selectedRecord.managementFee)}%
+                {formatPriceGHS(selectedRecord.managementFee)}
               </Descriptions.Item>
               <Descriptions.Item label="Quarter">
                 {selectedRecord.quater}
