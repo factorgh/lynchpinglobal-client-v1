@@ -198,7 +198,7 @@ const CustomerAssets: React.FC = () => {
       dataIndex: "managementFee",
       key: "managementFee",
       ...getColumnSearchProps("managementFee"),
-      render: (value: number) => `${toTwoDecimalPlaces(value)}%`,
+      render: (value: number) => formatPriceGHS(value),
     },
     {
       title: "Maturity Date",
