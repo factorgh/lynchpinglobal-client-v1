@@ -178,7 +178,7 @@ const CustomerInvestment: React.FC = () => {
       render: (value) => formatPriceGHS(value),
     },
     {
-      title: "Guaranteed Return",
+      title: "Expected Return",
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),

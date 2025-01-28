@@ -365,7 +365,7 @@ const WealthTable = () => {
       render: (value: any) => formatPriceGHS(value), // Format principal
     },
     {
-      title: "Guaranteed Return",
+      title: "Expected Return",
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),
