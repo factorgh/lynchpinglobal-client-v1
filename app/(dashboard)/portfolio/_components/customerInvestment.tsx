@@ -192,10 +192,10 @@ const CustomerInvestment: React.FC = () => {
       render: (value) => formatPriceGHS(value),
     },
     {
-      title: "Management Fee Rate",
+      title: "Management Fee",
       dataIndex: "managementFee",
       key: "managementFee",
-      render: (value) => `${toTwoDecimalPlaces(value)}%`,
+      render: (value) => formatPriceGHS(value),
     },
     {
       title: "Total Accrued Return",
