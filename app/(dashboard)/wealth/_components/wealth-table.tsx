@@ -177,7 +177,7 @@ const WealthTable = () => {
     setEditRentalId(investment._id);
 
     form.setFieldsValue({
-      managementFee: investment.managementFee,
+      managementFeeRate: investment.managementFeeRate,
       performanceYield: investment.performanceYield,
       guaranteedRate: investment.guaranteedRate,
       quater: investment.quater,

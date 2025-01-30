@@ -251,7 +251,7 @@ const CustomerInvestment: React.FC = () => {
               {formatPriceGHS(selectedInvestment.performanceYield)}
             </Descriptions.Item>
             <Descriptions.Item label="Management Fee">
-              {toTwoDecimalPlaces(selectedInvestment.managementFee)}%
+              {formatPriceGHS(selectedInvestment.managementFee)}
             </Descriptions.Item>
             <Descriptions.Item label="Total Accrued Return">
               {formatPriceGHS(selectedInvestment.totalAccruedReturn)}
