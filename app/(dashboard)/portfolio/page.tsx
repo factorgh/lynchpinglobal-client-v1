@@ -5,10 +5,8 @@ import { formatPriceGHS } from "@/lib/helper";
 import { Card, Pagination, Table, Tag } from "antd";
 import { useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
-import { default as CustomerAssets } from "./_components/customerAssets";
 import CustomerInvestment from "./_components/customerInvestment";
 import CustomerLoan from "./_components/customerLoan";
-import CustomerRentalsOnly from "./_components/customerRentals";
 
 const sampleData = [
   {
@@ -60,7 +58,8 @@ const PortfolioPage = () => {
 
           <TabsContent value="assets">
             <h2 className="text-lg font-semibold mb-2">Assets</h2>
-            <CustomerAssets />
+            <p>Coming soon !!!</p>
+            {/* <CustomerAssets /> */}
           </TabsContent>
 
           <TabsContent value="loans">
@@ -70,7 +69,8 @@ const PortfolioPage = () => {
 
           <TabsContent value="rentals">
             <h2 className="text-lg font-semibold mb-2">Rentals</h2>
-            <CustomerRentalsOnly />
+            <p>Coming soon !!!</p>
+            {/* <CustomerRentalsOnly /> */}
           </TabsContent>
         </Tabs>
       </div>

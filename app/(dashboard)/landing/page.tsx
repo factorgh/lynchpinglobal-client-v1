@@ -48,6 +48,9 @@ const CustomerLanding = () => {
       const activeInvestments = userInvestments.data.filter(
         (investment: any) => !investment.archived
       );
+      console.log(
+        "---------------------------Active Investment section--------------------------"
+      );
       console.log(activeInvestments);
       setActiveInves(activeInvestments);
 
@@ -86,7 +89,7 @@ const CustomerLanding = () => {
             return sum; // Ignore unhandled currencies
           }
         }, 0);
-        totalAddonAccruedReturn += investment.addOnAccruedReturn;
+        totalAddonAccruedReturn = investment.addOnAccruedReturn;
         totalManagementFee += investment.managementFee || 0; // Assuming managementFee is a field
         totalPerformanceYield += investment.performanceYield || 0; // Assuming performanceYield is a field
         totalOperationalCost += investment.operationalCost || 0;
