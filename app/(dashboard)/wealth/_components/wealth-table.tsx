@@ -5,8 +5,6 @@ import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateAddOffMutation } from "@/services/addOff";
 import { useCreateAddOnMutation } from "@/services/addOn";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../../../firebase/firebaseConfig"; // Import Firebase configuration
 
 import {
   useDeleteInvestmentMutation,
@@ -40,6 +38,7 @@ import {
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import FileUploadComponent from "./FileUpload";
 
 const WealthTable = () => {
   const searchInput = useRef(null);
@@ -62,6 +61,7 @@ const WealthTable = () => {
   const [updateInvestment, { isLoading }] = useUpdateInvestmentMutation();
   const [createAddOn, { isLoading: addOnLoading }] = useCreateAddOnMutation();
   const [createActivity] = useCreateActivityLogMutation();
+  const [initialFiles, setInitialFiles] = useState({});
 
   const [createAddOff, { isLoading: addOffLoading }] =
     useCreateAddOffMutation();
@@ -73,6 +73,10 @@ const WealthTable = () => {
   const [isActive, setIsActive] = useState(false);
 
   const [fileCategories, setFileCategories] = useState({
+    certificate: [],
+    partnerForm: [],
+    checklist: [],
+    mandate: [],
     others: [],
   });
 
@@ -81,6 +85,13 @@ const WealthTable = () => {
   });
   const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
+  const [uploadedFiles, setUploadedFiles] = useState<{
+    [key: string]: string[];
+  }>({});
+
+  const handleFileUpload = (uploaded: { [key: string]: string[] }) => {
+    setUploadedFiles((prev) => ({ ...prev, ...uploaded }));
+  };
   const onChange = (checked: boolean) => {
     console.log(`switch to ${checked}`);
     setIsActive(checked);
@@ -175,12 +186,23 @@ const WealthTable = () => {
     console.log(investment);
     setIsEditMode(true);
     setEditRentalId(investment._id);
+    const files = {
+      certificate: investment.certificate || [],
+      partnerForm: investment.partnerForm || [],
+      checklist: investment.checklist || [],
+      mandate: investment.mandate || [],
+      others: investment.others || [],
+    };
+
+    setInitialFiles(files);
 
     form.setFieldsValue({
       managementFeeRate: investment.managementFeeRate,
       performanceYield: investment.performanceYield,
       guaranteedRate: investment.guaranteedRate,
       quater: investment.quater,
+      managementFee: investment.managementFee,
+      operationalCost: investment.operationalCost,
     });
 
     setIsDrawerVisible(true);
@@ -189,34 +211,34 @@ const WealthTable = () => {
     setIsEditMode(true);
     setEditRentalId(investment.id);
   };
-  const handleUploadToFirebase = async (
-    categoryFiles: any[]
-  ): Promise<string[]> => {
-    try {
-      const uploadPromises = categoryFiles.map(async (file) => {
-        const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
-        const snapshot = await uploadBytes(storageRef, file.originFileObj);
-        return await getDownloadURL(snapshot.ref); // Get the file's download URL
-      });
+  // const handleUploadToFirebase = async (
+  //   categoryFiles: any[]
+  // ): Promise<string[]> => {
+  //   try {
+  //     const uploadPromises = categoryFiles.map(async (file) => {
+  //       const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
+  //       const snapshot = await uploadBytes(storageRef, file.originFileObj);
+  //       return await getDownloadURL(snapshot.ref); // Get the file's download URL
+  //     });
 
-      const uploadResults = await Promise.all(uploadPromises);
-      return uploadResults; // Array of download URLs
-    } catch (error) {
-      console.error("File upload error:", error);
-      return [];
-    }
-  };
+  //     const uploadResults = await Promise.all(uploadPromises);
+  //     return uploadResults; // Array of download URLs
+  //   } catch (error) {
+  //     console.error("File upload error:", error);
+  //     return [];
+  //   }
+  // };
 
   const handleFormSubmit = async (values: any) => {
     try {
       if (isAddOnDrawerVisible) {
         console.log("Add On submitted", values);
         console.log(editRentalId);
+
         await createAddOn({
           amount: values.amount,
           status: values.status,
           investmentId: editRentalId,
-          startDate: values.startDate,
         });
 
         await createActivity({
@@ -224,14 +246,14 @@ const WealthTable = () => {
           description: "A new addon was added",
           user: loggedInUser._id,
         }).unwrap();
+
         closeAddOnDrawer();
-
         toast.success("Add On has been created successfully");
-
-        form.resetFields(); // Reset form fiel
+        form.resetFields();
         console.log("Add On submitted", values);
       } else if (isAddOffDrawerVisible) {
-        // Handle Add Off submission
+        console.log("Add Off submitted", values);
+
         await createAddOff({
           amount: values.amount,
           currency: values.currency,
@@ -240,34 +262,28 @@ const WealthTable = () => {
           startDate: values.startDate,
           endDate: values.endDate,
         });
+
         await createActivity({
           activity: "One off Added",
-          description: "A new one off was Added",
+          description: "A new one-off was added",
           user: loggedInUser._id,
         }).unwrap();
-        closeAddOffDrawer();
-        console.log("Add Off submitted", values);
 
+        closeAddOffDrawer();
         toast.success("One Off has been created successfully");
       } else {
-        // Handle Investment submission (same logic as before)
         console.log(values);
+
         if (isEditMode) {
-          // Update logic
-          const uploadedFiles: Record<string, string[]> = {};
-          for (const category in fileCategories) {
-            if (
-              Object.prototype.hasOwnProperty.call(fileCategories, category)
-            ) {
-              uploadedFiles[category as keyof typeof fileCategories] =
-                await handleUploadToFirebase(
-                  fileCategories[category as keyof typeof fileCategories]
-                );
-            }
-          }
-          const { others } = uploadedFiles;
+          const { certificate, mandate, partnerForm, checklist, others } =
+            uploadedFiles;
+
           const formattedValues = {
             ...values,
+            certificate,
+            mandate,
+            partnerForm,
+            checklist,
             others,
           };
 
@@ -275,20 +291,22 @@ const WealthTable = () => {
             id: editRentalId,
             data: formattedValues,
           }).unwrap();
+
           await createActivity({
             activity: "Investment Updated",
-            description: ` An investment was updated with id${editRentalId} and name ${values.name}`,
+            description: `An investment was updated with ID ${editRentalId} and name ${values.name}`,
             user: loggedInUser._id,
           }).unwrap();
 
           toast.success("Investment updated successfully");
         } else {
-          toast.success("New invesrtment added successfully");
           await createActivity({
             activity: "New Investment",
             description: "A new investment was created",
             user: loggedInUser._id,
           }).unwrap();
+
+          toast.success("New investment added successfully");
         }
 
         setIsDrawerVisible(false);
@@ -436,18 +454,26 @@ const WealthTable = () => {
           hideRequiredMark
         >
           <Row gutter={16}>
-            {/* Performance Yield */}
             <Col span={12}>
               <Form.Item
-                name="performanceYield"
-                label="Performance Yield"
+                name="principal"
+                label="Principal"
                 rules={[
-                  {
-                    required: true,
-                    message: "Please enter the performance yield",
-                  },
+                  { required: true, message: "Please enter the principal" },
                 ]}
               >
+                <InputNumber
+                  placeholder="Enter principal"
+                  style={{ width: "100%" }}
+                  min={1}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="performanceYield" label="Performance Yield">
                 <InputNumber
                   placeholder="Enter performance yield"
                   style={{ width: "100%" }}
@@ -455,7 +481,6 @@ const WealthTable = () => {
               </Form.Item>
             </Col>
 
-            {/* Guaranteed Rate */}
             <Col span={12}>
               <Form.Item
                 name="guaranteedRate"
@@ -476,16 +501,12 @@ const WealthTable = () => {
           </Row>
 
           <Row gutter={16}>
-            {/* Management Fee */}
             <Col span={12}>
               <Form.Item
-                name="managementFee"
-                label="Management Fee"
+                name="managementFeeRate"
+                label="Management Fee Rate"
                 rules={[
-                  {
-                    required: true,
-                    message: "Please select a management fee",
-                  },
+                  { required: true, message: "Please select a management fee" },
                 ]}
               >
                 <InputNumber
@@ -494,58 +515,50 @@ const WealthTable = () => {
                 />
               </Form.Item>
             </Col>
+
             <Col span={12}>
               <Form.Item
-                name="quater"
+                name="quarter"
                 label="Quarter"
-                rules={[{ required: true, message: "Please select a quater" }]}
+                rules={[{ required: true, message: "Please select a quarter" }]}
               >
                 <Select
-                  placeholder="Select a quarter"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={["Q1", "Q2", "Q3", "Q4"].map((quater) => ({
-                    value: quater,
-                    label: quater,
+                  placeholder="Select quarter"
+                  options={["Q1", "Q2", "Q3", "Q4"].map((quarter) => ({
+                    value: quarter,
+                    label: quarter,
                   }))}
                 />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
-            {["others"].map((category) => (
-              <Col key={category} span={6}>
-                <Form.Item
-                  label={`Upload ${category
-                    .charAt(0)
-                    .toUpperCase()}${category.slice(1)}}`}
-                >
-                  <Upload
-                    listType="text" // Use text for non-image files like PDFs
-                    fileList={
-                      fileCategories[category as keyof typeof fileCategories]
-                    }
-                    onChange={({ fileList }) =>
-                      handleFileChange(category, fileList)
-                    }
-                    beforeUpload={(file) => {
-                      const isPdf = file.type === "application/pdf";
-                      if (!isPdf) {
-                        toast.error("You can only upload PDF files.");
-                      }
-                      return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
-                    }}
-                  >
-                    <Button type="dashed">Upload PDF</Button>
-                  </Upload>
-                </Form.Item>
-              </Col>
-            ))}
+            <Col span={12}>
+              <Form.Item name="operationalCost" label="Operational Cost">
+                <InputNumber
+                  placeholder="Enter operational cost"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+                rules={[
+                  { required: true, message: "Please select a start date" },
+                ]}
+              >
+                <DatePicker style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
           </Row>
+
+          {/* File upload sections */}
+          <FileUploadComponent
+            onFileUpload={handleFileUpload}
+            initialFiles={initialFiles}
+          />
           <Form.Item>
             {isLoading ? (
               <Button
@@ -591,15 +604,6 @@ const WealthTable = () => {
           >
             <Input placeholder="Enter add-on amount" />
           </Form.Item>
-
-          <Form.Item
-            name="startDate"
-            label="Start Date"
-            rules={[{ required: true, message: "Please select a start date" }]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
-
           <Form.Item
             name="status"
             label="Status"

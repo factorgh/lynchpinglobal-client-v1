@@ -1,10 +1,14 @@
 import { formatMultipleCurrency, formatPriceGHS } from "@/lib/helper";
-import { useUpdateAddOnMutation } from "@/services/addOn";
-import { EditOutlined } from "@ant-design/icons";
+import {
+  useDeleteAddOnMutation,
+  useUpdateAddOnMutation,
+} from "@/services/addOn";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import {
   Button,
   Card,
   Col,
+  DatePicker,
   Descriptions,
   Drawer,
   Form,
@@ -27,6 +31,7 @@ interface AddOn {
   _id: string;
   amount: number;
   accruedInterest: number;
+  startDate: Date;
   status: string; // status is a string, can be 'active' or 'inactive'
 }
 
@@ -62,11 +67,47 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
 
   const [form] = Form.useForm();
   const [updateAddOn, { isLoading: updatingAddOn }] = useUpdateAddOnMutation();
+  const [deleteAddOn, { isLoading: deletingAddOn }] = useDeleteAddOnMutation();
 
-  const handleEdit = (record: AddOn, index: number) => {
+  const handleEdit = (record: AddOn) => {
     setEditingAddOn(record);
-    form.setFieldsValue({ status: record.status });
+    form.setFieldsValue({ status: record.status, startDate: record.startDate });
     setEditModalVisible(true);
+  };
+
+  const handleDelete = (record: AddOn) => {
+    Modal.confirm({
+      title: "Delete Add-on",
+      content: "Are you sure you want to delete this add-on?",
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk: async () => {
+        try {
+          await deleteAddOn({ id: record._id }).unwrap();
+          message.success("Add-on deleted successfully");
+        } catch (error) {
+          message.error("Failed to delete add-on");
+        }
+      },
+    });
+  };
+  const handleDeleteAddOff = (record: any) => {
+    Modal.confirm({
+      title: "Delete Add-off",
+      content: "Are you sure you want to delete this add-off?",
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk: async () => {
+        try {
+          await deleteAddOn({ id: record._id }).unwrap();
+          message.success("Add-on deleted successfully");
+        } catch (error) {
+          message.error("Failed to delete add-on");
+        }
+      },
+    });
   };
 
   const addOnColumns = [
@@ -89,18 +130,21 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: AddOn, index: number) => (
-        <Button
-          icon={<EditOutlined />}
-          onClick={() => handleEdit(record, index)}
-          size="small"
-          type="link"
-        >
-          Edit
-        </Button>
+      render: (_: any, record: AddOn) => (
+        <div className="flex gap-2">
+          <EditOutlined
+            className="text-blue-500"
+            onClick={() => handleEdit(record)}
+          />
+          <DeleteOutlined
+            className="text-red-500"
+            onClick={() => handleDelete(record)}
+          />
+        </div>
       ),
     },
   ];
+
   const addOffColumns = [
     {
       title: "Amount",
@@ -130,20 +174,13 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       render: (rate: number) => moment(rate).format("YYYY-MM-DD"),
     },
 
-    // {
-    //   title: "Actions",
-    //   key: "actions",
-    //   render: (_: any, record: AddOn, index: number) => (
-    //     <Button
-    //       icon={<EditOutlined />}
-    //       onClick={() => handleEdit(record, index)}
-    //       size="small"
-    //       type="link"
-    //     >
-    //       Edit
-    //     </Button>
-    //   ),
-    // },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: any, record: any, index: number) => (
+        <DeleteOutlined onClick={() => handleDeleteAddOff(record)} />
+      ),
+    },
   ];
 
   const handleFinishEdit = async (values: any) => {
@@ -177,43 +214,6 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
     setPreviewFile(null);
   };
 
-  // Utility function to render document previews (Image or Button for PDFs)
-  // const renderDocumentPreview = (fileUrl: string, index: number) => {
-  //   console.log(
-  //     "----------------------------------------Doc Preview----------------"
-  //   );
-  //   console.log(fileUrl);
-
-  //   // // Handle PDF preview as a link
-  //   // if (fileUrl.endsWith(".pdf")) {
-  //   //   return (
-  //   //     <Button type="link" onClick={() => handlePreview(fileUrl)}>
-  //   //       <Text strong>Preview PDF {index + 1}</Text>
-  //   //     </Button>
-  //   //   );
-  //   // } else {
-  //   //   // Use a normal <img> tag for images
-  //   return (
-  //     <div
-  //       // onClick={() => handlePreview(fileUrl)}
-  //       style={{ cursor: "pointer", display: "inline-block" }}
-  //     >
-  //       <img
-  //         src={fileUrl} // URL of the image
-  //         alt={`Document ${index + 1}`}
-  //         width={500}
-  //         style={{
-  //           maxWidth: "100%", // Adjust for responsiveness
-  //           maxHeight: "300px", // Limit the height
-  //           objectFit: "contain", // Make sure the image fits nicely
-  //           border: "1px solid #ccc", // Optional styling for better visibility
-  //           borderRadius: "8px",
-  //         }}
-  //       />
-  //     </div>
-  //   );
-  // };
-
   const handlePreviewOut = (previewFile: string, index: number) => {
     setEditModalVisible(false);
     window.open(previewFile, "_blank");
@@ -238,6 +238,9 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             </Descriptions.Item>
             <Descriptions.Item label="Principal">
               {formatPriceGHS(investment?.principal)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Principal Accrued Return">
+              {formatPriceGHS(investment?.principalAccruedReturn)}
             </Descriptions.Item>
             <Descriptions.Item label="Guaranteed Rate">
               {investment?.guaranteedRate}%
@@ -271,7 +274,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Table
               columns={addOnColumns}
               dataSource={investment?.addOns}
-              rowKey="_id" // Assuming 'name' is unique in the AddOn array, otherwise use a different field like 'id'
+              rowKey="_id"
               pagination={false}
               size="small"
             />
@@ -284,7 +287,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Table
               columns={addOffColumns}
               dataSource={investment?.oneOffs}
-              rowKey="_id" // Assuming 'name' is unique in the AddOn array, otherwise use a different field like 'id'
+              rowKey="_id"
               pagination={false}
               size="small"
             />
@@ -449,6 +452,13 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
                 label: status,
               }))}
             />
+          </Form.Item>
+          <Form.Item
+            name="startDate"
+            label="Start Date"
+            rules={[{ required: true, message: "Please select a start date" }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
           </Form.Item>
 
           <Button

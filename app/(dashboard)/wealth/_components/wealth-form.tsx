@@ -21,6 +21,7 @@ import {
 } from "antd";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import FileUploadComponent from "./FileUpload";
 
 const WealthForm: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -31,6 +32,14 @@ const WealthForm: React.FC = () => {
 
   const [form] = Form.useForm();
   const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const [uploadedFiles, setUploadedFiles] = useState<{
+    [key: string]: string[];
+  }>({});
+
+  const handleFileUpload = (uploaded: { [key: string]: string[] }) => {
+    setUploadedFiles((prev) => ({ ...prev, ...uploaded }));
+  };
 
   const [fileCategories, setFileCategories] = useState({
     certificate: [],
@@ -62,28 +71,8 @@ const WealthForm: React.FC = () => {
     }));
   };
 
-  const handleUploadToFirebase = async (
-    categoryFiles: any[]
-  ): Promise<string[]> => {
-    try {
-      const uploadPromises = categoryFiles.map(async (file) => {
-        const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
-        const snapshot = await uploadBytes(storageRef, file.originFileObj);
-        return await getDownloadURL(snapshot.ref); // Get the file's download URL
-      });
-
-      const uploadResults = await Promise.all(uploadPromises);
-      return uploadResults; // Array of download URLs
-    } catch (error) {
-      console.error("File upload error:", error);
-      return [];
-    }
-  };
-
   // Form submission handler
   const handleFormSubmit = async (values: any) => {
-    const uploadedFiles: Record<string, string[]> = {};
-
     setUploading({
       certificate: true,
       partnerForm: true,
@@ -91,15 +80,6 @@ const WealthForm: React.FC = () => {
       mandate: true,
       others: true,
     });
-
-    for (const category in fileCategories) {
-      if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
-        uploadedFiles[category as keyof typeof fileCategories] =
-          await handleUploadToFirebase(
-            fileCategories[category as keyof typeof fileCategories]
-          );
-      }
-    }
 
     setUploading({
       certificate: false,
@@ -284,44 +264,7 @@ const WealthForm: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
-
-          {/* File upload sections */}
-          <Row gutter={16}>
-            {[
-              "certificate",
-              "partnerForm",
-              "checklist",
-              "mandate",
-              "others",
-            ].map((category) => (
-              <Col key={category} span={6}>
-                <Form.Item
-                  label={`Upload ${category
-                    .charAt(0)
-                    .toUpperCase()}${category.slice(1)}`}
-                >
-                  <Upload
-                    listType="text" // Use text for non-image files like PDFs
-                    fileList={
-                      fileCategories[category as keyof typeof fileCategories]
-                    }
-                    onChange={({ fileList }) =>
-                      handleFileChange(category, fileList)
-                    }
-                    beforeUpload={(file) => {
-                      const isPdf = file.type === "application/pdf";
-                      if (!isPdf) {
-                        toast.error("You can only upload PDF files.");
-                      }
-                      return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
-                    }}
-                  >
-                    <Button type="dashed">Upload PDF</Button>
-                  </Upload>
-                </Form.Item>
-              </Col>
-            ))}
-          </Row>
+          <FileUploadComponent onFileUpload={handleFileUpload} />
 
           <Form.Item>
             <Button

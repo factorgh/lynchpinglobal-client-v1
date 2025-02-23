@@ -138,8 +138,6 @@ import LoanDrawer from "./loan-drawer";
         const formattedValues = {
           ...values,
           managementFee: toTwoDecimalPlaces(values.managementFee),
-          performanceYield: toTwoDecimalPlaces(values.performanceYield),
-          principal: toTwoDecimalPlaces(values.principal),
         };
 
         if (isEditMode) {
@@ -160,7 +158,7 @@ import LoanDrawer from "./loan-drawer";
         setIsDrawerVisible(false);
         form.resetFields();
       } catch (error: any) {
-        toast.error("Failed to save investment entry: " + error?.data?.message);
+        toast.error("Failed to save loan entry: " + error?.data?.message);
       }
     };
 

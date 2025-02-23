@@ -29,6 +29,7 @@ export const AddOnApi = baseApi.injectEndpoints({
       }),
     };
   },
+  overrideExisting: true,
 });
 
 export const {
