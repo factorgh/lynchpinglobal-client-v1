@@ -50,6 +50,7 @@ interface InvestmentData {
   quarter: string;
   archived: boolean;
   active: boolean;
+  startDate:Date;
   managementFee: number;
   performanceYield: number;
   certificate: string[];
@@ -235,6 +236,9 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             </Descriptions.Item>
             <Descriptions.Item label="Name">
               {investment?.userId.displayName}
+            </Descriptions.Item>
+            <Descriptions.Item label="Start Date">
+              {moment(investment?.startDate).format("YYYY-MM-DD")}
             </Descriptions.Item>
             <Descriptions.Item label="Principal">
               {formatPriceGHS(investment?.principal)}

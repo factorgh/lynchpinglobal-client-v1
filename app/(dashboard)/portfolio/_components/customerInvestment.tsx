@@ -204,6 +204,13 @@ const CustomerInvestment: React.FC = () => {
       ...getColumnSearchProps("totalAccruedReturn"),
       render: (value) => formatPriceGHS(value),
     },
+    {
+      title: "Action",
+      key: "action",
+      render: (investment) => (
+        <Button onClick={() => showViewDrawer(investment)}>View</Button>
+      ),
+    }
   ];
 
   const showViewDrawer = (investment: DataType) => {

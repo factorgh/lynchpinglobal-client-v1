@@ -88,7 +88,7 @@ const LoginForm = () => {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="Enter your email or username"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none bg-white"
               required
             />
           </div>
@@ -106,7 +106,7 @@ const LoginForm = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
             />
           </div>
           <button

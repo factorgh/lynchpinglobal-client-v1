@@ -141,7 +141,7 @@ const RegisterForm = () => {
               }}
               placeholder="Enter your display name"
               required
-              className={`w-full px-4 py-2 border ${
+              className={`w-full px-4 py-2 border bg-white ${
                 errors.displayName ? "border-red-500" : "border-gray-300"
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                 errors.displayName
@@ -174,7 +174,7 @@ const RegisterForm = () => {
               }}
               placeholder="Enter your username"
               required
-              className={`w-full px-4 py-2 border ${
+              className={`w-full px-4 py-2 border bg-white ${
                 errors.userName ? "border-red-500" : "border-gray-300"
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                 errors.userName ? "focus:ring-red-500" : "focus:ring-blue-500"
@@ -206,7 +206,7 @@ const RegisterForm = () => {
               }}
               placeholder="Enter your email"
               required
-              className={`w-full px-4 py-2 border ${
+              className={`w-full px-4 py-2 border bg-white ${
                 errors.email ? "border-red-500" : "border-gray-300"
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                 errors.email ? "focus:ring-red-500" : "focus:ring-blue-500"
@@ -238,7 +238,7 @@ const RegisterForm = () => {
               }}
               placeholder="Enter your password"
               required
-              className={`w-full px-4 py-2 border ${
+              className={`w-full px-4 py-2 border bg-white ${
                 errors.password ? "border-red-500" : "border-gray-300"
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                 errors.password ? "focus:ring-red-500" : "focus:ring-blue-500"
@@ -270,7 +270,7 @@ const RegisterForm = () => {
               }}
               placeholder="Confirm your password"
               required
-              className={`w-full px-4 py-2 border ${
+              className={`w-full px-4 py-2 border bg-white ${
                 errors.passwordConfirm ? "border-red-500" : "border-gray-300"
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                 errors.passwordConfirm
