@@ -5,6 +5,8 @@ import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateAddOffMutation } from "@/services/addOff";
 import { useCreateAddOnMutation } from "@/services/addOn";
+import dayjs from "dayjs";
+
 
 import {
   useDeleteInvestmentMutation,
@@ -197,12 +199,14 @@ const WealthTable = () => {
     setInitialFiles(files);
 
     form.setFieldsValue({
+      principal:investment.principal,
       managementFeeRate: investment.managementFeeRate,
       performanceYield: investment.performanceYield,
       guaranteedRate: investment.guaranteedRate,
-      quater: investment.quater,
+      quarter: investment.quarter,
       managementFee: investment.managementFee,
       operationalCost: investment.operationalCost,
+      startDate: dayjs(investment.startDate),
     });
 
     setIsDrawerVisible(true);

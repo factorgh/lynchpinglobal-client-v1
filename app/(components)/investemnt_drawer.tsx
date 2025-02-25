@@ -1,4 +1,5 @@
 import { formatMultipleCurrency, formatPriceGHS } from "@/lib/helper";
+import { AiOutlineFilePdf } from "react-icons/ai";
 import {
   useDeleteAddOnMutation,
   useUpdateAddOnMutation,
@@ -304,17 +305,16 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
         <Card title="Investment Documents" bordered={false}>
           {investment?.certificate.length > 0 && (
             <div>
-              <Title level={4}>Certificates</Title>
+              <Title >Certificates</Title>
               <Row gutter={16}>
                 {investment?.certificate.map(
                   (fileUrl: string, index: number) => (
                     <Col span={8} key={index}>
-                      <Card
-                        hoverable
-                        onClick={() => handlePreviewOut(fileUrl, index)}
-                      >
-                        <Text>{`Certificate ${index + 1}`}</Text>
-                      </Card>
+                     <AiOutlineFilePdf
+  size={40}
+  className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
+  onClick={() => handlePreviewOut(fileUrl, index)}
+/>
                     </Col>
                   )
                 )}
@@ -324,16 +324,15 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
 
           {investment?.checklist.length > 0 && (
             <div>
-              <Title level={4}>Checklists</Title>
+              <h3>Checklists</h3>
               <Row gutter={16}>
                 {investment?.checklist.map((fileUrl: string, index: number) => (
                   <Col span={8} key={index}>
-                    <Card
-                      onClick={() => handlePreviewOut(fileUrl, index)}
-                      hoverable
-                    >
-                      <Text>{`Checklist ${index + 1}`}</Text>
-                    </Card>
+                    <AiOutlineFilePdf
+  size={40}
+  className="cursor-pointer text-red-500 hover:text-red-600"
+  onClick={() => handlePreviewOut(fileUrl, index)}
+/>
                   </Col>
                 ))}
               </Row>
@@ -342,17 +341,15 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
 
           {investment?.mandate?.length > 0 && (
             <div>
-              <Title level={4}>Mandates</Title>
+              <h3 >Mandates</h3>
               <Row gutter={16}>
                 {investment?.mandate.map((fileUrl: string, index: number) => (
                   <Col span={8} key={index}>
-                    <Card
-                      hoverable
-                      onClick={() => handlePreviewOut(fileUrl, index)}
-                    >
-                      <Text>{`Mandate ${index + 1}`}</Text>
-                      <br />
-                    </Card>
+                   <AiOutlineFilePdf
+  size={40}
+  className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
+  onClick={() => handlePreviewOut(fileUrl, index)}
+/>
                   </Col>
                 ))}
               </Row>
@@ -361,17 +358,16 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
 
           {investment?.partnerForm.length > 0 && (
             <div>
-              <Title level={4}>Partner Forms</Title>
+              <h3 >Partner Forms</h3>
               <Row gutter={16}>
                 {investment?.partnerForm.map(
                   (fileUrl: string, index: number) => (
                     <Col span={8} key={index}>
-                      <Card
-                        hoverable
-                        onClick={() => handlePreviewOut(fileUrl, index)}
-                      >
-                        <Text>{`Partner Form ${index + 1}`}</Text>
-                      </Card>
+                     <AiOutlineFilePdf
+              size={40}
+          className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
+            onClick={() => handlePreviewOut(fileUrl, index)}
+              />
                     </Col>
                   )
                 )}
@@ -380,16 +376,18 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
           )}
           {investment?.others.length > 0 && (
             <div>
-              <Title level={4}>Others</Title>
+              <h3 >Others</h3>
               <Row gutter={16}>
                 {investment?.others.map((fileUrl: string, index: number) => (
                   <Col span={8} key={index}>
-                    <Card
-                      hoverable
-                      onClick={() => handlePreviewOut(fileUrl, index)}
-                    >
-                      <Text>{`Others ${index + 1}`}</Text>
-                    </Card>
+                  
+
+<AiOutlineFilePdf
+  size={40}
+  className="cursor-pointer text-red-500 hover:text-red-600"
+  onClick={() => handlePreviewOut(fileUrl, index)}
+/>
+
                   </Col>
                 ))}
               </Row>

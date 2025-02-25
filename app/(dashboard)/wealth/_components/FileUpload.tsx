@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { storage } from "../../../../firebase/firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { UploadOutlined } from "@ant-design/icons";
-import Image from "next/image";
 
 const categories = [
   "certificate",
@@ -24,33 +23,27 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   initialFiles = {},
 }) => {
   const [fileCategories, setFileCategories] = useState<{
-    [key: string]: { file: File; previewUrl: string }[];
+    [key: string]: { file?: File; previewUrl: string; uploaded?: boolean }[];
   }>({});
+  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
-  console.log(initialFiles);
   useEffect(() => {
-    const formattedFiles: any = Object.keys(initialFiles).reduce(
-      (acc, category) => {
-        acc[category] = initialFiles[category].map((url) => ({
-          previewUrl: url,
-          uploaded: true, // Mark these as already uploaded
-        }));
-        return acc;
-      },
-      {} as { [key: string]: { previewUrl: string; uploaded: boolean }[] }
-    );
-
+    const formattedFiles = Object.keys(initialFiles).reduce((acc, category) => {
+      acc[category] = initialFiles[category].map((url) => ({
+        previewUrl: url,
+        uploaded: true,
+      }));
+      return acc;
+    }, {} as { [key: string]: { previewUrl: string; uploaded: boolean }[] });
     setFileCategories(formattedFiles);
   }, [initialFiles]);
 
   const handleFileChange = (
     category: string,
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement> | null
   ) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const newFiles = Array.from(files).filter((file) => {
+    if (!event?.target.files) return;
+    const files = Array.from(event.target.files).filter((file) => {
       if (file.type !== "application/pdf") {
         toast.error("Only PDF files are allowed.");
         return false;
@@ -58,15 +51,8 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       return true;
     });
 
-    const fileObjects = newFiles.map((file) => ({
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
-
-    setFileCategories((prev) => ({
-      ...prev,
-      [category]: [...(prev[category] || []), ...fileObjects],
-    }));
+    const fileObjects = files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
+    setFileCategories((prev) => ({ ...prev, [category]: [...(prev[category] || []), ...fileObjects] }));
   };
 
   const handleFileDelete = (category: string, index: number) => {
@@ -78,28 +64,35 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   };
 
   const handleUpload = async (category: string) => {
-    if (!fileCategories[category] || fileCategories[category].length === 0) {
-      toast.error(`No files to upload for ${category}`);
+    if (!fileCategories[category]?.some(({ file }) => file)) {
+      toast.error(`No new files to upload for ${category}`);
       return;
     }
 
+    setUploading((prev) => ({ ...prev, [category]: true }));
     try {
-      const uploadPromises = fileCategories[category].map(async ({ file }) => {
-        const storageRef = ref(storage, `uploads/${category}/${file.name}`);
-        await uploadBytes(storageRef, file);
-        return getDownloadURL(storageRef);
-      });
+      const uploadPromises = fileCategories[category]
+        .filter(({ file }) => file)
+        .map(async ({ file }) => {
+          if (!file) return "";
+          const storageRef = ref(storage, `uploads/${category}/${file.name}`);
+          await uploadBytes(storageRef, file);
+          return getDownloadURL(storageRef);
+        });
 
       const urls = await Promise.all(uploadPromises);
       toast.success(`${category} uploaded successfully!`);
-
-      // Send uploaded URLs to the parent component
       onFileUpload({ [category]: urls });
 
-      console.log("Uploaded Files:", urls);
+      setFileCategories((prev) => ({
+        ...prev,
+        [category]: prev[category].map((fileObj) => ({ ...fileObj, uploaded: true })),
+      }));
     } catch (error) {
       toast.error("Upload failed. Try again.");
       console.error(error);
+    } finally {
+      setUploading((prev) => ({ ...prev, [category]: false }));
     }
   };
 
@@ -108,9 +101,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       {categories.map((category) => (
         <Col key={category} span={6}>
           <Form.Item
-            label={`Upload ${category.charAt(0).toUpperCase()}${category.slice(
-              1
-            )}`}
+            label={`Upload ${category.charAt(0).toUpperCase()}${category.slice(1)}`}
           >
             <input
               type="file"
@@ -119,39 +110,25 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
               multiple
             />
 
-            <ul>
-              {(fileCategories[category] || []).map(
-                ({ file, previewUrl }, index) => (
-                  <li
-                    key={index}
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    {file ? (
-                      <a
-                        href={previewUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {file.name}
-                      </a>
-                    ) : (
-                      <img
-                        height={100}
-                        width={100}
-                        src={previewUrl}
-                        alt="Preview"
-                      />
-                    )}
-                    <Button
-                      type="link"
-                      danger
+            <ul className="w-60 mt-3">
+              {(fileCategories[category] || []).map(({ previewUrl, uploaded }, index) => (
+                <li
+                  key={index}
+                  className="flex items-center justify-between gap-2 p-2 rounded-md border border-gray-200 hover:border-gray-300 cursor-pointer"
+                >
+                  <a href={previewUrl} target="_blank" rel="noopener noreferrer">
+                    <img height={30} width={100} src="/pdf-icon.png" alt="PDF Preview" />
+                  </a>
+                 
+                    <span
+                      className="cursor-pointer text-red-500"
                       onClick={() => handleFileDelete(category, index)}
                     >
                       ❌
-                    </Button>
-                  </li>
-                )
-              )}
+                    </span>
+                  
+                </li>
+              ))}
             </ul>
 
             <Button
@@ -159,8 +136,9 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
               icon={<UploadOutlined />}
               type="dashed"
               onClick={() => handleUpload(category)}
+              disabled={uploading[category]}
             >
-              Upload
+              {uploading[category] ? "Uploading..." : "Upload"}
             </Button>
           </Form.Item>
         </Col>
