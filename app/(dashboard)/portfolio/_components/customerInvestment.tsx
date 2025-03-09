@@ -17,6 +17,7 @@ import {
 import Title from "antd/es/typography/Title";
 import React, { useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
+import { AiOutlineFilePdf } from "react-icons/ai";
 
 interface AddOn {
   id: string;
@@ -299,23 +300,22 @@ const CustomerInvestment: React.FC = () => {
               )}
             </Card>
           </>
-        )}
-
+       
+            )}
         {/* Documents Section */}
         {selectedInvestment && (
           <Card title="Investment Documents" bordered={false}>
             {selectedInvestment?.certificate.length > 0 && (
               <div>
-                <Title level={4}>Certificates</Title>
+                <h3 >Certificates</h3>
                 <Row gutter={16}>
                   {selectedInvestment?.certificate.map((fileUrl, index) => (
                     <Col span={8} key={index}>
-                      <Card
-                        hoverable
-                        onClick={() => handlePreviewOut(fileUrl, index)}
-                      >
-                        <Text>{`Certificate ${index + 1}`}</Text>
-                      </Card>
+                                      <AiOutlineFilePdf
+                     size={40}
+                     className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
+                     onClick={() => handlePreviewOut(fileUrl, index)}
+                   />
                     </Col>
                   ))}
                 </Row>
@@ -325,16 +325,15 @@ const CustomerInvestment: React.FC = () => {
             {/* Other document sections (checklist, mandate, partner form) */}
             {selectedInvestment?.checklist.length > 0 && (
               <div>
-                <Title level={4}>Checklists</Title>
+                <h3 >Checklists</h3>
                 <Row gutter={16}>
                   {selectedInvestment?.checklist.map((fileUrl, index) => (
                     <Col span={8} key={index}>
-                      <Card
-                        hoverable
-                        onClick={() => handlePreviewOut(fileUrl, index)}
-                      >
-                        <Text>{`Checklist ${index + 1}`}</Text>
-                      </Card>
+                                        <AiOutlineFilePdf
+  size={40}
+  className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
+  onClick={() => handlePreviewOut(fileUrl, index)}
+/>
                     </Col>
                   ))}
                 </Row>
@@ -343,16 +342,15 @@ const CustomerInvestment: React.FC = () => {
 
             {selectedInvestment?.mandate.length > 0 && (
               <div>
-                <Title level={4}>Mandates</Title>
+                <h3 >Mandates</h3>
                 <Row gutter={16}>
                   {selectedInvestment?.mandate.map((fileUrl, index) => (
                     <Col span={8} key={index}>
-                      <Card
-                        hoverable
-                        onClick={() => handlePreviewOut(fileUrl, index)}
-                      >
-                        <Text>{`Mandate ${index + 1}`}</Text>
-                      </Card>
+                                        <AiOutlineFilePdf
+  size={40}
+  className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
+  onClick={() => handlePreviewOut(fileUrl, index)}
+/>
                     </Col>
                   ))}
                 </Row>
@@ -361,16 +359,15 @@ const CustomerInvestment: React.FC = () => {
 
             {selectedInvestment?.partnerForm.length > 0 && (
               <div>
-                <Title level={4}>Partner Forms</Title>
+                <h3 >Partner Forms</h3>
                 <Row gutter={16}>
                   {selectedInvestment?.partnerForm.map((fileUrl, index) => (
                     <Col span={8} key={index}>
-                      <Card
-                        hoverable
-                        onClick={() => handlePreviewOut(fileUrl, index)}
-                      >
-                        <Text>{`Partner Form ${index + 1}`}</Text>
-                      </Card>
+                                        <AiOutlineFilePdf
+  size={40}
+  className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
+  onClick={() => handlePreviewOut(fileUrl, index)}
+/>
                     </Col>
                   ))}
                 </Row>
@@ -380,16 +377,15 @@ const CustomerInvestment: React.FC = () => {
             {/* Display Others if available */}
             {selectedInvestment?.others.length > 0 && (
               <div>
-                <Title level={4}>Others</Title>
+                <h3 >Others</h3>
                 <Row gutter={16}>
                   {selectedInvestment?.others.map((fileUrl, index) => (
                     <Col span={8} key={index}>
-                      <Card
-                        hoverable
-                        onClick={() => handlePreviewOut(fileUrl, index)}
-                      >
-                        <Text>{`Others ${index + 1}`}</Text>
-                      </Card>
+                                        <AiOutlineFilePdf
+  size={40}
+  className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
+  onClick={() => handlePreviewOut(fileUrl, index)}
+/>
                     </Col>
                   ))}
                 </Row>

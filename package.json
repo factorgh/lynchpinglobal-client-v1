@@ -37,7 +37,7 @@
     "react-toastify": "^10.0.6",
     "rechart": "^0.0.1",
     "recharts": "^2.13.3",
-    "sweetalert2": "^11.14.5",
+    "sweetalert2": "^11.17.2",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7"
   },

@@ -25,6 +25,7 @@ import Title from "antd/es/typography/Title";
 import moment from "moment";
 import Image from "next/image";
 import { useState } from "react";
+import Swal from "sweetalert2";
 
 const { Text } = Typography;
 
@@ -78,22 +79,26 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
   };
 
   const handleDelete = (record: AddOn) => {
-    Modal.confirm({
-      title: "Delete Add-on",
-      content: "Are you sure you want to delete this add-on?",
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
-      onOk: async () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
         try {
           await deleteAddOn({ id: record._id }).unwrap();
-          message.success("Add-on deleted successfully");
+          Swal.fire("Deleted!", "Add-on has been deleted.", "success");
         } catch (error) {
-          message.error("Failed to delete add-on");
+          Swal.fire("Error!", "Failed to delete add-on.", "error");
         }
-      },
+      }
     });
   };
+  
   const handleDeleteAddOff = (record: any) => {
     Modal.confirm({
       title: "Delete Add-off",
@@ -134,17 +139,16 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       key: "actions",
       render: (_: any, record: AddOn) => (
         <div className="flex gap-2">
-          <EditOutlined
-            className="text-blue-500"
-            onClick={() => handleEdit(record)}
-          />
-          <DeleteOutlined
-            className="text-red-500"
-            onClick={() => handleDelete(record)}
-          />
+          <button onClick={() => handleEdit(record)} aria-label="Edit">
+            <EditOutlined className="text-blue-500 cursor-pointer" />
+          </button>
+          <button onClick={() => handleDelete(record)} aria-label="Delete">
+            <DeleteOutlined className="text-red-500 cursor-pointer" />
+          </button>
         </div>
       ),
-    },
+    }
+    
   ];
 
   const addOffColumns = [
