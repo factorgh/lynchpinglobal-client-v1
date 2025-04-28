@@ -168,7 +168,7 @@ const WealthForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="principal"
-                label="Principal"
+                label="Principal (GH)"
                 rules={[
                   { required: true, message: "Please enter the principal" },
                 ]}
@@ -184,7 +184,7 @@ const WealthForm: React.FC = () => {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="performanceYield" label="Performance Yield">
+              <Form.Item name="performanceYield" label="Performance Yield (GH)">
                 <InputNumber
                   placeholder="Enter performance yield"
                   style={{ width: "100%" }}
@@ -195,7 +195,7 @@ const WealthForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="guaranteedRate"
-                label="Guaranteed Rate"
+                label="Guaranteed Rate (%)"
                 rules={[
                   {
                     required: true,
@@ -215,7 +215,7 @@ const WealthForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="managementFeeRate"
-                label="Management Fee Rate"
+                label="Management Fee Rate (%)"
                 rules={[
                   { required: true, message: "Please select a management fee" },
                 ]}
@@ -245,7 +245,7 @@ const WealthForm: React.FC = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="operationalCost" label="Operational Cost">
+              <Form.Item name="operationalCost" label="Operational Cost (GH)">
                 <InputNumber
                   placeholder="Enter operational cost"
                   style={{ width: "100%" }}

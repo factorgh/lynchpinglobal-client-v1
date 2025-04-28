@@ -23,18 +23,18 @@ import {
 } from "antd";
 import Title from "antd/es/typography/Title";
 import moment from "moment";
-import Image from "next/image";
 import { useState } from "react";
 import Swal from "sweetalert2";
 
 const { Text } = Typography;
+const { Option } = Select;
 
 interface AddOn {
   _id: string;
   amount: number;
   accruedInterest: number;
   startDate: Date;
-  status: string; // status is a string, can be 'active' or 'inactive'
+  status: string;
 }
 
 interface InvestmentData {
@@ -52,36 +52,41 @@ interface InvestmentData {
   quarter: string;
   archived: boolean;
   active: boolean;
-  startDate:Date;
+  startDate: Date;
   managementFee: number;
   performanceYield: number;
   certificate: string[];
-  checklist: string[]; // Array of document URLs (checklists)
-  mandate: string[]; // Array of document URLs (mandates)
-  partnerForm: string[]; // Array of document URLs (partner forms)
+  checklist: string[];
+  mandate: string[];
+  partnerForm: string[];
   lastModified: string;
+  userId: any;
+  managementFeeRate?: number;
 }
 
 const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
+  const [form] = Form.useForm();
+  const [editingAddOn, setEditingAddOn] = useState<AddOn | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const [previewFile, setPreviewFile] = useState<string | null>(null);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingAddOn, setEditingAddOn] = useState<AddOn | null>(null);
 
-  const [form] = Form.useForm();
-  const [updateAddOn, { isLoading: updatingAddOn }] = useUpdateAddOnMutation();
-  const [deleteAddOn, { isLoading: deletingAddOn }] = useDeleteAddOnMutation();
+  const [updateAddOn] = useUpdateAddOnMutation();
+  const [deleteAddOn] = useDeleteAddOnMutation();
 
   const handleEdit = (record: AddOn) => {
     setEditingAddOn(record);
-    form.setFieldsValue({ status: record.status, startDate: record.startDate });
+    form.setFieldsValue({
+      status: record.status,
+      startDate: moment(record.startDate),
+    });
     setEditModalVisible(true);
   };
 
   const handleDelete = (record: AddOn) => {
     Swal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "You won't be able t revert this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -90,7 +95,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await deleteAddOn({ id: record._id }).unwrap();
+          await deleteAddOn(record._id).unwrap();
           Swal.fire("Deleted!", "Add-on has been deleted.", "success");
         } catch (error) {
           Swal.fire("Error!", "Failed to delete add-on.", "error");
@@ -98,7 +103,26 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       }
     });
   };
-  
+
+  const handleFinishEdit = async (values: any) => {
+    if (editingAddOn) {
+      try {
+        await updateAddOn({
+          id: editingAddOn._id,
+          data: {
+            ...values,
+            startDate: values.startDate.toISOString(),
+          },
+        }).unwrap();
+        message.success("Add-on updated successfully");
+        setEditModalVisible(false);
+        setEditingAddOn(null);
+      } catch (error) {
+        message.error("Failed to update add-on");
+      }
+    }
+  };
+
   const handleDeleteAddOff = (record: any) => {
     Modal.confirm({
       title: "Delete Add-off",
@@ -109,20 +133,30 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       onOk: async () => {
         try {
           await deleteAddOn({ id: record._id }).unwrap();
-          message.success("Add-on deleted successfully");
+          message.success("Add-off deleted successfully");
         } catch (error) {
-          message.error("Failed to delete add-on");
+          message.error("Failed to delete add-off");
         }
       },
     });
   };
 
+  const handlePreviewOut = (url: string) => {
+    window.open(url, "_blank");
+  };
+
   const addOnColumns = [
     {
-      title: "Add-on Amount",
+      title: "Amount",
       dataIndex: "amount",
       key: "amount",
       render: (amount: number) => `GH₵${amount.toFixed(2)}`,
+    },
+    {
+      title: "Start Date",
+      dataIndex: "startDate",
+      key: "startDate",
+      render: (date: Date) => moment(date).format("YYYY-MM-DD"),
     },
     {
       title: "Status",
@@ -130,7 +164,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       key: "status",
       render: (status: string) => (
         <Tag color={status === "active" ? "green" : "volcano"}>
-          {status === "active" ? "Active" : "Inactive"}
+          {status.charAt(0).toUpperCase() + status.slice(1)}
         </Tag>
       ),
     },
@@ -139,16 +173,17 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       key: "actions",
       render: (_: any, record: AddOn) => (
         <div className="flex gap-2">
-          <button onClick={() => handleEdit(record)} aria-label="Edit">
-            <EditOutlined className="text-blue-500 cursor-pointer" />
-          </button>
-          <button onClick={() => handleDelete(record)} aria-label="Delete">
-            <DeleteOutlined className="text-red-500 cursor-pointer" />
-          </button>
+          <EditOutlined
+            onClick={() => handleEdit(record)}
+            className="text-blue-500 cursor-pointer"
+          />
+          <DeleteOutlined
+            onClick={() => handleDelete(record)}
+            className="text-red-500 cursor-pointer"
+          />
         </div>
       ),
-    }
-    
+    },
   ];
 
   const addOffColumns = [
@@ -159,13 +194,11 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       render: (amount: number, record: any) =>
         formatMultipleCurrency(amount, record.currency),
     },
-
     {
       title: "Currency",
       dataIndex: "currency",
       key: "currency",
     },
-
     {
       title: "Yield",
       dataIndex: "oneOffYield",
@@ -176,71 +209,34 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
     {
       title: "Date Added",
       dataIndex: "dateOfEntry",
-      key: "rdateOfEntry",
-      render: (rate: number) => moment(rate).format("YYYY-MM-DD"),
+      key: "dateOfEntry",
+      render: (date: Date) => moment(date).format("YYYY-MM-DD"),
     },
-
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: any, index: number) => (
+      render: (_: any, record: any) => (
         <DeleteOutlined onClick={() => handleDeleteAddOff(record)} />
       ),
     },
   ];
 
-  const handleFinishEdit = async (values: any) => {
-    console.log(values);
-    if (editingAddOn) {
-      try {
-        await updateAddOn({ id: editingAddOn._id, data: values });
-        message.success("Add-on status updated successfully");
-      } catch (error) {
-        message.error("Failed to update add-on status");
-      }
-      // Close the modal
-      handleCloseEdit();
-    }
-  };
-
-  const handleCloseEdit = () => {
-    setEditModalVisible(false);
-    setEditingAddOn(null);
-  };
-
-  // Handle preview modal
-  const handlePreview = (fileUrl: string) => {
-    setPreviewFile(fileUrl); // Set the file URL to preview
-    setIsPreviewVisible(true); // Open the modal for preview
-  };
-
-  // Close the preview modal
-  const handleClosePreview = () => {
-    setIsPreviewVisible(false);
-    setPreviewFile(null);
-  };
-
-  const handlePreviewOut = (previewFile: string, index: number) => {
-    setEditModalVisible(false);
-    window.open(previewFile, "_blank");
-  };
   return (
     <>
       <Drawer
-        title={`Investment Details `}
+        title="Investment Details"
         width={1000}
         onClose={onClose}
         visible={visible}
         bodyStyle={{ paddingBottom: 80 }}
       >
-        {/* Investment Summary Section */}
         <Card title="Investment Summary" bordered={false}>
           <Descriptions column={2} bordered>
             <Descriptions.Item label="Transaction ID">
               {investment?.transactionId}
             </Descriptions.Item>
             <Descriptions.Item label="Name">
-              {investment?.userId.displayName}
+              {investment?.userId?.displayName}
             </Descriptions.Item>
             <Descriptions.Item label="Start Date">
               {moment(investment?.startDate).format("YYYY-MM-DD")}
@@ -255,19 +251,19 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
               {investment?.guaranteedRate}%
             </Descriptions.Item>
             <Descriptions.Item label="Addon Accrued Return">
-              {formatPriceGHS(investment?.addOnAccruedReturn?.toFixed(2))}
+              {formatPriceGHS(investment?.addOnAccruedReturn)}
             </Descriptions.Item>
             <Descriptions.Item label="Total Accrued Return">
-              {formatPriceGHS(investment?.totalAccruedReturn?.toFixed(2))}
+              {formatPriceGHS(investment?.totalAccruedReturn)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter End Date">
-              {new Date(investment?.quarterEndDate).toLocaleDateString()}
+              {moment(investment?.quarterEndDate).format("YYYY-MM-DD")}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
               {investment?.quarter}
             </Descriptions.Item>
             <Descriptions.Item label="Management Fee Rate">
-              {investment?.managementFeeRate}%
+              {investment?.managementFeeRate ?? "-"}%
             </Descriptions.Item>
             <Descriptions.Item label="Management Fee">
               {formatPriceGHS(investment?.managementFee)}
@@ -279,202 +275,68 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
         </Card>
 
         <Card title="Add-ons" bordered={false}>
-          {investment?.addOns.length > 0 ? (
-            <Table
-              columns={addOnColumns}
-              dataSource={investment?.addOns}
-              rowKey="_id"
-              pagination={false}
-              size="small"
-            />
-          ) : (
-            <Tag color="orange">No add-ons added</Tag>
-          )}
+          <Table
+            columns={addOnColumns}
+            dataSource={investment?.addOns}
+            rowKey="_id"
+            pagination={false}
+            size="small"
+          />
         </Card>
+
         <Card title="One-Offs" bordered={false}>
-          {investment?.oneOffs.length > 0 ? (
-            <Table
-              columns={addOffColumns}
-              dataSource={investment?.oneOffs}
-              rowKey="_id"
-              pagination={false}
-              size="small"
-            />
-          ) : (
-            <Tag color="orange">No One Offs added </Tag>
-          )}
+          <Table
+            columns={addOffColumns}
+            dataSource={investment?.oneOffs}
+            rowKey="_id"
+            pagination={false}
+            size="small"
+          />
         </Card>
 
-        {/* Investment Documents Section */}
         <Card title="Investment Documents" bordered={false}>
-          {investment?.certificate.length > 0 && (
+          {investment?.certificate?.length > 0 && (
             <div>
-              <Title >Certificates</Title>
+              <Title level={5}>Certificates</Title>
               <Row gutter={16}>
-                {investment?.certificate.map(
-                  (fileUrl: string, index: number) => (
-                    <Col span={8} key={index}>
-                     <AiOutlineFilePdf
-  size={40}
-  className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
-  onClick={() => handlePreviewOut(fileUrl, index)}
-/>
-                    </Col>
-                  )
-                )}
-              </Row>
-            </div>
-          )}
-
-          {investment?.checklist.length > 0 && (
-            <div>
-              <h3>Checklists</h3>
-              <Row gutter={16}>
-                {investment?.checklist.map((fileUrl: string, index: number) => (
-                  <Col span={8} key={index}>
+                {investment?.certificate.map((url: string, index: number) => (
+                  <Col span={6} key={index}>
                     <AiOutlineFilePdf
-  size={40}
-  className="cursor-pointer text-red-500 hover:text-red-600"
-  onClick={() => handlePreviewOut(fileUrl, index)}
-/>
+                      size={40}
+                      className="cursor-pointer text-red-500 mt-3"
+                      onClick={() => handlePreviewOut(url)}
+                    />
                   </Col>
                 ))}
               </Row>
             </div>
           )}
-
-          {investment?.mandate?.length > 0 && (
-            <div>
-              <h3 >Mandates</h3>
-              <Row gutter={16}>
-                {investment?.mandate.map((fileUrl: string, index: number) => (
-                  <Col span={8} key={index}>
-                   <AiOutlineFilePdf
-  size={40}
-  className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
-  onClick={() => handlePreviewOut(fileUrl, index)}
-/>
-                  </Col>
-                ))}
-              </Row>
-            </div>
-          )}
-
-          {investment?.partnerForm.length > 0 && (
-            <div>
-              <h3 >Partner Forms</h3>
-              <Row gutter={16}>
-                {investment?.partnerForm.map(
-                  (fileUrl: string, index: number) => (
-                    <Col span={8} key={index}>
-                     <AiOutlineFilePdf
-              size={40}
-          className="cursor-pointer text-red-500 hover:text-red-600 mt-3"
-            onClick={() => handlePreviewOut(fileUrl, index)}
-              />
-                    </Col>
-                  )
-                )}
-              </Row>
-            </div>
-          )}
-          {investment?.others.length > 0 && (
-            <div>
-              <h3 >Others</h3>
-              <Row gutter={16}>
-                {investment?.others.map((fileUrl: string, index: number) => (
-                  <Col span={8} key={index}>
-                  
-
-<AiOutlineFilePdf
-  size={40}
-  className="cursor-pointer text-red-500 hover:text-red-600"
-  onClick={() => handlePreviewOut(fileUrl, index)}
-/>
-
-                  </Col>
-                ))}
-              </Row>
-            </div>
-          )}
-
-          {!investment?.certificate.length &&
-            !investment?.checklist.length &&
-            !investment?.mandate.length &&
-            !investment?.partnerForm.length && (
-              <Tag color="red">No Documents available</Tag>
-            )}
         </Card>
       </Drawer>
-
-      {/* Preview Modal */}
-      <Modal
-        visible={isPreviewVisible}
-        footer={null}
-        onCancel={handleClosePreview}
-        width={800}
-      >
-        {previewFile?.endsWith(".pdf") ? (
-          <iframe
-            src={previewFile}
-            width="100%"
-            height="600px"
-            title="PDF Preview"
-            frameBorder="0"
-          />
-        ) : (
-          <Image
-            src={previewFile!}
-            alt="Document Preview"
-            style={{ width: "100%", height: "auto" }}
-          />
-        )}
-      </Modal>
 
       {/* Edit Modal */}
       <Modal
         visible={editModalVisible}
-        footer={null}
-        onCancel={handleCloseEdit}
-        width={400}
-        title={`Edit Add-on Status`}
+        title="Edit Add-on"
+        onCancel={() => setEditModalVisible(false)}
+        onOk={() => form.submit()}
+        okText="Update"
       >
-        <Form form={form} onFinish={handleFinishEdit}>
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: "Please select a status" }]}
-          >
-            <Select
-              placeholder="Select a status"
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={["active", "inactive"].map((status) => ({
-                value: status,
-                label: status,
-              }))}
-            />
+        <Form form={form} layout="vertical" onFinish={handleFinishEdit}>
+          <Form.Item name="status" label="Status" rules={[{ required: true }]}>
+            <Select placeholder="Select status">
+              <Option value="active">Active</Option>
+              <Option value="inactive">Inactive</Option>
+            </Select>
           </Form.Item>
+
           <Form.Item
             name="startDate"
             label="Start Date"
-            rules={[{ required: true, message: "Please select a start date" }]}
+            rules={[{ required: true, message: "Please select a date" }]}
           >
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
-
-          <Button
-            loading={updatingAddOn}
-            type="primary"
-            htmlType="submit"
-            block
-          >
-            Save Changes
-          </Button>
         </Form>
       </Modal>
     </>

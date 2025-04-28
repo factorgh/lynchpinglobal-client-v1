@@ -7,7 +7,6 @@ import { useCreateAddOffMutation } from "@/services/addOff";
 import { useCreateAddOnMutation } from "@/services/addOn";
 import dayjs from "dayjs";
 
-
 import {
   useDeleteInvestmentMutation,
   useGetAllInvestmentsQuery,
@@ -199,7 +198,7 @@ const WealthTable = () => {
     setInitialFiles(files);
 
     form.setFieldsValue({
-      principal:investment.principal,
+      principal: investment.principal,
       managementFeeRate: investment.managementFeeRate,
       performanceYield: investment.performanceYield,
       guaranteedRate: investment.guaranteedRate,
@@ -241,7 +240,7 @@ const WealthTable = () => {
 
         await createAddOn({
           amount: values.amount,
-          status: values.status,
+          status: "inactive",
           investmentId: editRentalId,
         });
 
@@ -461,7 +460,7 @@ const WealthTable = () => {
             <Col span={12}>
               <Form.Item
                 name="principal"
-                label="Principal"
+                label="Principal (GH)"
                 rules={[
                   { required: true, message: "Please enter the principal" },
                 ]}
@@ -477,7 +476,7 @@ const WealthTable = () => {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="performanceYield" label="Performance Yield">
+              <Form.Item name="performanceYield" label="Performance Yield (GH)">
                 <InputNumber
                   placeholder="Enter performance yield"
                   style={{ width: "100%" }}
@@ -488,7 +487,7 @@ const WealthTable = () => {
             <Col span={12}>
               <Form.Item
                 name="guaranteedRate"
-                label="Guaranteed Rate"
+                label="Guaranteed Rate (%)"
                 rules={[
                   {
                     required: true,
@@ -508,7 +507,7 @@ const WealthTable = () => {
             <Col span={12}>
               <Form.Item
                 name="managementFeeRate"
-                label="Management Fee Rate"
+                label="Management Fee Rate (%)"
                 rules={[
                   { required: true, message: "Please select a management fee" },
                 ]}
@@ -538,7 +537,7 @@ const WealthTable = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="operationalCost" label="Operational Cost">
+              <Form.Item name="operationalCost" label="Operational Cost (GH)">
                 <InputNumber
                   placeholder="Enter operational cost"
                   style={{ width: "100%" }}
@@ -608,7 +607,7 @@ const WealthTable = () => {
           >
             <Input placeholder="Enter add-on amount" />
           </Form.Item>
-          <Form.Item
+          {/* <Form.Item
             name="status"
             label="Status"
             rules={[{ required: true, message: "Please select a status" }]}
@@ -626,7 +625,7 @@ const WealthTable = () => {
                 label: status,
               }))}
             />
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item>
             <Button
