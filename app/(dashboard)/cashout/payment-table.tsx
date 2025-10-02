@@ -117,7 +117,7 @@ const PaymentTable = ({ onEdit }: any) => {
       title: "Customer",
       dataIndex: "user",
       key: "user",
-      render: (values) => values.name,
+      render: (values) => values,
     },
     {
       title: "Amount",
