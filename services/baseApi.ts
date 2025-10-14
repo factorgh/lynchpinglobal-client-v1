@@ -3,8 +3,12 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 //TODO:gET TOKEN
 
 const getToken = () => {
-  let token = localStorage.getItem("token");
-  return token;
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem("token");
+  } catch {
+    return null;
+  }
 };
 // // process.env.NEXT_PUBLIC_API_BASE_URL ||
 // const BASE_URL = "http://localhost:8080/api/v1";
@@ -31,8 +35,6 @@ export const baseApi = createApi({
     baseUrl: BASE_URL,
     prepareHeaders: (headers) => {
       const token = getToken();
-      console.log(token);
-
       if (token) {
         headers.set("authorization", token);
       }
