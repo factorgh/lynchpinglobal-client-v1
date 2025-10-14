@@ -1,10 +1,10 @@
 "use client";
 
-import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { useSignupMutation } from "@/services/auth";
 
 const RegisterForm = () => {
   const [email, setEmail] = useState("");
@@ -12,7 +12,6 @@ const RegisterForm = () => {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [userName, setUserName] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -22,6 +21,7 @@ const RegisterForm = () => {
   });
 
   const router = useRouter();
+  const [signup, { isLoading }] = useSignupMutation();
 
   const validateEmail = (value: string) => {
     if (!value) return "Email is required.";
@@ -85,14 +85,14 @@ const RegisterForm = () => {
       return;
     }
 
-    setIsLoading(true);
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/signup`,
-        { email, password, name: userName, displayName, passwordConfirm }
-      );
-
-      const { token, user } = response.data;
+      const { token, user } = await signup({
+        email,
+        password,
+        name: userName,
+        displayName,
+        passwordConfirm,
+      }).unwrap();
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("roles", JSON.stringify(user.role));
@@ -101,9 +101,9 @@ const RegisterForm = () => {
       router.replace(user.role === "admin" ? "/dashboard" : "/landing");
     } catch (err) {
       console.error("Registration failed:", err);
-      toast.error("Registration failed");
-    } finally {
-      setIsLoading(false);
+      // Optionally surface API-provided message
+      // @ts-ignore
+      toast.error((err?.data?.message as string) || "Registration failed");
     }
   };
 
@@ -148,6 +148,7 @@ const RegisterForm = () => {
                   ? "focus:ring-red-500"
                   : "focus:ring-blue-500"
               }`}
+              disabled={isLoading}
             />
             {errors.displayName && (
               <p className="text-red-500 text-sm">{errors.displayName}</p>
@@ -179,6 +180,7 @@ const RegisterForm = () => {
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                 errors.userName ? "focus:ring-red-500" : "focus:ring-blue-500"
               }`}
+              disabled={isLoading}
             />
             {errors.userName && (
               <p className="text-red-500 text-sm">{errors.userName}</p>
@@ -211,6 +213,7 @@ const RegisterForm = () => {
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                 errors.email ? "focus:ring-red-500" : "focus:ring-blue-500"
               }`}
+              disabled={isLoading}
             />
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email}</p>
@@ -243,6 +246,7 @@ const RegisterForm = () => {
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
                 errors.password ? "focus:ring-red-500" : "focus:ring-blue-500"
               }`}
+              disabled={isLoading}
             />
             {errors.password && (
               <p className="text-red-500 text-sm">{errors.password}</p>
@@ -277,6 +281,7 @@ const RegisterForm = () => {
                   ? "focus:ring-red-500"
                   : "focus:ring-blue-500"
               }`}
+              disabled={isLoading}
             />
             {errors.passwordConfirm && (
               <p className="text-red-500 text-sm">{errors.passwordConfirm}</p>
@@ -286,24 +291,14 @@ const RegisterForm = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={
-              isLoading ||
-              !!errors.email ||
-              !!errors.password ||
-              !!errors.passwordConfirm ||
-              !!errors.userName
-            }
+            disabled={isLoading}
             className={`w-full py-2 px-4 text-white font-medium rounded-lg shadow-md transition-colors ${
-              isLoading || Object.values(errors).some((error) => error)
+              isLoading
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
             }`}
           >
-            {isLoading ? (
-              <span className="loading loading-dots loading-sm"></span>
-            ) : (
-              "Register"
-            )}
+            {isLoading ? "Registering..." : "Register"}
           </button>
         </form>
         <div className="mt-4 text-center">

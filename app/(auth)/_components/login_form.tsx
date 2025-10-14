@@ -1,21 +1,20 @@
 "use client";
 
 import DotLoader from "@/app/(components)/dot-loader";
-import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useLoginMutation } from "@/services/auth";
 
 // Call base url
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(""); // To show error messages
   const router = useRouter();
+  const [login, { isLoading }] = useLoginMutation();
 
   // Basic email regex for validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,15 +33,8 @@ const LoginForm = () => {
       setError("Please enter your password.");
       return;
     }
-
-    setIsLoading(true);
     try {
-      const response = await axios.post(`${BASE_URL}/auth/login`, {
-        identifier,
-        password,
-      });
-
-      const { token, user } = response.data;
+      const { token, user } = await login({ identifier, password }).unwrap();
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("roles", JSON.stringify(user.role));
@@ -54,8 +46,6 @@ const LoginForm = () => {
       }
     } catch (err: any) {
       setError("Invalid email/username or password.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -92,6 +82,7 @@ const LoginForm = () => {
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="Enter your email or username"
               className="w-full px-4 py-2 border rounded-lg focus:outline-none bg-white"
+              disabled={isLoading}
               required
             />
           </div>
@@ -110,6 +101,7 @@ const LoginForm = () => {
               placeholder="Enter your password"
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              disabled={isLoading}
             />
           </div>
           <button
