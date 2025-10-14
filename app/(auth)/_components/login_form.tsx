@@ -6,6 +6,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
+// Call base url
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [identifier, setIdentifier] = useState("");
@@ -34,10 +37,10 @@ const LoginForm = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        `http://localhost:8080/api/v1/auth/login`,
-        { identifier, password }
-      );
+      const response = await axios.post(`${BASE_URL}/auth/login`, {
+        identifier,
+        password,
+      });
 
       const { token, user } = response.data;
       localStorage.setItem("token", token);
