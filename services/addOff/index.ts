@@ -35,7 +35,6 @@ export const {
   useGetAllAddOffsQuery,
   useCreateAddOffMutation,
   useDeleteAddOffMutation,
-
   useGetSingleAddOffQuery,
   useUpdateAddOffMutation,
 } = AddOffApi;
