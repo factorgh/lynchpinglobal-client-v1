@@ -18,6 +18,27 @@ export const AuthApi = baseApi.injectEndpoints({
           body: data,
         }),
       }),
+      forgotPassword: builder.mutation({
+        query: (data: any) => ({
+          url: "/auth/forgotPassword",
+          method: "POST",
+          body: data,
+        }),
+      }),
+      resetPassword: builder.mutation({
+        query: ({ token, data }: { token: string; data: any }) => ({
+          url: `/auth/resetPassword/${token}`,
+          method: "PATCH",
+          body: data,
+        }),
+      }),
+      updatePassword: builder.mutation({
+        query: (data: any) => ({
+          url: "/auth/updatePassword",
+          method: "PATCH",
+          body: data,
+        }),
+      }),
       getUsers: builder.query({
         query: () => ({
           url: "/users",
@@ -37,6 +58,9 @@ export const AuthApi = baseApi.injectEndpoints({
 export const {
   useLoginMutation,
   useSignupMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+  useUpdatePasswordMutation,
   useGetUsersQuery,
   useGetAdminsQuery,
 } = AuthApi;

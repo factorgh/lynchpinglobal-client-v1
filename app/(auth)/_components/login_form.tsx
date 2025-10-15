@@ -115,6 +115,11 @@ const LoginForm = () => {
           >
             {isLoading ? <DotLoader /> : "Login"}
           </button>
+          <div className="mt-2 text-right">
+            <Link href="/forgot-password" className="text-sm text-blue-500 hover:underline">
+              Forgot password?
+            </Link>
+          </div>
         </form>
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">

@@ -11,8 +11,8 @@ const getToken = () => {
   }
 };
 // // process.env.NEXT_PUBLIC_API_BASE_URL ||
-// const BASE_URL = "http://localhost:8080/api/v1";
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const BASE_URL = "http://localhost:8080/api/v1";
+// const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // Define a service using a base URL and expected endpoints
 export const baseApi = createApi({
@@ -47,5 +47,3 @@ export const baseApi = createApi({
 
   endpoints: () => ({}),
 });
-
-// Pick out data and prevent nested properties in a hook or selector
