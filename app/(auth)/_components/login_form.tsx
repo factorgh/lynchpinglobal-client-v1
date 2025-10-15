@@ -39,7 +39,7 @@ const LoginForm = () => {
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("roles", JSON.stringify(user.role));
 
-      if (user.role === "admin") {
+      if (user.role === "admin" || user.role === "superadmin") {
         router.replace("/dashboard");
       } else if (user.role === "user") {
         router.replace("/landing");
