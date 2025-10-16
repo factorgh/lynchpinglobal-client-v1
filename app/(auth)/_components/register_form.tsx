@@ -10,6 +10,8 @@ const RegisterForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [userName, setUserName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [errors, setErrors] = useState({
@@ -228,26 +230,38 @@ const RegisterForm = () => {
             >
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrors((prev) => ({
-                  ...prev,
-                  password: validatePassword(e.target.value),
-                }));
-              }}
-              placeholder="Enter your password"
-              required
-              className={`w-full px-4 py-2 border bg-white ${
-                errors.password ? "border-red-500" : "border-gray-300"
-              } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                errors.password ? "focus:ring-red-500" : "focus:ring-blue-500"
-              }`}
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    password: validatePassword(e.target.value),
+                  }));
+                }}
+                placeholder="Enter your password"
+                required
+                className={`w-full px-4 py-2 pr-20 border bg-white ${
+                  errors.password ? "border-red-500" : "border-gray-300"
+                } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
+                  errors.password
+                    ? "focus:ring-red-500"
+                    : "focus:ring-blue-500"
+                }`}
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-2 my-auto h-8 px-2 text-sm text-blue-600 hover:underline"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
             {errors.password && (
               <p className="text-red-500 text-sm">{errors.password}</p>
             )}
@@ -261,28 +275,42 @@ const RegisterForm = () => {
             >
               Confirm Password
             </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={passwordConfirm}
-              onChange={(e) => {
-                setPasswordConfirm(e.target.value);
-                setErrors((prev) => ({
-                  ...prev,
-                  passwordConfirm: validatePasswordConfirm(e.target.value),
-                }));
-              }}
-              placeholder="Confirm your password"
-              required
-              className={`w-full px-4 py-2 border bg-white ${
-                errors.passwordConfirm ? "border-red-500" : "border-gray-300"
-              } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                errors.passwordConfirm
-                  ? "focus:ring-red-500"
-                  : "focus:ring-blue-500"
-              }`}
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={showPasswordConfirm ? "text" : "password"}
+                value={passwordConfirm}
+                onChange={(e) => {
+                  setPasswordConfirm(e.target.value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    passwordConfirm: validatePasswordConfirm(e.target.value),
+                  }));
+                }}
+                placeholder="Confirm your password"
+                required
+                className={`w-full px-4 py-2 pr-20 border bg-white ${
+                  errors.passwordConfirm
+                    ? "border-red-500"
+                    : "border-gray-300"
+                } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
+                  errors.passwordConfirm
+                    ? "focus:ring-red-500"
+                    : "focus:ring-blue-500"
+                }`}
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPasswordConfirm((v) => !v)}
+                className="absolute inset-y-0 right-2 my-auto h-8 px-2 text-sm text-blue-600 hover:underline"
+                aria-label={
+                  showPasswordConfirm ? "Hide confirm password" : "Show confirm password"
+                }
+              >
+                {showPasswordConfirm ? "Hide" : "Show"}
+              </button>
+            </div>
             {errors.passwordConfirm && (
               <p className="text-red-500 text-sm">{errors.passwordConfirm}</p>
             )}

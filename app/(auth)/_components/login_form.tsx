@@ -12,6 +12,7 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(""); // To show error messages
   const router = useRouter();
   const [login, { isLoading }] = useLoginMutation();
@@ -93,16 +94,26 @@ const LoginForm = () => {
             >
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+                className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-2 my-auto h-8 px-2 text-sm text-blue-600 hover:underline"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
           <button
             type="submit"
@@ -116,7 +127,10 @@ const LoginForm = () => {
             {isLoading ? <DotLoader /> : "Login"}
           </button>
           <div className="mt-2 text-right">
-            <Link href="/forgot-password" className="text-sm text-blue-500 hover:underline">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-blue-500 hover:underline"
+            >
               Forgot password?
             </Link>
           </div>
