@@ -48,6 +48,8 @@ interface DataType {
   partnerForm: string[];
   others: string[]; // Add "others" to the DataType
   lastModified: string;
+  isJoint?: boolean;
+  owners?: { user?: { _id: string; name?: string; displayName?: string; email?: string } }[];
 }
 
 const { Text } = Typography;
@@ -146,10 +148,9 @@ const CustomerInvestment: React.FC = () => {
       <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
     ),
     onFilter: (value, record) =>
-      record[dataIndex]
-        .toString()
+      String(record[dataIndex] ?? "")
         .toLowerCase()
-        .includes((value as string).toLowerCase()),
+        .includes(String(value ?? "").toLowerCase()),
     filterDropdownProps: {
       onOpenChange(open) {
         if (open) {
@@ -171,6 +172,29 @@ const CustomerInvestment: React.FC = () => {
   });
 
   const columns: TableColumnType<DataType>[] = [
+    {
+      title: "Type",
+      dataIndex: "isJoint",
+      key: "isJoint",
+      render: (value) => (value ? <Tag color="blue">Joint</Tag> : <Tag>Single</Tag>),
+    },
+    {
+      title: "Owners",
+      dataIndex: "owners",
+      key: "owners",
+      render: (owners: DataType["owners"]) =>
+        owners && owners.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {owners.map((o, idx) => (
+              <Tag key={idx} color="geekblue">
+                {o?.user?.displayName || o?.user?.name || o?.user?.email || o?.user?._id}
+              </Tag>
+            ))}
+          </div>
+        ) : (
+          <Tag>—</Tag>
+        ),
+    },
     {
       title: "Principal",
       dataIndex: "principal",
@@ -249,6 +273,24 @@ const CustomerInvestment: React.FC = () => {
             <Descriptions.Item label="Admin">
               {selectedInvestment.name}
             </Descriptions.Item>
+            <Descriptions.Item label="Ownership">
+              {selectedInvestment.isJoint ? (
+                <Tag color="blue">Joint</Tag>
+              ) : (
+                <Tag>Single</Tag>
+              )}
+            </Descriptions.Item>
+            {selectedInvestment?.owners && selectedInvestment.owners.length > 0 && (
+              <Descriptions.Item label="Co-Owners">
+                <div className="space-y-1">
+                  {selectedInvestment.owners.map((o, idx) => (
+                    <div key={idx} className="text-sm">
+                      {o?.user?.displayName || o?.user?.name || o?.user?.email || o?.user?._id}
+                    </div>
+                  ))}
+                </div>
+              </Descriptions.Item>
+            )}
             <Descriptions.Item label="Principal">
               {formatPriceGHS(selectedInvestment.principal)}
             </Descriptions.Item>

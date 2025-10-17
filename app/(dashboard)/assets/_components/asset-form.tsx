@@ -277,9 +277,7 @@ const AssetForm: React.FC = () => {
                   placeholder="Select a user"
                   showSearch
                   filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
+                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
                   }
                   options={users?.map((user: any) => ({
                     value: user._id,
@@ -288,38 +286,45 @@ const AssetForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-
             <Col span={12}>
-              <Form.Item
-                name="assetName"
-                label="Asset Name"
-                rules={[
-                  { required: true, message: "Please enter the asset name" },
-                ]}
-              >
-                <Input
-                  placeholder="Enter asset name"
-                  style={{ width: "100%" }}
+              <Form.Item name="owners" label="Co-Owners (optional)">
+                <Select
+                  mode="multiple"
+                  allowClear
+                  placeholder="Select co-owners"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={users
+                    ?.filter((u: any) => u._id !== form.getFieldValue("user"))
+                    .map((user: any) => ({ value: user._id, label: user.name }))}
                 />
               </Form.Item>
             </Col>
           </Row>
-          <Row gutter={16}>
-            {/* User Selection */}
-            <Col span={12}>
-              <Form.Item
-                name="assetClass"
-                label="Asset Class"
-                rules={[
-                  { required: true, message: "Please enter the principal" },
-                ]}
-              >
-                <Input
-                  placeholder="Enter asset class"
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="assetName"
+              label="Asset Name"
+              rules={[{ required: true, message: "Please enter the asset name" }]}
+            >
+              <Input placeholder="Enter asset name" style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          {/* User Selection */}
+          <Col span={12}>
+            <Form.Item
+              name="assetClass"
+              label="Asset Class"
+              rules={[{ required: true, message: "Please enter the principal" }]}
+            >
+              <Input placeholder="Enter asset class" style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
 
             {/* Principal */}
             <Col span={12}>

@@ -35,6 +35,7 @@ import {
   Select,
   Table,
   Upload,
+  Tag,
 } from "antd";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -379,6 +380,29 @@ const WealthTable = () => {
       render: (user: any) => user?.displayName || "Unknown User", // Access displayName directly
     },
     {
+      title: "Type",
+      dataIndex: "isJoint",
+      key: "isJoint",
+      render: (isJoint: boolean) => (isJoint ? <Tag color="blue">Joint</Tag> : <Tag>Single</Tag>),
+    },
+    {
+      title: "Owners",
+      dataIndex: "owners",
+      key: "owners",
+      render: (owners: any[]) =>
+        Array.isArray(owners) && owners.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {owners.map((o, idx) => (
+              <Tag key={idx} color="geekblue">
+                {o?.user?.displayName || o?.user?.name || o?.user?.email || o?.user?._id}
+              </Tag>
+            ))}
+          </div>
+        ) : (
+          <Tag>—</Tag>
+        ),
+    },
+    {
       title: "Principal",
       dataIndex: "principal",
       key: "principal",
@@ -441,7 +465,7 @@ const WealthTable = () => {
         dataSource={investmentData?.data}
         // scroll={{ x: 1000 }}
         className="border border-slate-200 rounded-md"
-        rowKey="id" // Correct rowKey
+        rowKey="_id"
       />
       <Drawer
         title="Edit Wealth"

@@ -166,6 +166,25 @@ const WealthForm: React.FC = () => {
             </Col>
 
             <Col span={12}>
+              <Form.Item name="owners" label="Co-Owners (optional)">
+                <Select
+                  mode="multiple"
+                  allowClear
+                  placeholder="Select co-owners"
+                  showSearch
+                  filterOption={(input, option) =>
+                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={users
+                    ?.filter((u: any) => u._id !== form.getFieldValue("userId"))
+                    .map((user: any) => ({ value: user._id, label: user.name }))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
               <Form.Item
                 name="principal"
                 label="Principal (GH)"

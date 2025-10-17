@@ -238,6 +238,24 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Descriptions.Item label="Name">
               {investment?.userId?.displayName}
             </Descriptions.Item>
+            <Descriptions.Item label="Ownership">
+              {investment?.isJoint ? (
+                <Tag color="blue">Joint</Tag>
+              ) : (
+                <Tag>Single</Tag>
+              )}
+            </Descriptions.Item>
+            {Array.isArray(investment?.owners) && investment?.owners.length > 0 && (
+              <Descriptions.Item label="Co-Owners">
+                <div className="space-y-1">
+                  {investment?.owners.map((o: any, idx: number) => (
+                    <div key={idx} className="text-sm">
+                      {o?.user?.displayName || o?.user?.name || o?.user?.email || o?.user?._id}
+                    </div>
+                  ))}
+                </div>
+              </Descriptions.Item>
+            )}
             <Descriptions.Item label="Start Date">
               {moment(investment?.startDate).format("YYYY-MM-DD")}
             </Descriptions.Item>

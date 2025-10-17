@@ -91,7 +91,7 @@ const WithdrawalPage = () => {
             Withdrawals
           </h1>
           <Button type="primary" onClick={handleShowInboxForm}>
-            Make Withdrawal
+            Make a Request
           </Button>
         </div>
         {showInboxForm && (

@@ -247,6 +247,29 @@ import AssetsDrawer from "./assets-drawer";
         render: (user: any) => user?.displayName || "Unknown User", // Access displayName directly
       },
       {
+        title: "Type",
+        dataIndex: "isJoint",
+        key: "isJoint",
+        render: (isJoint: boolean) => (isJoint ? <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-xs">Joint</span> : <span className="px-2 py-0.5 rounded bg-gray-50 text-gray-600 text-xs">Single</span>),
+      },
+      {
+        title: "Owners",
+        dataIndex: "owners",
+        key: "owners",
+        render: (owners: any[]) =>
+          Array.isArray(owners) && owners.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {owners.map((o, idx) => (
+                <span key={idx} className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs">
+                  {o?.user?.displayName || o?.user?.name || o?.user?.email || o?.user?._id}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span>—</span>
+          ),
+      },
+      {
         title: "Asset Class",
         dataIndex: "assetClass",
         key: "assetClass",
