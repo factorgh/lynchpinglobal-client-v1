@@ -1,20 +1,21 @@
 "use client";
 import { DeleteOutlined } from "@ant-design/icons";
 import { Button, List, Upload, message } from "antd";
-import {
-  deleteObject,
-  getDownloadURL,
-  listAll,
-  ref,
-  uploadBytes,
-} from "firebase/storage";
 import { useEffect, useState } from "react";
-import { storage } from "../../../firebase/firebaseConfig"; // Import Firebase Storage
 
 const ConditionsUploader = () => {
-  const [files, setFiles] = useState([]); // List of files from Firebase
+  const [files, setFiles] = useState<any[]>([]); // List of files from Cloudinary
   const [loading, setLoading] = useState(false);
   console.log(files);
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+  const getToken = () => {
+    try {
+      return typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    } catch {
+      return null;
+    }
+  };
 
   // Fetch all terms and conditions from Firebase on component mount
   useEffect(() => {
@@ -24,18 +25,15 @@ const ConditionsUploader = () => {
   const fetchFiles = async () => {
     setLoading(true);
     try {
-      const termsRef = ref(storage, "terms"); // Reference to the "terms" folder
-      const response = await listAll(termsRef); // List all files in the folder
-
-      const fileUrls: any = await Promise.all(
-        response.items.map(async (item) => {
-          const url = await getDownloadURL(item);
-          console.log(url);
-          return { name: item.name, url }; // Return file name and URL
-        })
-      );
-
-      setFiles(fileUrls); // Update state with fetched files
+      const res = await fetch(`${API_BASE}/uploads/list?category=conditions`);
+      if (!res.ok) throw new Error("Failed to fetch terms");
+      const data = await res.json();
+      const mapped = (data?.files || []).map((f: any) => ({
+        name: f.filename || f.public_id,
+        url: f.url,
+        public_id: f.public_id,
+      }));
+      setFiles(mapped);
     } catch (error) {
       console.error("Error fetching files:", error);
       message.error("Failed to fetch terms and conditions.");
@@ -45,32 +43,45 @@ const ConditionsUploader = () => {
   };
 
   const handleUpload = async (file: any) => {
-    const termsRef = ref(storage, `terms/${file.name}`); // Reference to upload location
-
     try {
+      const isPdf = file.type === "application/pdf";
+      if (!isPdf) {
+        message.error("You can only upload PDF files.");
+        return false;
+      }
       setLoading(true);
-      await uploadBytes(termsRef, file); // Upload file to Firebase
+      const formData = new FormData();
+      formData.append("category", "conditions");
+      formData.append("files", file);
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/uploads`, {
+        method: "POST",
+        headers: token ? { Authorization: token } : undefined,
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
       message.success(`${file.name} uploaded successfully.`);
-      fetchFiles(); // Refresh file list
+      fetchFiles();
     } catch (error) {
       console.error("Upload error:", error);
       message.error("Failed to upload file.");
     } finally {
       setLoading(false);
     }
-
-    // Prevent default upload behavior
     return false;
   };
 
-  const handleDelete = async (fileName: any) => {
-    const fileRef = ref(storage, `terms/${fileName}`); // Reference to the file
-
+  const handleDelete = async (public_id: string) => {
     try {
       setLoading(true);
-      await deleteObject(fileRef); // Delete file from Firebase
-      message.success(`${fileName} deleted successfully.`);
-      fetchFiles(); // Refresh file list
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/uploads?public_id=${encodeURIComponent(public_id)}`, {
+        method: "DELETE",
+        headers: token ? { Authorization: token } : undefined,
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      message.success(`Deleted successfully.`);
+      fetchFiles();
     } catch (error) {
       console.error("Delete error:", error);
       message.error("Failed to delete file.");
@@ -113,7 +124,7 @@ const ConditionsUploader = () => {
                 type="link"
                 danger
                 icon={<DeleteOutlined />}
-                onClick={() => handleDelete(file.name)}
+                onClick={() => handleDelete(file.public_id)}
               >
                 Delete
               </Button>,

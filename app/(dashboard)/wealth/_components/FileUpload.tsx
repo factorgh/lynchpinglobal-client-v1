@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, Col, Form } from "antd";
 import { toast } from "react-toastify";
-import { storage } from "../../../../firebase/firebaseConfig";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { UploadOutlined } from "@ant-design/icons";
 
 const categories = [
@@ -27,6 +25,15 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   }>({});
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+  const getToken = () => {
+    try {
+      return typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     const formattedFiles = Object.keys(initialFiles).reduce((acc, category) => {
       acc[category] = initialFiles[category].map((url) => ({
@@ -44,8 +51,11 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   ) => {
     if (!event?.target.files) return;
     const files = Array.from(event.target.files).filter((file) => {
-      if (file.type !== "application/pdf") {
-        toast.error("Only PDF files are allowed.");
+      const isPdf = file.type === "application/pdf";
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+      if (!isPdf && !isImage && !isVideo) {
+        toast.error("Only PDF, image, or video files are allowed.");
         return false;
       }
       return true;
@@ -64,23 +74,29 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   };
 
   const handleUpload = async (category: string) => {
-    if (!fileCategories[category]?.some(({ file }) => file)) {
+    const entries = fileCategories[category] || [];
+    if (!entries.some(({ file }) => !!file)) {
       toast.error(`No new files to upload for ${category}`);
       return;
     }
 
     setUploading((prev) => ({ ...prev, [category]: true }));
     try {
-      const uploadPromises = fileCategories[category]
-        .filter(({ file }) => file)
-        .map(async ({ file }) => {
-          if (!file) return "";
-          const storageRef = ref(storage, `uploads/${category}/${file.name}`);
-          await uploadBytes(storageRef, file);
-          return getDownloadURL(storageRef);
-        });
+      const formData = new FormData();
+      formData.append("category", category);
+      for (const { file } of entries) {
+        if (file) formData.append("files", file);
+      }
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/uploads`, {
+        method: "POST",
+        headers: token ? { Authorization: token } : undefined,
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      const urls: string[] = (data?.urls || []).map((u: any) => u.secure_url || u.url).filter(Boolean);
 
-      const urls = await Promise.all(uploadPromises);
       toast.success(`${category} uploaded successfully!`);
       onFileUpload({ [category]: urls });
 
@@ -105,7 +121,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
           >
             <input
               type="file"
-              accept="application/pdf"
+              accept="application/pdf,image/*,video/*"
               onChange={(e) => handleFileChange(category, e)}
               multiple
             />

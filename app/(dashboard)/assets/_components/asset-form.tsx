@@ -1,8 +1,5 @@
 "use client";
 
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../../../firebase/firebaseConfig"; // Import Firebase configuration
-
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateAssetsMutation } from "@/services/assets";
 import { useGetUsersQuery } from "@/services/auth";
@@ -91,65 +88,57 @@ const AssetForm: React.FC = () => {
   //   }
   // };
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+  const getToken = () => {
+    try {
+      return typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    } catch {
+      return null;
+    }
+  };
+
   const handleAssetImageChange = async ({ file }: any) => {
-    if (file.status === "done") {
-      console.log("-----------------------Asset Image Change ----------------");
-      console.log(file);
-      // Call the dedicated Cloudinary upload function for the asset image
-      const imageUrl: string | null = await handleSingleUploadToFirebase(file);
-
-      if (imageUrl) {
-        console.log("Image URL:", imageUrl);
-        setAssetImageUrl(imageUrl);
-        form.setFieldsValue({ assetImage: imageUrl });
-      } else {
-        message.error("Image upload failed.");
+    if (file.status === "done" || file.originFileObj) {
+      try {
+        const formData = new FormData();
+        formData.append("category", "assetImage");
+        formData.append("files", file.originFileObj || file);
+        const token = getToken();
+        const res = await fetch(`${API_BASE}/uploads`, {
+          method: "POST",
+          headers: token ? { Authorization: token } : undefined,
+          body: formData,
+        });
+        if (!res.ok) throw new Error("Asset image upload failed");
+        const data = await res.json();
+        const url = data?.urls?.[0]?.secure_url || data?.urls?.[0]?.url;
+        if (!url) throw new Error("No URL returned");
+        setAssetImageUrl(url);
+        form.setFieldsValue({ assetImage: url });
+        message.success("Asset image uploaded");
+      } catch (e: any) {
+        message.error(e?.message || "Image upload failed");
       }
     }
   };
 
-  const handleSingleUploadToFirebase = async (
-    selectedFile: any
-  ): Promise<string> => {
+  const uploadCategoryToCloudinary = async (categoryFiles: any[], category: string): Promise<string[]> => {
     try {
-      if (!selectedFile) {
-        throw new Error("No file selected for upload");
+      const formData = new FormData();
+      formData.append("category", category);
+      for (const f of categoryFiles) {
+        if (f?.originFileObj) formData.append("files", f.originFileObj);
       }
-
-      // Create a reference to the storage location
-      const storageRef = ref(
-        storage,
-        `others/${selectedFile.name}-${Date.now()}`
-      );
-
-      // Upload the file to Firebase
-      const snapshot = await uploadBytes(
-        storageRef,
-        selectedFile.originFileObj
-      );
-
-      // Get the download URL of the uploaded file
-      const downloadURL = await getDownloadURL(snapshot.ref);
-
-      return downloadURL; // Return the download URL
-    } catch (error) {
-      console.error("File upload error:", error);
-      throw error;
-    }
-  };
-
-  const handleUploadToFirebase = async (
-    categoryFiles: any[]
-  ): Promise<string[]> => {
-    try {
-      const uploadPromises = categoryFiles.map(async (file) => {
-        const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
-        const snapshot = await uploadBytes(storageRef, file.originFileObj);
-        return await getDownloadURL(snapshot.ref); // Get the file's download URL
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/uploads`, {
+        method: "POST",
+        headers: token ? { Authorization: token } : undefined,
+        body: formData,
       });
-
-      const uploadResults = await Promise.all(uploadPromises);
-      return uploadResults;
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      const urls: string[] = (data?.urls || []).map((u: any) => u.secure_url || u.url).filter(Boolean);
+      return urls;
     } catch (error) {
       console.error("File upload error:", error);
       return [];
@@ -176,10 +165,10 @@ const AssetForm: React.FC = () => {
 
     for (const category in fileCategories) {
       if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
-        uploadedFiles[category as keyof typeof fileCategories] =
-          await handleUploadToFirebase(
-            fileCategories[category as keyof typeof fileCategories]
-          );
+        uploadedFiles[category as keyof typeof fileCategories] = await uploadCategoryToCloudinary(
+          fileCategories[category as keyof typeof fileCategories],
+          category
+        );
       }
     }
 
@@ -233,13 +222,16 @@ const AssetForm: React.FC = () => {
       authorization: "authorization-text",
     },
     beforeUpload: (file) => {
-      console.log("File to upload:", file); // Ensure a valid file is being intercepted.
-      return false; // Prevent auto-upload if using a custom handler.
+      const allowed = file.type.startsWith("image/");
+      if (!allowed) {
+        message.error("Only image files are allowed for Asset Image.");
+        return Upload.LIST_IGNORE;
+      }
+      return false; // We'll upload manually via handleAssetImageChange
     },
     onChange: async (info) => {
-      if (info.file.status === "done") {
-        await handleSingleUploadToFirebase(info.file);
-      }
+      // Manually handle upload when a file is selected
+      await handleAssetImageChange({ file: info.file });
     },
   };
 
@@ -550,10 +542,12 @@ const AssetForm: React.FC = () => {
                     }
                     beforeUpload={(file) => {
                       const isPdf = file.type === "application/pdf";
-                      if (!isPdf) {
-                        toast.error("You can only upload PDF files.");
+                      const isImage = file.type.startsWith("image/");
+                      if (!isPdf && !isImage) {
+                        toast.error("Only PDF or image files are allowed.");
+                        return Upload.LIST_IGNORE;
                       }
-                      return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
+                      return false; // We'll batch-upload on submit
                     }}
                   >
                     <Button type="dashed">Upload PDF</Button>
