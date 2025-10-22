@@ -156,12 +156,14 @@ const PaymentTable = ({ onEdit }: any) => {
 
   return (
     <>
-      <Table
-        loading={isFetching}
-        columns={columns}
-        dataSource={payments?.data?.data}
-        rowKey="id"
-      />
+      <div data-tour="payment-table">
+        <Table
+          loading={isFetching}
+          columns={columns}
+          dataSource={payments?.data?.data}
+          rowKey="id"
+        />
+      </div>
       <Drawer
         title="Edit Payment"
         placement="right"

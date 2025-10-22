@@ -255,11 +255,13 @@ const CustomerInvestment: React.FC = () => {
 
   return (
     <div>
-      <Table<DataType>
-        loading={isFetching}
-        columns={columns}
-        dataSource={investments?.data}
-      />
+      <div data-tour="positions-table">
+        <Table<DataType>
+          loading={isFetching}
+          columns={columns}
+          dataSource={investments?.data}
+        />
+      </div>
 
       {/* Drawer for displaying detailed information */}
       <Drawer

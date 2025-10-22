@@ -59,7 +59,7 @@ const PaymentForm: React.FC = () => {
 
   return (
     <>
-      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
+      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} data-tour="cashout-new-payment">
         New Payment
       </Button>
       <Drawer
@@ -91,6 +91,7 @@ const PaymentForm: React.FC = () => {
                 value: user._id,
                 label: user.name,
               }))}
+              data-tour="payment-user"
             />
           </Form.Item>
 
@@ -104,7 +105,7 @@ const PaymentForm: React.FC = () => {
               },
             ]}
           >
-            <Input type="number" />
+            <Input type="number" data-tour="payment-amount" />
           </Form.Item>
 
           <Form.Item
@@ -117,7 +118,7 @@ const PaymentForm: React.FC = () => {
               },
             ]}
           >
-            <DatePicker style={{ width: "100%" }} />
+            <DatePicker style={{ width: "100%" }} data-tour="payment-requested-date" />
           </Form.Item>
 
           <Form.Item label="Approval Date" name="approvedDate">
@@ -134,7 +135,7 @@ const PaymentForm: React.FC = () => {
               },
             ]}
           >
-            <Select>
+            <Select data-tour="payment-status">
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Approved">Approved</Select.Option>
               <Select.Option value="Rejected">Rejected</Select.Option>
@@ -143,7 +144,7 @@ const PaymentForm: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button loading={isLoading} type="primary" htmlType="submit" block>
+            <Button loading={isLoading} type="primary" htmlType="submit" block data-tour="payment-submit">
               Create
             </Button>
           </Form.Item>

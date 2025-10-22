@@ -47,7 +47,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="flex justify-end items-center w-full  border-b border-gray-200 p-2 ">
+    <div className="flex justify-end items-center w-full  border-b border-gray-200 p-2 " data-tour="navbar">
       {/* LEFT SIDE */}
 
       {/* RIGHT SIDE */}
@@ -74,6 +74,7 @@ const Navbar = () => {
                 (notification: any) => notification.read === false
               ).length
             }
+            data-tour="notifications"
           >
             <Avatar
               className="bg-gray-100"

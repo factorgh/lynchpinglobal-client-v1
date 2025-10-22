@@ -127,7 +127,7 @@ const CustomerLanding = () => {
   return (
     <div className="">
       <Wrapper>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-5" data-tour="cta-primary">
           {/* first card */}
           <Card className="p-5 flex flex-col gap-8 justify-start ">
             <div className="flex justify-between items-center ">
@@ -139,7 +139,7 @@ const CustomerLanding = () => {
             <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full "></div>
           </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2" data-tour="feature-cards">
             <LandingCard
               icon={<HandCoins />}
               title="PRINCIPAL"

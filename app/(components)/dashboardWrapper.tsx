@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "@/app/(components)/Navbar";
+import JoyrideManager from "@/app/(components)/JoyrideManager";
 import Sidebar from "@/app/(components)/Sidebar";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -55,6 +56,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             <main className="flex flex-col w-full h-full flex-1 bg-gray-50 overflow-auto ">
               <Navbar />
               <div className="overflow-y-auto ">{children}</div>
+              {user && (
+                <JoyrideManager persona={user.role === "admin" ? "admin" : "client"} version="v1" />
+              )}
             </main>
           </div>
         </div>

@@ -126,7 +126,7 @@ const WealthForm: React.FC = () => {
 
   return (
     <>
-      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
+      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} data-tour="wealth-new">
         New Wealth
       </Button>
       <Drawer

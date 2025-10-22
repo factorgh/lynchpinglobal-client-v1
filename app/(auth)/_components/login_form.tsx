@@ -85,6 +85,7 @@ const LoginForm = () => {
               className="w-full px-4 py-2 border rounded-lg focus:outline-none bg-white"
               disabled={isLoading}
               required
+              data-tour="login-email"
             />
           </div>
           <div>
@@ -104,6 +105,7 @@ const LoginForm = () => {
                 required
                 className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                 disabled={isLoading}
+                data-tour="login-password"
               />
               <button
                 type="button"
@@ -123,6 +125,7 @@ const LoginForm = () => {
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
             }`}
+            data-tour="login-submit"
           >
             {isLoading ? <DotLoader /> : "Login"}
           </button>
@@ -130,6 +133,7 @@ const LoginForm = () => {
             <Link
               href="/forgot-password"
               className="text-sm text-blue-500 hover:underline"
+              data-tour="login-forgot"
             >
               Forgot password?
             </Link>

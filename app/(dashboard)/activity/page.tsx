@@ -98,6 +98,7 @@ const ActivityPage: React.FC = () => {
             value={filter}
             onChange={handleFilterChange}
             style={{ width: 180 }}
+            data-tour="activity-filters"
           >
             <Option value="all">All Activities</Option>
             <Option value="7days">Last 7 days</Option>
@@ -117,7 +118,7 @@ const ActivityPage: React.FC = () => {
           tracking and transparency.
         </p>
 
-        <Timeline>
+        <Timeline data-tour="activity-table">
           {filteredActivities.map((activity: any) => (
             <Timeline.Item
               key={activity._id}

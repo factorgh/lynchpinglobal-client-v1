@@ -51,7 +51,7 @@ const Users = () => {
       title: "Actions",
       key: "actions",
       render: (_: any, record: any) => (
-        <Space>
+        <Space data-tour="user-actions">
           <EditOutlined
             className="text-blue-500 mr-2"
             onClick={() => handleEditUser(record)}
@@ -130,11 +130,13 @@ const Users = () => {
         </Button> */}
       </div>
       <Card>
+        <div data-tour="users-table">
         <Table
           loading={isFetching}
           dataSource={dataSource?.allUsers}
           columns={columns}
         />
+        </div>
       </Card>
       <Drawer
         title={selectedUser ? "Edit User" : "Add User"}

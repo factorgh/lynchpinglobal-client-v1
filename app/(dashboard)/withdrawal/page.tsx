@@ -90,7 +90,7 @@ const WithdrawalPage = () => {
           <h1 className="text-2xl font-bold mb-4 text-white mt-7">
             Withdrawals
           </h1>
-          <Button type="primary" onClick={handleShowInboxForm}>
+          <Button type="primary" onClick={handleShowInboxForm} data-tour="withdrawal-new-request">
             Make a Request
           </Button>
         </div>
@@ -101,12 +101,14 @@ const WithdrawalPage = () => {
           />
         )}
         <Card className="mt-3">
+          <div data-tour="withdrawal-table">
           <Table
             loading={isFetching}
             columns={columns}
             dataSource={withdrawals?.data.data}
             rowKey="id"
           />
+          </div>
         </Card>
       </Wrapper>
     </div>

@@ -50,7 +50,7 @@ const Rentals = () => {
               <p className="text-gray-600 text-sm mb-5">
                 Latest rental transactions
               </p>
-              <div>
+              <div data-tour="rental-list">
                 <RentalTable />
               </div>
             </div>
