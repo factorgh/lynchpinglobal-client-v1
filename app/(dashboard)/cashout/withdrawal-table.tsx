@@ -158,12 +158,14 @@ const WithdrawalTable = ({ onEdit }: any) => {
 
   return (
     <>
-      <Table
-        loading={isFetching}
-        columns={columns}
-        dataSource={withdrawals?.data?.data}
-        rowKey="id"
-      />
+      <div data-tour="withdrawal-table">
+        <Table
+          loading={isFetching}
+          columns={columns}
+          dataSource={withdrawals?.data?.data}
+          rowKey="id"
+        />
+      </div>
       <Drawer
         title="Edit Payment"
         placement="right"

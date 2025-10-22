@@ -35,7 +35,7 @@ const clientSteps: Record<string, StepType[]> = {
     { selector: '[data-tour="rental-list"]', content: "Manage rentals" },
   ],
   "/(dashboard)/cashout": [
-    { selector: '[data-tour="cashout-new-payment"]', content: "Create a new payment" },
+    { selector: '[data-tour="cashout-new-payment"]', content: "Create a Profit Payment" },
     { selector: '[data-tour="payment-user"]', content: "Choose the user to pay" },
     { selector: '[data-tour="payment-amount"]', content: "Enter amount" },
     { selector: '[data-tour="payment-requested-date"]', content: "Pick request date" },
@@ -44,8 +44,8 @@ const clientSteps: Record<string, StepType[]> = {
     { selector: '[data-tour="payment-table"]', content: "Review recent payments" },
   ],
   "/(dashboard)/withdrawal": [
-    { selector: '[data-tour="withdrawal-new-request"]', content: "Make a withdrawal request" },
-    { selector: '[data-tour="withdrawal-table"]', content: "Review withdrawal history" },
+    { selector: '[data-tour="withdrawal-new-request"]', content: "Make a Capital Withdrawal request" },
+    { selector: '[data-tour="withdrawal-table"]', content: "Review Capital Withdrawal history" },
   ],
   "/(dashboard)/activity": [
     { selector: '[data-tour="activity-filters"]', content: "Filter history" },

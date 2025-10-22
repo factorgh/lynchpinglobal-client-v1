@@ -1,5 +1,5 @@
 import { formatPriceGHS } from "@/lib/helper";
-import { useGetLoansQuery } from "@/services/loan";
+import { useGetUserLoanQuery } from "@/services/loan";
 import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
 import { Button, Input, Space, Table } from "antd";
@@ -24,7 +24,7 @@ const CustomerLoan: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef<InputRef>(null);
-  const { data: loans, isFetching } = useGetLoansQuery(null);
+  const { data: userLoans, isFetching } = useGetUserLoanQuery(null);
   const [loanDrawerVisible, setLoanDrawerVisible] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState(null);
   const closeLoansDetailsDrawer = () => {
@@ -192,7 +192,8 @@ const CustomerLoan: React.FC = () => {
       <Table<DataType>
         loading={isFetching}
         columns={columns}
-        dataSource={loans?.data.data}
+        dataSource={userLoans?.data.data}
+        rowKey={(r: any) => r._id}
       />
       <LoanDrawer
         loan={selectedLoan}

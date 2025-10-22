@@ -60,10 +60,10 @@ const PaymentForm: React.FC = () => {
   return (
     <>
       <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} data-tour="cashout-new-payment">
-        New Payment
+        Profit Payment
       </Button>
       <Drawer
-        title="Create a New Payment"
+        title="Create Profit Payment"
         width={400}
         onClose={onClose}
         open={open}
