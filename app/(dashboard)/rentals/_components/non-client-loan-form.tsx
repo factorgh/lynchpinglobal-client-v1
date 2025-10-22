@@ -91,7 +91,7 @@ const NonClientLoanForm: React.FC = () => {
 
           <Form.Item
             name="loanRate"
-            label="Loan Rate (%)"
+            label="Interest Rate (%)"
             rules={[{ required: true, message: "Please enter loan rate" }]}
           >
             <Input type="number" placeholder="e.g. 10" />
@@ -99,7 +99,7 @@ const NonClientLoanForm: React.FC = () => {
 
           <Form.Item
             name="overdueRate"
-            label="Overdue Rate (%)"
+            label="Overdue Daily Rate (%)"
             rules={[{ required: true, message: "Please enter overdue rate" }]}
           >
             <Input type="number" placeholder="e.g. 5" />
