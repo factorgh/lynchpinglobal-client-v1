@@ -2,7 +2,7 @@
 
 import { useCreateLoanMutation } from "@/services/loan";
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, DatePicker, Drawer, Form, Input, Select } from "antd";
+import { Button, DatePicker, Drawer, Form, Input, Select, Grid } from "antd";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -10,6 +10,8 @@ const NonClientLoanForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
   const [createLoan, { isLoading }] = useCreateLoanMutation();
+  const screens = Grid.useBreakpoint();
+  const drawerWidth = screens.xl ? 720 : screens.lg ? 640 : screens.md ? 520 : 360;
 
   const showDrawer = () => setOpen(true);
   const onClose = () => setOpen(false);
@@ -50,7 +52,7 @@ const NonClientLoanForm: React.FC = () => {
       </Button>
       <Drawer
         title="New Non-Client Loan"
-        width={1000}
+        width={drawerWidth}
         onClose={onClose}
         open={open}
       >

@@ -79,8 +79,8 @@ const InboxForm = ({ showInboxForm, setShowInboxForm }: any) => {
           rules={[{ required: true, message: "Please select a request type!" }]}
         >
           <Select placeholder="Select Type">
-            <Select.Option value="payment">Payment</Select.Option>
-            <Select.Option value="withdrawal">Withdrawal</Select.Option>
+            <Select.Option value="Profit Payment">Profit Payment</Select.Option>
+            <Select.Option value="Capital Withdrawal">Capital Withdrawal</Select.Option>
           </Select>
         </Form.Item>
 

@@ -45,8 +45,8 @@ const PortfolioPage = () => {
           {/* Tab List */}
           <TabsList className="mb-6">
             <TabsTrigger value="investment">Wealth</TabsTrigger>
-            <TabsTrigger value="assets">Assets</TabsTrigger>
             <TabsTrigger value="loans">Loans</TabsTrigger>
+            <TabsTrigger value="assets">Assets</TabsTrigger>
             <TabsTrigger value="rentals">Rentals</TabsTrigger>
           </TabsList>
 
@@ -58,7 +58,13 @@ const PortfolioPage = () => {
 
           <TabsContent value="assets">
             <h2 className="text-lg font-semibold mb-2">Assets</h2>
-            <p>Coming soon !!!</p>
+            <div className="flex items-center justify-center py-10">
+              <img
+                src="/fallback.png"
+                alt="Coming soon"
+                className="max-w-full h-[40%] w-[40%]"
+              />
+            </div>
             {/* <CustomerAssets /> */}
           </TabsContent>
 
@@ -69,7 +75,13 @@ const PortfolioPage = () => {
 
           <TabsContent value="rentals">
             <h2 className="text-lg font-semibold mb-2">Rentals</h2>
-            <p>Coming soon !!!</p>
+            <div className="flex items-center justify-center py-10 ">
+              <img
+                src="/fallback.png"
+                alt="Coming soon"
+                className="max-w-full h-[40%] w-[40%]"
+              />
+            </div>
             {/* <CustomerRentalsOnly /> */}
           </TabsContent>
         </Tabs>

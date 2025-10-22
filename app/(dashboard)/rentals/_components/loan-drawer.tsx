@@ -1,5 +1,5 @@
 import { formatPriceGHS } from "@/lib/helper";
-import { Card, Col, Descriptions, Drawer, Row, Tag, Typography } from "antd";
+import { Card, Col, Descriptions, Drawer, Row, Tag, Typography, Grid } from "antd";
 import moment from "moment";
 
 interface Loan {
@@ -26,6 +26,8 @@ const LoanDrawer = ({
   onClose: () => void;
   loan?: any;
 }) => {
+  const screens = Grid.useBreakpoint();
+  const drawerWidth = screens.xl ? 720 : screens.lg ? 640 : screens.md ? 520 : 360;
   const handlePreviewOut = (url: string) => {
     window.open(url, "_blank");
   };
@@ -76,7 +78,7 @@ const LoanDrawer = ({
       closable={true}
       onClose={onClose}
       open={visible} // Updated from `visible` to `open`
-      width={600}
+      width={drawerWidth}
     >
       {loan ? (
         <>
