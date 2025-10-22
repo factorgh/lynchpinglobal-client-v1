@@ -456,6 +456,7 @@ const WealthTable = () => {
 
   return (
     <div className="mt-7">
+      <div data-tour="wealth-table">
       <Table
         pagination={{
           pageSize: 10,
@@ -467,6 +468,7 @@ const WealthTable = () => {
         className="border border-slate-200 rounded-md"
         rowKey="_id"
       />
+      </div>
       <Drawer
         title="Edit Wealth"
         placement="right"

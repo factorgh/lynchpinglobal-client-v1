@@ -28,11 +28,11 @@ const clientSteps: Record<string, StepType[]> = {
   ],
   "/(dashboard)/wealth": [
     { selector: '[data-tour="wealth-new"]', content: "Create a new wealth entry" },
+    { selector: '[data-tour="wealth-table"]', content: "Review and manage wealth entries" },
   ],
   "/(dashboard)/rentals": [
-    { selector: '[data-tour="rental-list"]', content: "Active rentals" },
-    { selector: '[data-tour="rental-detail"]', content: "Details and terms" },
-    { selector: '[data-tour="payout-schedule"]', content: "Payout schedule" },
+    { selector: '[data-tour="loan-list"]', content: "Manage loans" },
+    { selector: '[data-tour="rental-list"]', content: "Manage rentals" },
   ],
   "/(dashboard)/cashout": [
     { selector: '[data-tour="cashout-new-payment"]', content: "Create a new payment" },

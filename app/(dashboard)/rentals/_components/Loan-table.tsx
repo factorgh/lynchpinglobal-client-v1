@@ -269,6 +269,7 @@ import LoanDrawer from "./loan-drawer";
 
     return (
       <>
+        <div data-tour="loan-list">
         <Table
           pagination={{
             pageSize: 10,
@@ -280,6 +281,7 @@ import LoanDrawer from "./loan-drawer";
           className="border border-slate-200 rounded-md"
           rowKey="id" // Correct rowKey
         />
+        </div>
         <Drawer
           title="Edit Loan"
           placement="right"
