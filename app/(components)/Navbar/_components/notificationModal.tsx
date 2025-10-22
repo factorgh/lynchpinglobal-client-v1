@@ -24,17 +24,12 @@ const NotificationModal = ({
               <div style={{ display: "flex", alignItems: "center" }}>
                 {/* User Avatar (or default icon) */}
                 <UserOutlined style={{ fontSize: 24, marginRight: 12 }} />
-                <div>
+                <div className="flex flex-col gap-3">
                   {/* Notification Title */}
-                  <Title level={4} style={{ marginBottom: 8 }}>
-                    {notification.title}
-                  </Title>
-                  {/* Notification Message */}
-                  <Text style={{ display: "block", marginBottom: 8 }}>
-                    {notification.message}
-                  </Text>
+                  <p>{notification.title}</p>
+                  <p>{notification.message}</p>
                   {/* Notification Timestamp */}
-                  <Tag color="blue" style={{ fontSize: 12 }}>
+                  <Tag color="blue" style={{ fontSize: 12, width: "30%" }}>
                     {moment(notification.createdAt).fromNow()}
                   </Tag>
                 </div>

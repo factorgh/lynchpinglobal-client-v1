@@ -63,6 +63,9 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
 
     const fileObjects = files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
     setFileCategories((prev) => ({ ...prev, [category]: [...(prev[category] || []), ...fileObjects] }));
+
+    // Auto-upload immediately after selecting files for better UX
+    setTimeout(() => handleUpload(category), 0);
   };
 
   const handleFileDelete = (category: string, index: number) => {
@@ -82,6 +85,10 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
 
     setUploading((prev) => ({ ...prev, [category]: true }));
     try {
+      if (!API_BASE) {
+        toast.error("Upload endpoint is not configured");
+        return;
+      }
       const formData = new FormData();
       formData.append("category", category);
       for (const { file } of entries) {
@@ -90,7 +97,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       const token = getToken();
       const res = await fetch(`${API_BASE}/uploads`, {
         method: "POST",
-        headers: token ? { Authorization: token } : undefined,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body: formData,
       });
       if (!res.ok) throw new Error("Upload failed");
