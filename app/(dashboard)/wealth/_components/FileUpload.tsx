@@ -1,155 +1,247 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Button, Col, Form } from "antd";
+import {
+  UploadOutlined,
+  DeleteOutlined,
+  FileImageOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons";
 import { toast } from "react-toastify";
-import { UploadOutlined } from "@ant-design/icons";
+import { File, FileVideo } from "lucide-react";
 
-const categories = [
+interface FileEntry {
+  file?: File;
+  previewUrl: string;
+  uploaded?: boolean;
+  mimeType?: string;
+  name?: string;
+}
+
+interface FileUploadComponentProps {
+  onFileUpload: (uploadedFiles: Record<string, string[]>) => void;
+  initialFiles?: Record<string, string[]>;
+}
+
+const FILE_CATEGORIES = [
   "certificate",
   "partnerForm",
   "checklist",
   "mandate",
   "others",
-];
-
-interface FileUploadComponentProps {
-  onFileUpload: (uploadedFiles: { [key: string]: string[] }) => void;
-  initialFiles?: { [key: string]: string[] };
-}
+] as const;
 
 const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   onFileUpload,
-  initialFiles = {},
+  initialFiles,
 }) => {
-  const [fileCategories, setFileCategories] = useState<{
-    [key: string]: { file?: File; previewUrl: string; uploaded?: boolean }[];
-  }>({});
-  const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+  const [fileCategories, setFileCategories] = useState<
+    Record<string, FileEntry[]>
+  >({});
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
-  const getToken = () => {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  const getAuthToken = useCallback((): string | null => {
+    if (typeof window === "undefined") return null;
     try {
-      return typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token = localStorage.getItem("token");
+      return token
+        ? token.startsWith("Bearer ")
+          ? token
+          : `Bearer ${token}`
+        : null;
     } catch {
       return null;
     }
-  };
+  }, []);
 
+  /** Initialize with pre-uploaded URLs (only when prop actually changes and is non-empty) */
+  const prevInitialStrRef = useRef<string | null>(null);
   useEffect(() => {
-    const formattedFiles = Object.keys(initialFiles).reduce((acc, category) => {
-      acc[category] = initialFiles[category].map((url) => ({
-        previewUrl: url,
-        uploaded: true,
-      }));
+    const hasInitial = initialFiles && Object.keys(initialFiles).length > 0;
+    const currStr = hasInitial ? JSON.stringify(initialFiles) : null;
+    if (!currStr || currStr === prevInitialStrRef.current) return;
+
+    const formatted = Object.entries(initialFiles as Record<string, string[]>).reduce<
+      Record<string, FileEntry[]>
+    >((acc, [category, urls]) => {
+      acc[category] = urls.map((url) => ({ previewUrl: url, uploaded: true }));
       return acc;
-    }, {} as { [key: string]: { previewUrl: string; uploaded: boolean }[] });
-    setFileCategories(formattedFiles);
+    }, {});
+    setFileCategories(formatted);
+    prevInitialStrRef.current = currStr;
   }, [initialFiles]);
 
+  /** File validation and state update */
   const handleFileChange = (
     category: string,
-    event: React.ChangeEvent<HTMLInputElement> | null
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    if (!event?.target.files) return;
-    const files = Array.from(event.target.files).filter((file) => {
-      const isPdf = file.type === "application/pdf";
-      const isImage = file.type.startsWith("image/");
-      const isVideo = file.type.startsWith("video/");
-      if (!isPdf && !isImage && !isVideo) {
-        toast.error("Only PDF, image, or video files are allowed.");
-        return false;
-      }
-      return true;
+    const selectedFiles = Array.from(e.target.files || []);
+    if (!selectedFiles.length) return;
+
+    const validFiles = selectedFiles.filter((file) => {
+      const valid =
+        file.type === "application/pdf" ||
+        file.type.startsWith("image/") ||
+        file.type.startsWith("video/");
+      if (!valid) toast.error("Only PDF, image, or video files are allowed.");
+      return valid;
     });
 
-    const fileObjects = files.map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
-    setFileCategories((prev) => ({ ...prev, [category]: [...(prev[category] || []), ...fileObjects] }));
+    const newEntries = validFiles.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      mimeType: file.type,
+      name: file.name,
+    }));
 
-    // Auto-upload immediately after selecting files for better UX
-    setTimeout(() => handleUpload(category), 0);
+    setFileCategories((prev) => ({
+      ...prev,
+      [category]: [...(prev[category] || []), ...newEntries],
+    }));
+
+    // Reset input to allow reselecting the same file
+    e.target.value = "";
   };
 
+  /** Delete file locally */
   const handleFileDelete = (category: string, index: number) => {
     setFileCategories((prev) => {
-      const updatedFiles = [...(prev[category] || [])];
-      updatedFiles.splice(index, 1);
-      return { ...prev, [category]: updatedFiles };
+      const updated = [...(prev[category] || [])];
+      updated.splice(index, 1);
+      return { ...prev, [category]: updated };
     });
   };
 
+  /** Upload to backend */
   const handleUpload = async (category: string) => {
     const entries = fileCategories[category] || [];
-    if (!entries.some(({ file }) => !!file)) {
-      toast.error(`No new files to upload for ${category}`);
+    const pending = entries.filter((f) => !f.uploaded && f.file);
+
+    if (!pending.length) {
+      toast.info(`No new files to upload for "${category}".`);
+      return;
+    }
+
+    if (!API_BASE) {
+      toast.error("Upload endpoint not configured.");
       return;
     }
 
     setUploading((prev) => ({ ...prev, [category]: true }));
+
+    const formData = new FormData();
+    formData.append("category", category);
+    pending.forEach(({ file }) => file && formData.append("files", file));
+
+    const token = getAuthToken();
+    const headers: Record<string, string> = token
+      ? { Authorization: token }
+      : {};
+
     try {
-      if (!API_BASE) {
-        toast.error("Upload endpoint is not configured");
-        return;
-      }
-      const formData = new FormData();
-      formData.append("category", category);
-      for (const { file } of entries) {
-        if (file) formData.append("files", file);
-      }
-      const token = getToken();
       const res = await fetch(`${API_BASE}/uploads`, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        headers,
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-      const urls: string[] = (data?.urls || []).map((u: any) => u.secure_url || u.url).filter(Boolean);
+      if (!res.ok) throw new Error((await res.text()) || "Upload failed");
 
-      toast.success(`${category} uploaded successfully!`);
+      const data = await res.json();
+      const urls: string[] = (data?.urls || [])
+        .map((u: any) => u.secure_url || u.url)
+        .filter(Boolean);
+
+      if (!urls.length) throw new Error("Server returned no URLs.");
+
+      toast.success(`${category} uploaded successfully.`);
       onFileUpload({ [category]: urls });
 
       setFileCategories((prev) => ({
         ...prev,
-        [category]: prev[category].map((fileObj) => ({ ...fileObj, uploaded: true })),
+        [category]: prev[category].map((f) => ({ ...f, uploaded: true })),
       }));
-    } catch (error) {
-      toast.error("Upload failed. Try again.");
-      console.error(error);
+    } catch (err: any) {
+      toast.error(err?.message || "Upload failed.");
+      console.error(`[Upload Error - ${category}]`, err);
     } finally {
       setUploading((prev) => ({ ...prev, [category]: false }));
     }
   };
 
+  /** File preview helper */
+  const renderPreview = (url: string, mimeType?: string) => {
+    const isPdf = mimeType?.toLowerCase() === "application/pdf" || /\.pdf($|\?)/i.test(url);
+    const isImage = mimeType?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(url);
+    const isVideo = mimeType?.startsWith("video/") || /\.(mp4|mov|avi|webm|ogg)$/i.test(url);
+
+    if (isPdf) {
+      // Inline PDF preview (works with blob: and Cloudinary URLs). Fallback link is kept.
+      return (
+        <div className="w-28 h-20 border rounded overflow-hidden bg-gray-50">
+          <embed src={url} type="application/pdf" className="w-full h-full" />
+        </div>
+      );
+    }
+    if (isImage) {
+      return (
+        <img
+          src={url}
+          alt="preview"
+          className="w-28 h-20 object-cover rounded border"
+          loading="lazy"
+        />
+      );
+    }
+    if (isVideo) {
+      return (
+        <video
+          src={url}
+          className="w-28 h-20 object-cover rounded border"
+          muted
+          controls={false}
+        />
+      );
+    }
+    return <UploadOutlined />;
+  };
+
   return (
     <div className="grid grid-cols-2 gap-4">
-      {categories.map((category) => (
+      {FILE_CATEGORIES.map((category) => (
         <Col key={category} span={6}>
           <Form.Item
-            label={`Upload ${category.charAt(0).toUpperCase()}${category.slice(1)}`}
+            label={`Upload ${category[0].toUpperCase()}${category.slice(1)}`}
           >
             <input
               type="file"
               accept="application/pdf,image/*,video/*"
-              onChange={(e) => handleFileChange(category, e)}
               multiple
+              onChange={(e) => handleFileChange(category, e)}
             />
 
-            <ul className="w-60 mt-3">
-              {(fileCategories[category] || []).map(({ previewUrl, uploaded }, index) => (
+            <ul className="w-60 mt-3 space-y-1">
+              {(fileCategories[category] || []).map(({ previewUrl, mimeType, name }, index) => (
                 <li
                   key={index}
-                  className="flex items-center justify-between gap-2 p-2 rounded-md border border-gray-200 hover:border-gray-300 cursor-pointer"
+                  className="flex items-center justify-between gap-2 p-2 rounded-md border border-gray-200 hover:border-gray-300"
                 >
-                  <a href={previewUrl} target="_blank" rel="noopener noreferrer">
-                    <img height={30} width={100} src="/pdf-icon.png" alt="PDF Preview" />
-                  </a>
-                 
-                    <span
-                      className="cursor-pointer text-red-500"
-                      onClick={() => handleFileDelete(category, index)}
-                    >
-                      ❌
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    {renderPreview(previewUrl, mimeType)}
+                    <span className="truncate text-sm text-gray-700 max-w-[140px]">
+                      {name || previewUrl.split("/").pop()}
                     </span>
-                  
+                  </a>
+                  <DeleteOutlined
+                    className="text-red-500 cursor-pointer hover:text-red-600"
+                    onClick={() => handleFileDelete(category, index)}
+                  />
                 </li>
               ))}
             </ul>

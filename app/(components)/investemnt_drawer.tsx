@@ -141,8 +141,15 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
     });
   };
 
+  const isPdfUrl = (url: string) => /\.pdf($|\?)/i.test(url);
   const handlePreviewOut = (url: string) => {
-    window.open(url, "_blank");
+    // Use Google Docs Viewer for PDFs to avoid forced-download headers
+    if (isPdfUrl(url)) {
+      const viewer = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
+      window.open(viewer, "_blank", "noopener,noreferrer");
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const addOnColumns = [
@@ -319,11 +326,19 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
               <Row gutter={16}>
                 {investment?.certificate.map((url: string, index: number) => (
                   <Col span={6} key={index}>
-                    <AiOutlineFilePdf
-                      size={40}
-                      className="cursor-pointer text-red-500 mt-3"
-                      onClick={() => handlePreviewOut(url)}
-                    />
+                    <div className="mt-3">
+                      {isPdfUrl(url) ? (
+                        <div className="w-full h-40 border rounded overflow-hidden bg-gray-50 cursor-pointer" onClick={() => handlePreviewOut(url)}>
+                          <embed src={url} type="application/pdf" className="w-full h-full" />
+                        </div>
+                      ) : (
+                        <AiOutlineFilePdf
+                          size={40}
+                          className="cursor-pointer text-red-500"
+                          onClick={() => handlePreviewOut(url)}
+                        />
+                      )}
+                    </div>
                   </Col>
                 ))}
               </Row>
