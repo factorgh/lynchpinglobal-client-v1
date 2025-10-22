@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Wrapper from "../wealth/_components/wapper";
 import LoanForm from "./_components/loan-form";
 import LoanTable from "./_components/Loan-table";
+import NonClientLoanForm from "./_components/non-client-loan-form";
+import NonClientLoanTable from "./_components/non-client-loan-table";
 import RentalForm from "./_components/rental-form";
 import RentalTable from "./_components/rental-table";
 
@@ -28,14 +30,39 @@ const Rentals = () => {
                 <h1 className="text-2xl font-bold text-gray-800">
                   Loan Management
                 </h1>
-                <LoanForm />
               </div>
-              <p className="text-gray-600 text-sm mb-5">
-                Latest asset transactions
-              </p>
-              <div>
-                <LoanTable />
-              </div>
+              <Tabs defaultValue="existing" className="mt-2">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="existing">Existing Clients</TabsTrigger>
+                  <TabsTrigger value="external">Non Clients</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="existing">
+                  <div className="flex justify-between items-center border-b pb-3 mb-3">
+                    <h2 className="text-lg font-semibold text-gray-800">
+                      Existing Clients
+                    </h2>
+                    <LoanForm />
+                  </div>
+                  <p className="text-gray-600 text-sm mb-5">
+                    Loans for registered clients
+                  </p>
+                  <LoanTable external={false} />
+                </TabsContent>
+
+                <TabsContent value="external">
+                  <div className="flex justify-between items-center border-b pb-3 mb-3">
+                    <h2 className="text-lg font-semibold text-gray-800">
+                      No Clients
+                    </h2>
+                    <NonClientLoanForm />
+                  </div>
+                  <p className="text-gray-600 text-sm mb-5">
+                    Quick capture for non-registered clients
+                  </p>
+                  <NonClientLoanTable />
+                </TabsContent>
+              </Tabs>
             </div>
           </TabsContent>
 

@@ -39,7 +39,7 @@ import LoanDrawer from "./loan-drawer";
  * a backend API to fetch and mutate investment data.
  */
 /******  9086d653-a04c-4e0b-bac6-b7052991ffc2  *******/ const LoanTable =
-  () => {
+  ({ external = false }: { external?: boolean }) => {
     const searchInput = useRef(null);
     const { data: investmentData, isFetching: investmentLoading } =
       useGetLoansQuery<any>(null);
@@ -267,6 +267,8 @@ import LoanDrawer from "./loan-drawer";
       },
     ];
 
+    const rows = investmentData?.data?.data?.filter((l: any) => Boolean(l?.isExternal) === external);
+
     return (
       <>
         <div data-tour="loan-list">
@@ -276,7 +278,7 @@ import LoanDrawer from "./loan-drawer";
           }}
           loading={investmentLoading}
           columns={columns}
-          dataSource={investmentData?.data?.data}
+          dataSource={rows}
           // scroll={{ x: 1000 }}
           className="border border-slate-200 rounded-md"
           rowKey="id" // Correct rowKey

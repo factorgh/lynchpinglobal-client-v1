@@ -188,7 +188,7 @@ const LoanForm: React.FC = () => {
             <Col span={24}>
               <Form.Item
                 name="loanRate"
-                label="Loan Rate"
+                label="Loan Rate (%)"
                 rules={[{ required: true, message: "Please enter loan rate" }]}
               >
                 <InputNumber
@@ -206,7 +206,7 @@ const LoanForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="overdueRate"
-                label="Overdue Rate"
+                label="Overdue Rate (%)"
                 rules={[
                   { required: true, message: "Please enter overdue rate" },
                 ]}
@@ -215,6 +215,7 @@ const LoanForm: React.FC = () => {
                   placeholder="Enter overdue rate"
                   style={{ width: "100%" }}
                   min={1}
+                  max={100}
                 />
               </Form.Item>
             </Col>
@@ -241,6 +242,32 @@ const LoanForm: React.FC = () => {
             </Col>
           </Row>
 
+          <Row>
+            <Col span={24}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+                rules={[
+                  { required: true, message: "Please select a start date" },
+                  {
+                    validator: (_, value) => {
+                      const end = form.getFieldValue("dueDate");
+                      if (!value || !end) return Promise.resolve();
+                      try {
+                        if (end.isAfter(value)) return Promise.resolve();
+                        return Promise.reject(new Error("Start date must be before due date"));
+                      } catch {
+                        return Promise.resolve();
+                      }
+                    },
+                  },
+                ]}
+              >
+                <DatePicker style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -248,6 +275,19 @@ const LoanForm: React.FC = () => {
                 label="Due Date"
                 rules={[
                   { required: true, message: "Please select a due date" },
+                  {
+                    validator: (_, value) => {
+                      const start = form.getFieldValue("startDate");
+                      if (!value || !start) return Promise.resolve();
+                      try {
+                        // AntD DatePicker returns dayjs; ensure dueDate > startDate
+                        if (value.isAfter(start)) return Promise.resolve();
+                        return Promise.reject(new Error("Due date must be after start date"));
+                      } catch {
+                        return Promise.resolve();
+                      }
+                    },
+                  },
                 ]}
               >
                 <DatePicker style={{ width: "100%" }} />
@@ -272,20 +312,6 @@ const LoanForm: React.FC = () => {
                     label: quater,
                   }))}
                 />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row>
-            <Col span={24}>
-              <Form.Item
-                name="startDate"
-                label="Start Date"
-                rules={[
-                  { required: true, message: "Please select a start date" },
-                ]}
-              >
-                <DatePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
           </Row>
