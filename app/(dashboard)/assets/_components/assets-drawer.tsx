@@ -14,6 +14,7 @@ import {
 import Title from "antd/es/typography/Title";
 import { useEffect, useState } from "react";
 import { EyeOutlined } from "@ant-design/icons";
+console.log("assets drawer");
 
 const { Text } = Typography;
 
