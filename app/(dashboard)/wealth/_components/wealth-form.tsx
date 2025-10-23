@@ -126,12 +126,17 @@ const WealthForm: React.FC = () => {
 
   return (
     <>
-      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} data-tour="wealth-new">
+      <Button
+        type="primary"
+        onClick={showDrawer}
+        icon={<PlusOutlined />}
+        data-tour="wealth-new"
+      >
         New Wealth
       </Button>
       <Drawer
         title="Create a New Wealth"
-        width={720}
+        width="70%"
         onClose={onClose}
         open={open}
       >
@@ -173,11 +178,16 @@ const WealthForm: React.FC = () => {
                   placeholder="Select co-owners"
                   showSearch
                   filterOption={(input, option) =>
-                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
                   }
                   options={users
                     ?.filter((u: any) => u._id !== form.getFieldValue("userId"))
-                    .map((user: any) => ({ value: user._id, label: user.name }))}
+                    .map((user: any) => ({
+                      value: user._id,
+                      label: user.name,
+                    }))}
                 />
               </Form.Item>
             </Col>

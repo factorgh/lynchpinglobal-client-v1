@@ -62,9 +62,9 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     const currStr = hasInitial ? JSON.stringify(initialFiles) : null;
     if (!currStr || currStr === prevInitialStrRef.current) return;
 
-    const formatted = Object.entries(initialFiles as Record<string, string[]>).reduce<
-      Record<string, FileEntry[]>
-    >((acc, [category, urls]) => {
+    const formatted = Object.entries(
+      initialFiles as Record<string, string[]>
+    ).reduce<Record<string, FileEntry[]>>((acc, [category, urls]) => {
       acc[category] = urls.map((url) => ({ previewUrl: url, uploaded: true }));
       return acc;
     }, {});
@@ -149,9 +149,14 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       if (!res.ok) throw new Error((await res.text()) || "Upload failed");
 
       const data = await res.json();
-      const urls: string[] = (data?.urls || [])
-        .map((u: any) => u.secure_url || u.url)
-        .filter(Boolean);
+      // Support both legacy { urls: [] } and new R2 { uploads: [] }
+      const r2Urls: string[] = Array.isArray(data?.uploads)
+        ? data.uploads.map((u: any) => u.url).filter(Boolean)
+        : [];
+      const legacyUrls: string[] = Array.isArray(data?.urls)
+        ? data.urls.map((u: any) => u.secure_url || u.url).filter(Boolean)
+        : [];
+      const urls: string[] = [...r2Urls, ...legacyUrls];
 
       if (!urls.length) throw new Error("Server returned no URLs.");
 
@@ -172,9 +177,13 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
 
   /** File preview helper */
   const renderPreview = (url: string, mimeType?: string) => {
-    const isPdf = mimeType?.toLowerCase() === "application/pdf" || /\.pdf($|\?)/i.test(url);
-    const isImage = mimeType?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(url);
-    const isVideo = mimeType?.startsWith("video/") || /\.(mp4|mov|avi|webm|ogg)$/i.test(url);
+    const isPdf =
+      mimeType?.toLowerCase() === "application/pdf" || /\.pdf($|\?)/i.test(url);
+    const isImage =
+      mimeType?.startsWith("image/") ||
+      /\.(jpg|jpeg|png|gif|webp|bmp|tiff)$/i.test(url);
+    const isVideo =
+      mimeType?.startsWith("video/") || /\.(mp4|mov|avi|webm|ogg)$/i.test(url);
 
     if (isPdf) {
       // Inline PDF preview (works with blob: and Cloudinary URLs). Fallback link is kept.
@@ -222,28 +231,30 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
             />
 
             <ul className="w-60 mt-3 space-y-1">
-              {(fileCategories[category] || []).map(({ previewUrl, mimeType, name }, index) => (
-                <li
-                  key={index}
-                  className="flex items-center justify-between gap-2 p-2 rounded-md border border-gray-200 hover:border-gray-300"
-                >
-                  <a
-                    href={previewUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2"
+              {(fileCategories[category] || []).map(
+                ({ previewUrl, mimeType, name }, index) => (
+                  <li
+                    key={index}
+                    className="flex items-center justify-between gap-2 p-5 rounded-md border border-gray-200 hover:border-gray-300 "
                   >
-                    {renderPreview(previewUrl, mimeType)}
-                    <span className="truncate text-sm text-gray-700 max-w-[140px]">
-                      {name || previewUrl.split("/").pop()}
-                    </span>
-                  </a>
-                  <DeleteOutlined
-                    className="text-red-500 cursor-pointer hover:text-red-600"
-                    onClick={() => handleFileDelete(category, index)}
-                  />
-                </li>
-              ))}
+                    <a
+                      href={previewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center gap-2"
+                    >
+                      {renderPreview(previewUrl, mimeType)}
+                      <h5 className="truncate text-sm text-gray-700 max-w-[140px]">
+                        {name || previewUrl.split("/").pop()}
+                      </h5>
+                    </a>
+                    <DeleteOutlined
+                      className="text-red-500 cursor-pointer hover:text-red-600"
+                      onClick={() => handleFileDelete(category, index)}
+                    />
+                  </li>
+                )
+              )}
             </ul>
 
             <Button

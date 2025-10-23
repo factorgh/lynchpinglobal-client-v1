@@ -5,13 +5,15 @@ import {
   Descriptions,
   Drawer,
   Image,
+  Button,
   Modal,
   Row,
   Tag,
   Typography,
 } from "antd";
 import Title from "antd/es/typography/Title";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { EyeOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
@@ -49,6 +51,20 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
+
+  // Detect user role for admin-only controls
+  const [userRole, setUserRole] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        setUserRole(parsed?.role ?? null);
+      }
+    } catch (e) {
+      // ignore parsing errors
+    }
+  }, []);
 
   // Handle preview modal for files
   const handlePreview = (fileUrl: string) => {
@@ -147,6 +163,16 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
                     >
                       <Text>{`Certificate ${index + 1}`}</Text>
                     </Card>
+                    {userRole === "admin" && (
+                      <Button
+                        className="mt-2"
+                        icon={<EyeOutlined />}
+                        size="small"
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        Preview
+                      </Button>
+                    )}
                   </Col>
                 ))}
               </Row>
@@ -165,6 +191,16 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
                     >
                       <Text>{`Checklist ${index + 1}`}</Text>
                     </Card>
+                    {userRole === "admin" && (
+                      <Button
+                        className="mt-2"
+                        icon={<EyeOutlined />}
+                        size="small"
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        Preview
+                      </Button>
+                    )}
                   </Col>
                 ))}
               </Row>
@@ -183,6 +219,16 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
                     >
                       <Text>{`Mandate ${index + 1}`}</Text>
                     </Card>
+                    {userRole === "admin" && (
+                      <Button
+                        className="mt-2"
+                        icon={<EyeOutlined />}
+                        size="small"
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        Preview
+                      </Button>
+                    )}
                   </Col>
                 ))}
               </Row>
@@ -201,6 +247,16 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
                     >
                       <Text>{`Partner Form ${index + 1}`}</Text>
                     </Card>
+                    {userRole === "admin" && (
+                      <Button
+                        className="mt-2"
+                        icon={<EyeOutlined />}
+                        size="small"
+                        onClick={() => handlePreviewOut(fileUrl, index)}
+                      >
+                        Preview
+                      </Button>
+                    )}
                   </Col>
                 ))}
               </Row>

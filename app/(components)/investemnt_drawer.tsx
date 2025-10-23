@@ -4,7 +4,7 @@ import {
   useDeleteAddOnMutation,
   useUpdateAddOnMutation,
 } from "@/services/addOn";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import {
   Button,
   Card,
@@ -23,7 +23,7 @@ import {
 } from "antd";
 import Title from "antd/es/typography/Title";
 import moment from "moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
 const { Text } = Typography;
@@ -150,6 +150,60 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       return;
     }
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  // Detect user role for admin-only controls
+  const [userRole, setUserRole] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        setUserRole(parsed?.role ?? null);
+      }
+    } catch (e) {
+      // ignore parsing errors
+    }
+  }, []);
+
+  const renderDocSection = (title: string, list?: string[]) => {
+    if (!Array.isArray(list) || list.length === 0) return null;
+    return (
+      <div>
+        <Title level={5}>{title}</Title>
+        <Row gutter={16}>
+          {list.map((url: string, index: number) => (
+            <Col span={6} key={`${title}-${index}`}>
+              <div className="mt-3 space-y-2">
+                {isPdfUrl(url) ? (
+                  <div
+                    className="w-full h-40 border rounded overflow-hidden bg-gray-50"
+                    onClick={() => handlePreviewOut(url)}
+                  >
+                    <embed src={url} type="application/pdf" className="w-full h-full" />
+                  </div>
+                ) : (
+                  <AiOutlineFilePdf
+                    size={40}
+                    className="cursor-pointer text-red-500"
+                    onClick={() => handlePreviewOut(url)}
+                  />
+                )}
+                {userRole === "admin" && (
+                  <Button
+                    icon={<EyeOutlined />}
+                    onClick={() => handlePreviewOut(url)}
+                    size="small"
+                  >
+                    Preview
+                  </Button>
+                )}
+              </div>
+            </Col>
+          ))}
+        </Row>
+      </div>
+    );
   };
 
   const addOnColumns = [
@@ -320,30 +374,11 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
         </Card>
 
         <Card title="Investment Documents" bordered={false}>
-          {investment?.certificate?.length > 0 && (
-            <div>
-              <Title level={5}>Certificates</Title>
-              <Row gutter={16}>
-                {investment?.certificate.map((url: string, index: number) => (
-                  <Col span={6} key={index}>
-                    <div className="mt-3">
-                      {isPdfUrl(url) ? (
-                        <div className="w-full h-40 border rounded overflow-hidden bg-gray-50 cursor-pointer" onClick={() => handlePreviewOut(url)}>
-                          <embed src={url} type="application/pdf" className="w-full h-full" />
-                        </div>
-                      ) : (
-                        <AiOutlineFilePdf
-                          size={40}
-                          className="cursor-pointer text-red-500"
-                          onClick={() => handlePreviewOut(url)}
-                        />
-                      )}
-                    </div>
-                  </Col>
-                ))}
-              </Row>
-            </div>
-          )}
+          {renderDocSection("Certificates", investment?.certificate)}
+          {renderDocSection("Partner Forms", investment?.partnerForm)}
+          {renderDocSection("Checklists", investment?.checklist)}
+          {renderDocSection("Mandates", investment?.mandate)}
+          {renderDocSection("Others", investment?.others)}
         </Card>
       </Drawer>
 

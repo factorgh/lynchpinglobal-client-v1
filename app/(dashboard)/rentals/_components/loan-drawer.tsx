@@ -1,5 +1,7 @@
 import { formatPriceGHS } from "@/lib/helper";
-import { Card, Col, Descriptions, Drawer, Row, Tag, Typography, Grid } from "antd";
+import { Card, Col, Descriptions, Drawer, Row, Tag, Typography, Grid, Button } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
+import { useEffect, useState } from "react";
 import moment from "moment";
 
 interface Loan {
@@ -12,7 +14,7 @@ interface Loan {
   overdueDate: string;
   agreements: string[];
   others: string[];
-  mandate: string[]; // Added missing property
+  mandate: string[];
 }
 
 const { Text, Title } = Typography;
@@ -32,6 +34,20 @@ const LoanDrawer = ({
     window.open(url, "_blank");
   };
 
+  // Detect user role for admin-only controls
+  const [userRole, setUserRole] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        setUserRole(parsed?.role ?? null);
+      }
+    } catch (e) {
+      // ignore parsing errors
+    }
+  }, []);
+
   const renderAgreements = () => {
     if (loan?.agreements?.length) {
       return (
@@ -43,6 +59,16 @@ const LoanDrawer = ({
                 <Card hoverable onClick={() => handlePreviewOut(fileUrl)}>
                   <Text>{`Agreements ${index + 1}`}</Text>
                 </Card>
+                {userRole === "admin" && (
+                  <Button
+                    className="mt-2"
+                    icon={<EyeOutlined />}
+                    size="small"
+                    onClick={() => handlePreviewOut(fileUrl)}
+                  >
+                    Preview
+                  </Button>
+                )}
               </Col>
             ))}
           </Row>
@@ -62,6 +88,16 @@ const LoanDrawer = ({
                 <Card hoverable onClick={() => handlePreviewOut(fileUrl)}>
                   <Text>{`Agreements ${index + 1}`}</Text>
                 </Card>
+                {userRole === "admin" && (
+                  <Button
+                    className="mt-2"
+                    icon={<EyeOutlined />}
+                    size="small"
+                    onClick={() => handlePreviewOut(fileUrl)}
+                  >
+                    Preview
+                  </Button>
+                )}
               </Col>
             ))}
           </Row>
