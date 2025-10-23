@@ -143,12 +143,6 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
 
   const isPdfUrl = (url: string) => /\.pdf($|\?)/i.test(url);
   const handlePreviewOut = (url: string) => {
-    // Use Google Docs Viewer for PDFs to avoid forced-download headers
-    if (isPdfUrl(url)) {
-      const viewer = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
-      window.open(viewer, "_blank", "noopener,noreferrer");
-      return;
-    }
     window.open(url, "_blank", "noopener,noreferrer");
   };
 

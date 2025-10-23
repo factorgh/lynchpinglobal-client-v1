@@ -31,7 +31,7 @@ const LoanDrawer = ({
   const screens = Grid.useBreakpoint();
   const drawerWidth = screens.xl ? 720 : screens.lg ? 640 : screens.md ? 520 : 360;
   const handlePreviewOut = (url: string) => {
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   // Detect user role for admin-only controls

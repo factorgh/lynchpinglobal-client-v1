@@ -68,8 +68,8 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
 
   // Handle preview modal for files
   const handlePreview = (fileUrl: string) => {
-    setPreviewFile(fileUrl); // Set the file URL to preview
-    setIsPreviewVisible(true); // Open the modal for preview
+    setPreviewFile(fileUrl);
+    setIsPreviewVisible(true);
   };
 
   // Close the preview modal
@@ -91,7 +91,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
 
   const handlePreviewOut = (previewFile: string, index: number) => {
     setEditModalVisible(false);
-    window.open(previewFile, "_blank");
+    window.open(previewFile, "_blank", "noopener,noreferrer");
   };
 
   return (
