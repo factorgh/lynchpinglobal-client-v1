@@ -27,15 +27,25 @@ const TermsPage = () => {
 
   const fetchFiles = async () => {
     try {
-      const res = await fetch(`${API_BASE}/uploads/list?category=terms`);
-      if (!res.ok) throw new Error("Failed to fetch terms");
-      const data = await res.json();
-      const files = (data?.files || [])
-        .filter(
-          (f: any) =>
-            f?.url && (f.resource_type === "image" || f.format === "pdf")
-        )
+      // DB-first fetch for consistency (use 'conditions' category)
+      const dbRes = await fetch(`${API_BASE}/uploads/db?category=conditions&provider=any`);
+      if (!dbRes.ok) throw new Error("Failed to fetch terms");
+      const dbData = await dbRes.json();
+      let files = (dbData?.files || [])
+        .filter((f: any) => f?.url && (f.resource_type === "image" || f.format === "pdf"))
         .map((f: any) => ({ name: f.filename || f.public_id, url: f.url }));
+
+      // Fallback to provider listing (R2) if DB empty
+      if (files.length === 0) {
+        const r2Res = await fetch(`${API_BASE}/uploads/list?category=conditions&provider=r2`);
+        if (r2Res.ok) {
+          const r2Data = await r2Res.json();
+          files = (r2Data?.files || [])
+            .filter((f: any) => f?.url && (f.resource_type === "image" || f.format === "pdf"))
+            .map((f: any) => ({ name: f.filename || f.public_id, url: f.url }));
+        }
+      }
+
       setPdfUrls(files);
       if (files.length > 0) setSelectedPdf(files[0].url);
     } catch (error) {
@@ -52,7 +62,7 @@ const TermsPage = () => {
         return;
       }
       const formData = new FormData();
-      formData.append("category", "terms");
+      formData.append("category", "conditions");
       formData.append("files", file);
       const token = getToken();
       const res = await fetch(`${API_BASE}/uploads`, {

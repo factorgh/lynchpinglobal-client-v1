@@ -1,6 +1,6 @@
 "use client";
 import { DeleteOutlined } from "@ant-design/icons";
-import { Button, List, Upload, message } from "antd";
+import { Button, List, Upload, message, Typography, Card, Space, Empty, Popconfirm } from "antd";
 import { useEffect, useState } from "react";
 
 const ConditionsUploader = () => {
@@ -25,21 +25,49 @@ const ConditionsUploader = () => {
   const fetchFiles = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/uploads/list?category=conditions`);
-      if (!res.ok) throw new Error("Failed to fetch terms");
-      const data = await res.json();
-      const mapped = (data?.files || []).map((f: any) => ({
+      // DB-first fetch (authoritative)
+      const dbRes = await fetch(`${API_BASE}/uploads/db?category=conditions&provider=any`);
+      if (!dbRes.ok) throw new Error("Failed to fetch terms");
+      const dbData = await dbRes.json();
+      let items = (dbData?.files || []).map((f: any) => ({
         name: f.filename || f.public_id,
         url: f.url,
         public_id: f.public_id,
+        resource_type: f.resource_type,
+        size: f.bytes,
       }));
-      setFiles(mapped);
+
+      // Fallback to direct R2 listing if DB returns empty
+      if (items.length === 0) {
+        const r2Res = await fetch(`${API_BASE}/uploads/list?category=conditions&provider=r2`);
+        if (r2Res.ok) {
+          const r2Data = await r2Res.json();
+          items = (r2Data?.files || []).map((f: any) => ({
+            name: f.filename || f.public_id,
+            url: f.url,
+            public_id: f.public_id,
+            resource_type: f.resource_type,
+            size: f.bytes,
+          }));
+        }
+      }
+
+      setFiles(items);
     } catch (error) {
       console.error("Error fetching files:", error);
       message.error("Failed to fetch terms and conditions.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatBytes = (bytes?: number) => {
+    if (!bytes && bytes !== 0) return "";
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB", "TB"]; 
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
   };
 
   const handleUpload = async (file: any) => {
@@ -71,82 +99,132 @@ const ConditionsUploader = () => {
     return false;
   };
 
-  const handleDelete = async (public_id: string) => {
+  const handleDelete = async (public_id: string, resource_type?: string) => {
     try {
       setLoading(true);
       const token = getToken();
-      const res = await fetch(`${API_BASE}/uploads?public_id=${encodeURIComponent(public_id)}`, {
+      const qs = new URLSearchParams({ public_id, provider: "r2" });
+      if (resource_type) qs.set("resource_type", resource_type);
+      const res = await fetch(`${API_BASE}/uploads?${qs.toString()}`, {
         method: "DELETE",
-        headers: token ? { Authorization: token } : undefined,
+        headers: token
+          ? {
+              Authorization: token.startsWith("Bearer ")
+                ? token
+                : `Bearer ${token}`,
+            }
+          : undefined,
       });
-      if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) {
+        let msg = "Delete failed";
+        try {
+          const body = await res.json();
+          if (body?.message) msg = body.message;
+        } catch {}
+        throw new Error(msg);
+      }
       message.success(`Deleted successfully.`);
       fetchFiles();
     } catch (error) {
       console.error("Delete error:", error);
-      message.error("Failed to delete file.");
+      message.error((error as Error)?.message || "Failed to delete file.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "auto", padding: "20px" }}>
-      <h2>Terms and Conditions Uploader</h2>
-
-      {/* Upload Button */}
-      <Upload
-        beforeUpload={(file) => {
-          const isPdf = file.type === "application/pdf";
-          if (!isPdf) {
-            message.error("You can only upload PDF files.");
-          }
-          return isPdf || Upload.LIST_IGNORE;
-        }}
-        customRequest={({ file }) => handleUpload(file)} // Use custom upload handler
-        showUploadList={false} // Hide default file list
-      >
-        <Button type="primary" loading={loading} data-tour="acknowledge">
-          Upload Terms & Conditions
-        </Button>
-      </Upload>
-
-      {/* List of Uploaded Files */}
-      <h3 style={{ marginTop: "20px" }}>Uploaded Files:</h3>
-      {!loading && files.length === 0 ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: "24px" }}>
-          <img
-            src="/empty-doc.svg"
-            alt="No terms and conditions found"
-            style={{ maxWidth: "320px", width: "100%", height: "auto", opacity: 0.85 }}
-          />
+    <div style={{ maxWidth: 940, margin: "0 auto", padding: 24 }}>
+      <Space direction="vertical" size={16} style={{ width: "100%" }}>
+        <div>
+          <Typography.Title level={3} style={{ marginBottom: 4 }}>
+            Terms and Conditions
+          </Typography.Title>
+          <Typography.Text type="secondary">
+            Upload and manage your Terms & Conditions documents (PDF only).
+          </Typography.Text>
         </div>
-      ) : (
-        <List
-          loading={loading}
-          bordered
-          dataSource={files}
-          data-tour="policy-view"
-          renderItem={(file: any) => (
-            <List.Item
-              actions={[
-                <Button
-                  type="link"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDelete(file.public_id)}
+
+        <Card>
+          <Upload.Dragger
+            multiple={false}
+            accept="application/pdf"
+            beforeUpload={(file) => {
+              const isPdf = file.type === "application/pdf";
+              if (!isPdf) message.error("You can only upload PDF files.");
+              return isPdf || Upload.LIST_IGNORE;
+            }}
+            customRequest={({ file }) => handleUpload(file)}
+            showUploadList={false}
+            disabled={loading}
+          >
+            <p style={{ marginBottom: 8 }}>
+              <Typography.Text strong>Drag & drop a PDF here</Typography.Text>
+            </p>
+            <Typography.Text type="secondary">
+              or click to browse and upload
+            </Typography.Text>
+          </Upload.Dragger>
+        </Card>
+
+        <Card title="Uploaded Files" bodyStyle={{ paddingTop: 0 }}>
+          {!loading && files.length === 0 ? (
+            <Empty
+              image={
+                <img
+                  src="/empty-doc.svg"
+                  alt="No terms and conditions found"
+                  style={{ maxWidth: 200, opacity: 0.9 }}
+                />
+              }
+              description={<span>No files yet</span>}
+            />
+          ) : (
+            <List
+              loading={loading}
+              itemLayout="horizontal"
+              dataSource={files}
+              data-tour="policy-view"
+              renderItem={(file: any) => (
+                <List.Item
+                  actions={[
+                    <Button
+                      key="view"
+                      type="link"
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View
+                    </Button>,
+                    <Popconfirm
+                      key="delete"
+                      title="Delete file"
+                      description={`Delete “${file.name}”?`}
+                      okText="Delete"
+                      okButtonProps={{ danger: true }}
+                      onConfirm={() => handleDelete(file.public_id, file.resource_type)}
+                    >
+                      <Button type="link" danger icon={<DeleteOutlined />}>
+                        Delete
+                      </Button>
+                    </Popconfirm>,
+                  ]}
                 >
-                  Delete
-                </Button>,
-              ]}
-            >
-              <a href={file.url} target="_blank" rel="noopener noreferrer">
-                {file.name}
-              </a>
-            </List.Item>
+                  <List.Item.Meta
+                    title={
+                      <a href={file.url} target="_blank" rel="noopener noreferrer">
+                        {file.name}
+                      </a>
+                    }
+                    description={formatBytes(file.size)}
+                  />
+                </List.Item>
+              )}
+            />
           )}
-        />
-      )}
+        </Card>
+      </Space>
     </div>
   );
 };
