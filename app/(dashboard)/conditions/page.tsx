@@ -106,36 +106,47 @@ const ConditionsUploader = () => {
         customRequest={({ file }) => handleUpload(file)} // Use custom upload handler
         showUploadList={false} // Hide default file list
       >
-        <Button type="primary" loading={loading}>
+        <Button type="primary" loading={loading} data-tour="acknowledge">
           Upload Terms & Conditions
         </Button>
       </Upload>
 
       {/* List of Uploaded Files */}
       <h3 style={{ marginTop: "20px" }}>Uploaded Files:</h3>
-      <List
-        loading={loading}
-        bordered
-        dataSource={files}
-        renderItem={(file: any) => (
-          <List.Item
-            actions={[
-              <Button
-                type="link"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleDelete(file.public_id)}
-              >
-                Delete
-              </Button>,
-            ]}
-          >
-            <a href={file.url} target="_blank" rel="noopener noreferrer">
-              {file.name}
-            </a>
-          </List.Item>
-        )}
-      />
+      {!loading && files.length === 0 ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: "24px" }}>
+          <img
+            src="/empty-doc.svg"
+            alt="No terms and conditions found"
+            style={{ maxWidth: "320px", width: "100%", height: "auto", opacity: 0.85 }}
+          />
+        </div>
+      ) : (
+        <List
+          loading={loading}
+          bordered
+          dataSource={files}
+          data-tour="policy-view"
+          renderItem={(file: any) => (
+            <List.Item
+              actions={[
+                <Button
+                  type="link"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleDelete(file.public_id)}
+                >
+                  Delete
+                </Button>,
+              ]}
+            >
+              <a href={file.url} target="_blank" rel="noopener noreferrer">
+                {file.name}
+              </a>
+            </List.Item>
+          )}
+        />
+      )}
     </div>
   );
 };

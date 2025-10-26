@@ -13,7 +13,9 @@ const TermsPage = () => {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
   const getToken = () => {
     try {
-      return typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      return typeof window !== "undefined"
+        ? localStorage.getItem("token")
+        : null;
     } catch {
       return null;
     }
@@ -29,7 +31,10 @@ const TermsPage = () => {
       if (!res.ok) throw new Error("Failed to fetch terms");
       const data = await res.json();
       const files = (data?.files || [])
-        .filter((f: any) => f?.url && (f.resource_type === "image" || f.format === "pdf"))
+        .filter(
+          (f: any) =>
+            f?.url && (f.resource_type === "image" || f.format === "pdf")
+        )
         .map((f: any) => ({ name: f.filename || f.public_id, url: f.url }));
       setPdfUrls(files);
       if (files.length > 0) setSelectedPdf(files[0].url);
@@ -100,11 +105,13 @@ const TermsPage = () => {
               if (file) handleUploadTerms(file);
             }}
           />
-          <Button type="primary">Upload Terms (PDF)</Button>
+          {/* <Button type="primary" data-tour="acknowledge">
+            Upload Terms (PDF)
+          </Button> */}
         </label>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4" data-tour="policy-view">
         {selectedPdf ? (
           <iframe
             src={selectedPdf}
@@ -114,9 +121,24 @@ const TermsPage = () => {
             style={{ border: "none" }}
           />
         ) : (
-          <h4 className="text-center text-xl text-gray-500">
-            No Terms & Conditions found
-          </h4>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              padding: "24px",
+            }}
+          >
+            <img
+              src="/empty-doc.svg"
+              alt="No terms and conditions found"
+              style={{
+                maxWidth: "320px",
+                width: "100%",
+                height: "auto",
+                opacity: 0.85,
+              }}
+            />
+          </div>
         )}
       </div>
     </Wrapper>

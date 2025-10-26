@@ -118,10 +118,10 @@ const RegisterForm = () => {
 
       <div className="relative z-10 w-full max-w-md bg-gray-50 shadow-lg rounded-lg p-8">
         <img src="/lynch.png" alt="Logo" className="w-32 mx-auto mb-6" />
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 text-center mb-6" data-tour="register-policy">
           Register to Lynchpin Global
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" data-tour="register-form">
           {/* Display Name */}
           <div>
             <label
@@ -325,6 +325,7 @@ const RegisterForm = () => {
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
             }`}
+            data-tour="register-submit"
           >
             {isLoading ? "Registering..." : "Register"}
           </button>

@@ -55,9 +55,10 @@ export default function ChangePasswordPage() {
             onChange={(e) => setCurrentPassword(e.target.value)}
             className="w-full border rounded px-3 py-2 focus:outline-none"
             placeholder="********"
+            data-tour="old-password"
           />
         </div>
-        <div>
+        <div data-tour="strength-meter">
           <label className="block text-sm font-medium mb-1">New password</label>
           <input
             type="password"
@@ -66,6 +67,7 @@ export default function ChangePasswordPage() {
             onChange={(e) => setNewPassword(e.target.value)}
             className="w-full border rounded px-3 py-2 focus:outline-none"
             placeholder="********"
+            data-tour="new-password"
           />
         </div>
         <div>

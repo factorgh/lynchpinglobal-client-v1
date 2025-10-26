@@ -4,71 +4,78 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { TourProvider, useTour, type StepType } from "@reactour/tour";
 import { getSteps, type TourPersona } from "@/lib/tour/steps";
+import { useAuth } from "@/context/authContext";
 
-type Step = {
-  target: string; // CSS selector
-  content: StepType["content"]; // align with @reactour/tour expected type
-  placement?: string; // we'll map 'center' to position: 'center'
-  disableBeacon?: boolean;
+// 🎯 Utility: localStorage-safe helper
+const storage = {
+  get: (key: string) => {
+    if (typeof window === "undefined") return null;
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  set: (key: string, value: string) => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(key, value);
+    } catch {}
+  },
+  remove: (key: string) => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.removeItem(key);
+    } catch {}
+  },
 };
 
-const routesSteps: Record<string, Step[]> = {};
-
+// 🧭 Auto-start when unseen
 function AutoStartTour({ storageKey }: { storageKey: string }) {
-  const { setIsOpen, isOpen } = useTour();
+  const { setIsOpen } = useTour();
+
   React.useEffect(() => {
-    try {
-      const seen =
-        typeof window !== "undefined" && localStorage.getItem(storageKey);
-      if (!seen) setIsOpen(true);
-    } catch {
-      setIsOpen(true);
+    const seen = storage.get(storageKey);
+    if (!seen) {
+      // Wait for DOM to stabilize and ensure tour-ready elements exist
+      const checkTourReady = () => {
+        const hasTourElements = document.querySelectorAll('[data-tour]').length > 0;
+        if (hasTourElements) {
+          setIsOpen(true);
+        } else {
+          setTimeout(checkTourReady, 200);
+        }
+      };
+      
+      const timer = setTimeout(checkTourReady, 600);
+      return () => clearTimeout(timer);
     }
   }, [storageKey, setIsOpen]);
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (isOpen === false) {
-      try {
-        localStorage.setItem(storageKey, "1");
-      } catch {}
-    }
-  }, [isOpen, storageKey]);
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [setIsOpen]);
+
   return null;
 }
 
-function OpenTourButton({ storageKey }: { storageKey: string }) {
+// 🆘 Floating control buttons
+function TourControls({ storageKey }: { storageKey: string }) {
   const { setIsOpen } = useTour();
-  const restart = () => {
-    try {
-      localStorage.removeItem(storageKey);
-    } catch {}
+
+  const handleOpen = () => setIsOpen(true);
+  const handleRestart = () => {
+    storage.remove(storageKey);
     setIsOpen(true);
   };
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
+    <div className="fixed bottom-5 right-5 z-[9999] flex gap-2">
       <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="rounded-full bg-black/80 text-white px-3 py-2 text-sm hover:bg-black"
-        aria-label="Open tour"
+        onClick={handleOpen}
+        className="rounded-full bg-black text-white text-xs px-4 py-2 hover:bg-gray-900 shadow-md"
       >
         Help
       </button>
       <button
-        type="button"
-        onClick={restart}
-        className="rounded-full bg-gray-700/80 text-white px-3 py-2 text-sm hover:bg-gray-700"
-        aria-label="Restart tour"
+        onClick={handleRestart}
+        className="rounded-full bg-gray-700 text-white text-xs px-4 py-2 hover:bg-gray-800 shadow-md"
       >
         Restart
       </button>
@@ -76,67 +83,83 @@ function OpenTourButton({ storageKey }: { storageKey: string }) {
   );
 }
 
+// 🔢 Step indicator
 function ProgressBadge() {
   const { steps, currentStep, isOpen } = useTour();
   if (!isOpen || !steps?.length) return null;
-  const total = steps.length;
-  const idx = (currentStep ?? 0) + 1;
   return (
-    <div
-      aria-live="polite"
-      className="fixed bottom-4 left-4 z-50 rounded bg-black/70 text-white px-2 py-1 text-xs"
-    >
-      {idx}/{total}
+    <div className="fixed bottom-5 left-5 z-[9999] bg-black/80 text-white text-xs px-3 py-1 rounded-full shadow-md">
+      Step {(currentStep ?? 0) + 1} / {steps.length}
     </div>
   );
 }
 
-export default function JoyrideManager({
-  persona = "client",
+// 🧭 Main Manager
+export default function TourManager({
+  persona,
   version = "v1",
 }: {
   persona?: TourPersona;
   version?: string;
 }) {
+  const { roles } = useAuth();
+  const authPersona: TourPersona = roles === "admin" ? "admin" : "client";
+  const activePersona: TourPersona = persona ?? authPersona;
   const pathname = usePathname() || "/";
-  const storageKey = `tour_seen:${persona}:${version}:${pathname}`;
+  const storageKey = `tour_seen:${activePersona}:${version}:${pathname}`;
   const [mounted, setMounted] = React.useState(false);
+  
   React.useEffect(() => setMounted(true), []);
 
-  const steps: StepType[] = React.useMemo(() => {
-    const s = getSteps(persona, pathname);
-    // passthrough since StepType already matches
-    return s;
-  }, [persona, pathname]);
+  const steps = React.useMemo<StepType[]>(() => {
+    const stepList = getSteps(activePersona, pathname);
+    // Validate steps exist
+    if (!stepList || stepList.length === 0) {
+      console.warn(`No tour steps found for persona: ${activePersona}, path: ${pathname}`);
+      return [];
+    }
+    return stepList;
+  }, [activePersona, pathname]);
 
   if (!mounted) return null;
+  
+  // Don't render tour if no valid steps
+  if (!steps || steps.length === 0) return null;
 
   return (
     <TourProvider
       steps={steps}
-      onClickClose={({ setIsOpen }) => {
-        try {
-          localStorage.setItem(storageKey, "1");
-        } catch {}
-        setIsOpen(false);
-      }}
-      onClickMask={({ setIsOpen, steps: allSteps, currentStep }) => {
-        try {
-          // Mark as seen when closing from mask, especially on last step or single-step tours
-          if (
-            !allSteps ||
-            allSteps.length <= 1 ||
-            currentStep === (allSteps?.length || 1) - 1
-          ) {
-            localStorage.setItem(storageKey, "1");
-          }
-        } catch {}
-        setIsOpen(false);
-      }}
+      disableInteraction={false}
       scrollSmooth
+      padding={8}
+      styles={{
+        maskArea: (base) => ({
+          ...base,
+          rx: 12,
+        }),
+        popover: (base) => ({
+          ...base,
+          borderRadius: 12,
+          maxWidth: 300,
+          backgroundColor: "#fff",
+          color: "#111",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.1), 0 2px 10px rgba(0,0,0,0.05)",
+        }),
+        badge: (base) => ({ ...base, display: "none" }),
+      }}
+      onClickClose={({ setIsOpen }) => {
+        storage.set(storageKey, "1");
+        setIsOpen(false);
+      }}
+      onClickMask={({ setIsOpen, steps, currentStep }) => {
+        if (!steps || steps.length <= 1 || currentStep === steps.length - 1) {
+          storage.set(storageKey, "1");
+        }
+        setIsOpen(false);
+      }}
     >
       <AutoStartTour storageKey={storageKey} />
-      <OpenTourButton storageKey={storageKey} />
+      <TourControls storageKey={storageKey} />
       <ProgressBadge />
     </TourProvider>
   );
