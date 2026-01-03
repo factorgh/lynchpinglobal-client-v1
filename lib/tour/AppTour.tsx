@@ -80,7 +80,6 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
       showProgress: true,
       animate: true,
       allowClose: true,
-      overlayClickNext: false,
       stagePadding: 10,
       stageRadius: 8,
       popoverClass: "lynchpin-tour-popover",
@@ -91,9 +90,6 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
       onDestroyStarted: () => {
         storage.set(`tour_${newTourKey}`, "seen");
         driverInstance.destroy();
-      },
-      onDestroyed: () => {
-        // Tour completed or closed
       },
       steps: steps,
     });
