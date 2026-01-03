@@ -73,9 +73,9 @@ const Sidebar = () => {
       </div>
 
       {/* LINKS */}
-      <div className="flex-grow mt-2">
+      <div className="flex-grow mt-2" data-tour="sidebar-nav">
         {roles === "user" ? (
-          <>
+          <div data-tour="client-menu">
             <SidebarLink
               href="/landing"
               icon={ChartNoAxesCombined}
@@ -88,9 +88,9 @@ const Sidebar = () => {
               icon={Handshake}
               label="Terms & Conditions"
             />
-          </>
+          </div>
         ) : (
-          <>
+          <div data-tour="admin-menu">
             <SidebarLink href="/dashboard" icon={Layout} label="Dashboard" />
             <SidebarLink
               href="/wealth"
@@ -115,7 +115,7 @@ const Sidebar = () => {
               icon={ReceiptText}
               label="Terms Uploader"
             />
-          </>
+          </div>
         )}
         {/* Dynamically imported SignOutButton */}
         <SignOutButton />

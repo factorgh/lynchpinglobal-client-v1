@@ -32,6 +32,19 @@ export const AuthApi = baseApi.injectEndpoints({
           body: data,
         }),
       }),
+      // Change password using old password verification (no email required)
+      changePassword: builder.mutation({
+        query: (data: {
+          identifier: string;
+          currentPassword: string;
+          newPassword: string;
+          newPasswordConfirm: string;
+        }) => ({
+          url: "/auth/changePassword",
+          method: "POST",
+          body: data,
+        }),
+      }),
       updatePassword: builder.mutation({
         query: (data: any) => ({
           url: "/auth/updatePassword",
@@ -60,6 +73,7 @@ export const {
   useSignupMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
+  useChangePasswordMutation,
   useUpdatePasswordMutation,
   useGetUsersQuery,
   useGetAdminsQuery,

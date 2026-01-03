@@ -1,8 +1,8 @@
 "use client";
 
 import Navbar from "@/app/(components)/Navbar";
-import JoyrideManager from "@/app/(components)/JoyrideManager";
 import Sidebar from "@/app/(components)/Sidebar";
+import AppTour from "@/lib/tour/AppTour";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -34,7 +34,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (user) {
-      if (user.role === "admin") {
+      if (user.role === "admin" || user.role === "superadmin") {
         router.push("/dashboard"); // Redirect admins to the admin dashboard.
       } else if (user.role === "user") {
         router.push("/landing"); // Redirect regular users to their dashboard.
@@ -57,7 +57,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               <Navbar />
               <div className="overflow-y-auto ">{children}</div>
               {user && (
-                <JoyrideManager persona={user.role === "admin" ? "admin" : "client"} version="v1" />
+                <AppTour 
+                  persona={user.role === "admin" || user.role === "superadmin" ? "admin" : "client"} 
+                  autoStart={true}
+                />
               )}
             </main>
           </div>

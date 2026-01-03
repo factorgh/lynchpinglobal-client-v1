@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 import Notification from "./(components)/Notification";
-import TourManager from "@/lib/tour/TourManager";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -33,7 +32,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <TourManager />
           {children}
         </Providers>
         <Notification />

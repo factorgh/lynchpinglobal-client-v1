@@ -17,10 +17,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Load roles from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedRoles = JSON.parse(localStorage.getItem("roles") || "");
-      console.log(storedRoles);
-      if (storedRoles) {
-        setRolesState(storedRoles);
+      try {
+        const storedValue = localStorage.getItem("roles");
+        if (storedValue) {
+          const storedRoles = JSON.parse(storedValue);
+          console.log(storedRoles);
+          if (storedRoles) {
+            setRolesState(storedRoles);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing roles from localStorage:", error);
       }
     }
   }, []);
@@ -28,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const setRoles = (newRoles: string) => {
     setRolesState(newRoles);
     if (typeof window !== "undefined") {
-      localStorage.setItem("roles", newRoles);
+      localStorage.setItem("roles", JSON.stringify(newRoles));
     }
   };
 

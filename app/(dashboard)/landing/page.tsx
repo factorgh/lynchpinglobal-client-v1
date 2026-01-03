@@ -172,7 +172,7 @@ const CustomerLanding = () => {
         </div>
         <Divider className="bg-white" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6" data-tour="yield-cards">
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="ONE-OFF YIELD"
@@ -198,13 +198,13 @@ const CustomerLanding = () => {
               color="bg-red-400"
             />
           </div>
-          <Card className="p-3 ">
+          <Card className="p-3" data-tour="assets-under">
             <AssetsUnder
               loading={isFetching}
               dataSource={assetsData?.data.data}
             />
           </Card>
-          <Card className="p-3">
+          <Card className="p-3" data-tour="payments-list">
             <CustomList
               dataSource={userPayments?.data.data}
               loading={isFetchingPayment}

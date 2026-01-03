@@ -135,7 +135,7 @@ const LoginForm = () => {
               className="text-sm text-blue-500 hover:underline"
               data-tour="login-forgot"
             >
-              Forgot password?
+              Change password?
             </Link>
           </div>
         </form>

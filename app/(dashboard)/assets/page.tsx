@@ -23,6 +23,7 @@ const Assets = () => {
             borderBottom: "2px solid #e5e7eb", // Underline for separation
             paddingBottom: "10px",
           }}
+          data-tour="asset-header"
         >
           <h1
             style={{
@@ -33,7 +34,9 @@ const Assets = () => {
           >
             Asset Management
           </h1>
-          <AssetForm />
+          <span data-tour="asset-form">
+            <AssetForm />
+          </span>
         </div>
         <p
           style={{
@@ -45,7 +48,7 @@ const Assets = () => {
         >
           Latest asset transactions
         </p>
-        <div>
+        <div data-tour="asset-table">
           <AssetTable />
         </div>
       </div>

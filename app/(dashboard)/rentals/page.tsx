@@ -16,9 +16,9 @@ const Rentals = () => {
         <h1 className="text-2xl font-bold mb-4 text-white">Loans & Rentals</h1>
 
         {/* Custom Tabs using your UI library */}
-        <Tabs defaultValue="loan">
+        <Tabs defaultValue="loan" data-tour="rentals-tabs">
           {/* Tab List */}
-          <TabsList className="mb-6">
+          <TabsList className="mb-6" data-tour="rentals-tab-list">
             <TabsTrigger value="loan">Loan Management</TabsTrigger>
             <TabsTrigger value="rentals">Asset Rentals</TabsTrigger>
           </TabsList>
@@ -38,16 +38,20 @@ const Rentals = () => {
                 </TabsList>
 
                 <TabsContent value="existing">
-                  <div className="flex justify-between items-center border-b pb-3 mb-3">
+                  <div className="flex justify-between items-center border-b pb-3 mb-3" data-tour="loan-header">
                     <h2 className="text-lg font-semibold text-gray-800">
                       Existing Clients
                     </h2>
-                    <LoanForm />
+                    <span data-tour="loan-form">
+                      <LoanForm />
+                    </span>
                   </div>
                   <p className="text-gray-600 text-sm mb-5">
                     Loans for registered clients
                   </p>
-                  <LoanTable external={false} />
+                  <div data-tour="loan-list">
+                    <LoanTable external={false} />
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="external">
@@ -68,11 +72,13 @@ const Rentals = () => {
 
           <TabsContent value="rentals">
             <div className="p-5 bg-gray-50 rounded-lg shadow-md mb-5">
-              <div className="flex justify-between items-center border-b-2 pb-3 mb-3">
+              <div className="flex justify-between items-center border-b-2 pb-3 mb-3" data-tour="rental-header">
                 <h1 className="text-2xl font-bold text-gray-800">
                   Rentals Management
                 </h1>
-                <RentalForm />
+                <span data-tour="rental-form">
+                  <RentalForm />
+                </span>
               </div>
               <p className="text-gray-600 text-sm mb-5">
                 Latest rental transactions

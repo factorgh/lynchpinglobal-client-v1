@@ -41,9 +41,9 @@ const PortfolioPage = () => {
     <Wrapper>
       <div className="mt-7 text-white">
         <h1 className="text-2xl font-bold mb-4 text-white">Portfolio</h1>
-        <Tabs defaultValue="investment">
+        <Tabs defaultValue="investment" data-tour="portfolio-tabs">
           {/* Tab List */}
-          <TabsList className="mb-6">
+          <TabsList className="mb-6" data-tour="portfolio-tab-list">
             <TabsTrigger value="investment">Wealth</TabsTrigger>
             <TabsTrigger value="loans">Loans</TabsTrigger>
             <TabsTrigger value="assets">Assets</TabsTrigger>
@@ -53,7 +53,9 @@ const PortfolioPage = () => {
           {/* Tab Content */}
           <TabsContent value="investment">
             <h2 className="text-lg font-semibold mb-2">Wealth</h2>
-            <CustomerInvestment />
+            <div data-tour="positions-table">
+              <CustomerInvestment />
+            </div>
           </TabsContent>
 
           <TabsContent value="assets">
@@ -70,7 +72,9 @@ const PortfolioPage = () => {
 
           <TabsContent value="loans">
             <h2 className="text-lg font-semibold mb-2">Loans</h2>
-            <CustomerLoan />
+            <div data-tour="customer-loans">
+              <CustomerLoan />
+            </div>
           </TabsContent>
 
           <TabsContent value="rentals">

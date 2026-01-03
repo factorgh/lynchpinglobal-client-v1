@@ -23,6 +23,7 @@ const Wealth = () => {
             borderBottom: "2px solid #e5e7eb", // Underline for separation
             paddingBottom: "10px",
           }}
+          data-tour="wealth-header"
         >
           <h1
             style={{
@@ -45,7 +46,7 @@ const Wealth = () => {
         >
           Latest investment transactions
         </p>
-        <div>
+        <div data-tour="wealth-table">
           <WealthTable />
         </div>
       </div>
