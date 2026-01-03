@@ -2,20 +2,21 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: [
-      "firebasestorage.googleapis.com",
-      "res.cloudinary.com",
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
     ],
   },
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.ignoreWarnings = [
-        ...(config.ignoreWarnings || []),
-        { message: /Failed to parse source map/ },
-      ];
-    }
-    return config;
-  },
+  // Enable Turbopack (Next.js 16 default)
+  turbopack: {},
 };
 
 export default nextConfig;
