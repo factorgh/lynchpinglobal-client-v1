@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useLoginMutation } from "@/services/auth";
+import { useAuth } from "@/context/authContext";
 
 // Call base url
 
@@ -16,6 +17,7 @@ const LoginForm = () => {
   const [error, setError] = useState(""); // To show error messages
   const router = useRouter();
   const [login, { isLoading }] = useLoginMutation();
+  const { setRoles, setUser, setToken } = useAuth();
 
   // Basic email regex for validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,10 +37,14 @@ const LoginForm = () => {
       return;
     }
     try {
-      const { token, user } = await login({ identifier, password }).unwrap();
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("roles", JSON.stringify(user.role));
+      const response = await login({ identifier, password }).unwrap();
+      const { token, data } = response;
+      const user = data.user;
+
+      // Use auth context to set auth state
+      setToken(token);
+      setUser(user);
+      setRoles(user.role);
 
       if (user.role === "admin" || user.role === "superadmin") {
         router.replace("/dashboard");

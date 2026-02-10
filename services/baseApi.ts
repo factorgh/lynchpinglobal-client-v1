@@ -36,7 +36,7 @@ export const baseApi = createApi({
     prepareHeaders: (headers) => {
       const token = getToken();
       if (token) {
-        headers.set("authorization", token);
+        headers.set("authorization", `Bearer ${token}`);
       }
 
       //headers.set("content-type", "multipart/form-data");
