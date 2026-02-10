@@ -26,7 +26,10 @@ export default function ResetPasswordPage() {
       return;
     }
     try {
-      await resetPassword({ token, data: { password, passwordConfirm } }).unwrap();
+      await resetPassword({
+        token,
+        data: { password, passwordConfirm },
+      }).unwrap();
       toast.success("Password reset successful. Please log in.");
       router.push("/");
     } catch (err: any) {
@@ -53,7 +56,9 @@ export default function ResetPasswordPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Confirm password</label>
+          <label className="block text-sm font-medium mb-1">
+            Confirm password
+          </label>
           <input
             type="password"
             required
@@ -70,9 +75,13 @@ export default function ResetPasswordPage() {
         >
           {isLoading ? "Resetting..." : "Reset password"}
         </button>
-        <div className="flex items-center justify-between text-sm text-blue-600 mt-2">
-          <Link href="/" className="hover:underline">Back to login</Link>
-          <Link href="/register" className="hover:underline">Create an account</Link>
+        <div className="flex items-center justify-between text-sm text-gray-600 mt-2">
+          <Link href="/" className="hover:underline">
+            Back to login
+          </Link>
+          <Link href="/register" className="hover:underline">
+            Create an account
+          </Link>
         </div>
       </form>
     </div>

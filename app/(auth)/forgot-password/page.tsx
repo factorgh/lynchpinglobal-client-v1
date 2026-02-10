@@ -1,73 +1,144 @@
 "use client";
 
 import React, { useState } from "react";
-import { useChangePasswordMutation } from "@/services/auth";
+import { useForgotPasswordMutation } from "@/services/auth";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function ChangePasswordPage() {
-  const [identifier, setIdentifier] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [changePassword, { isLoading }] = useChangePasswordMutation();
-  const router = useRouter();
+export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
-    if (!identifier.trim()) {
-      toast.error("Please enter your email or username");
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
       return;
     }
 
-    if (!currentPassword.trim()) {
-      toast.error("Please enter your current password");
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters");
-      return;
-    }
-
-    if (newPassword !== newPasswordConfirm) {
-      toast.error("New passwords do not match");
-      return;
-    }
-
-    if (currentPassword === newPassword) {
-      toast.error("New password must be different from current password");
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
       return;
     }
 
     try {
-      const result = await changePassword({
-        identifier,
-        currentPassword,
-        newPassword,
-        newPasswordConfirm,
-      }).unwrap();
+      await forgotPassword({ email }).unwrap();
 
-      // Store token and user data if returned
-      if (result.token) {
-        localStorage.setItem("token", result.token);
-      }
-      if (result.user) {
-        localStorage.setItem("user", JSON.stringify(result.user));
-        localStorage.setItem("roles", JSON.stringify(result.user.role));
-      }
-
-      toast.success("Password changed successfully!");
-      router.push("/login");
+      setIsSubmitted(true);
+      toast.success("Password reset link sent! Please check your email.");
     } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to change password");
+      console.error("Forgot password error:", err);
+
+      // Handle different error scenarios
+      let errorMessage = "Failed to send reset link";
+
+      if (err && "data" in err) {
+        errorMessage = (err as any).data?.message || errorMessage;
+      } else if (err && "error" in err) {
+        errorMessage = (err as any).error?.message || errorMessage;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+
+      if (
+        errorMessage.includes("not found") ||
+        errorMessage.includes("no user")
+      ) {
+        toast.error("No account found with this email address.");
+      } else if (
+        errorMessage.includes("rate limit") ||
+        errorMessage.includes("too many")
+      ) {
+        toast.error("Too many requests. Please try again later.");
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
+
+  // Show success state after submission
+  if (isSubmitted) {
+    return (
+      <div
+        className="min-h-screen bg-cover bg-center flex items-center justify-center p-4"
+        style={{
+          backgroundImage: "url(/p4.jpeg)",
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+
+        <div className="relative z-10 w-full max-w-md space-y-5 bg-gray-50 p-8 rounded-lg shadow-lg">
+          <img src="/logo.png" alt="Logo" className="w-32 mx-auto mb-6" />
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 4.26a42 42 0 01.478.578c.428.428.66.578.828.428.428 0 1.352-.428 1.78-.428.428-.428.66-.578-.828-.428L3 8z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 4.26a42 42 0 01.478.578c.428.428.66.578.828.428.428 0 1.352-.428 1.78-.428.428-.428.66-.578-.828-.428L3 8z"
+                />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              Check Your Email
+            </h1>
+            <p className="text-gray-600 mb-6">
+              We've sent a password reset link to your email address.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="font-medium text-blue-800 mb-2">What's next?</h3>
+              <ol className="text-sm text-blue-700 space-y-2 list-decimal list-inside">
+                <li>Check your email inbox</li>
+                <li>Look for an email from "Finance Platform"</li>
+                <li>Click the reset link in the email</li>
+                <li>Create a new password</li>
+              </ol>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              Didn't receive the email? Check your spam folder or try again.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => setIsSubmitted(false)}
+                className="w-full bg-blue-500 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 transition-colors"
+              >
+                Try Again
+              </button>
+              <div className="flex items-center justify-between text-sm">
+                <Link href="/login" className="text-blue-500 hover:underline">
+                  ← Back to Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="text-blue-500 hover:underline"
+                >
+                  Create Account
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -83,95 +154,31 @@ export default function ChangePasswordPage() {
         onSubmit={onSubmit}
         className="relative z-10 w-full max-w-md space-y-5 bg-gray-50 p-8 rounded-lg shadow-lg"
       >
-        <img src="/logo.png" alt="Logo" className="w-32 mx-auto mb-4" />
+        <img src="/logo.png" alt="Logo" className="w-32 mx-auto mb-6" />
         <h1 className="text-2xl font-bold text-gray-800 text-center">
-          Change Password
+          Forgot Password?
         </h1>
         <p className="text-sm text-gray-600 text-center">
-          Enter your credentials and set a new password
+          Enter your email address and we'll send you a link to reset your
+          password.
         </p>
 
-        {/* Identifier (Email or Username) */}
+        {/* Email Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email or Username
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Email Address
           </label>
           <input
-            type="text"
+            id="email"
+            type="email"
             required
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            placeholder="Enter your email or username"
-            disabled={isLoading}
-          />
-        </div>
-
-        {/* Current Password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Current Password
-          </label>
-          <div className="relative">
-            <input
-              type={showCurrentPassword ? "text" : "password"}
-              required
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-2 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              placeholder="Enter your current password"
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowCurrentPassword((v) => !v)}
-              className="absolute inset-y-0 right-2 my-auto h-8 px-2 text-sm text-blue-600 hover:underline"
-            >
-              {showCurrentPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-        </div>
-
-        {/* New Password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            New Password
-          </label>
-          <div className="relative">
-            <input
-              type={showNewPassword ? "text" : "password"}
-              required
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-2 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              placeholder="Enter new password (min. 8 characters)"
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowNewPassword((v) => !v)}
-              className="absolute inset-y-0 right-2 my-auto h-8 px-2 text-sm text-blue-600 hover:underline"
-            >
-              {showNewPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Password must be at least 8 characters long
-          </p>
-        </div>
-
-        {/* Confirm New Password */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confirm New Password
-          </label>
-          <input
-            type="password"
-            required
-            value={newPasswordConfirm}
-            onChange={(e) => setNewPasswordConfirm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            placeholder="Confirm your new password"
+            placeholder="Enter your email address"
             disabled={isLoading}
           />
         </div>
@@ -186,11 +193,11 @@ export default function ChangePasswordPage() {
               : "bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
           }`}
         >
-          {isLoading ? "Changing Password..." : "Change Password"}
+          {isLoading ? "Sending..." : "Send Reset Link"}
         </button>
 
         {/* Links */}
-        <div className="flex items-center justify-between text-sm mt-4">
+        <div className="flex items-center justify-between text-sm">
           <Link href="/login" className="text-blue-500 hover:underline">
             ← Back to Login
           </Link>

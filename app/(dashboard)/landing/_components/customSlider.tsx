@@ -8,12 +8,12 @@ const CustomSlider = () => {
   // Slides content with image paths
   const slides = [
     {
-      backgroundImage: "/showcase.jpg",
+      backgroundImage: "/showcase11.png",
       title: "Slide 1",
       description: "Description for Slide 1",
     },
     {
-      backgroundImage: "/showcase2.jpg",
+      backgroundImage: "/showcase12.png",
       title: "Slide 2",
       description: "Description for Slide 2",
     },
@@ -55,7 +55,7 @@ const CustomSlider = () => {
   // Go to the previous slide
   const goToPrevious = () => {
     setActiveIndex(
-      (prevIndex) => (prevIndex - 1 + slides.length) % slides.length
+      (prevIndex) => (prevIndex - 1 + slides.length) % slides.length,
     );
   };
 
@@ -67,7 +67,14 @@ const CustomSlider = () => {
   return (
     <div className="relative overflow-hidden w-full h-[300px] bg-white">
       {/* Slider container */}
-      <div className="absolute inset-0 transition-all duration-500 ease-in-out">
+      <div
+        className="absolute inset-0 transition-all duration-500 ease-in-out"
+        style={{
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
+        }}
+      >
         <div
           className="flex"
           style={{
@@ -78,9 +85,10 @@ const CustomSlider = () => {
           {slides.map((slide, index) => (
             <div
               key={index}
-              className="flex-shrink-0 w-full h-[300px] bg-cover bg-center"
+              className="flex-shrink-0 w-full h-[300px] bg-contain bg-center"
               style={{
                 backgroundImage: `url(${slide.backgroundImage})`, // Set the background image correctly
+                backgroundSize: "cover", // Prevent stretching
               }}
             >
               {/* Optional content for each slide */}

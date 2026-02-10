@@ -28,12 +28,33 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+            // Remove browser extension attributes that cause hydration issues
+            (function() {
+              const attributesToRemove = [
+                'cz-shortcut-listen',
+                'data-new-gr-c-s-check-loaded',
+                'data-gr-ext-installed'
+              ];
+              
+              attributesToRemove.forEach(attr => {
+                if (document.body && document.body.hasAttribute && document.body.hasAttribute(attr)) {
+                  document.body.removeAttribute(attr);
+                }
+              });
+            })();
+          `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
       >
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
         <Notification />
       </body>
     </html>
