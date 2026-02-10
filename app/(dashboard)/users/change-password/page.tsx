@@ -12,8 +12,10 @@ export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [showPasswordRequirements, setShowPasswordRequirements] =
-    useState(false);
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [updatePassword, { isLoading, error }] = useUpdatePasswordMutation();
 
   // Get user info for password validation
@@ -30,9 +32,7 @@ export default function ChangePasswordPage() {
   }, []);
 
   // Enhanced password validation
-  const validatePassword = (
-    password: string,
-  ): { isValid: boolean; errors: string[] } => {
+  const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
     if (password.length < 12) {
@@ -51,39 +51,26 @@ export default function ChangePasswordPage() {
       errors.push("Password must contain at least one number");
     }
 
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
       errors.push("Password must contain at least one special character");
     }
 
-    // Check for common passwords
-    const commonPasswords = [
-      "password",
-      "123456",
-      "qwerty",
-      "admin",
-      "letmein",
-      "password123",
-    ];
-    if (
-      commonPasswords.some((common) => password.toLowerCase().includes(common))
-    ) {
-      errors.push("Password is too common and easily guessable");
-    }
-
-    // Check for user info
+    // Check if password contains user info
     if (userInfo) {
-      const lowerPassword = password.toLowerCase();
-      if (
-        userInfo.name &&
-        lowerPassword.includes(userInfo.name.toLowerCase())
-      ) {
+      const userEmail = userInfo.email?.toLowerCase() || "";
+      const userName = userInfo.name?.toLowerCase() || "";
+      const displayName = userInfo.displayName?.toLowerCase() || "";
+
+      if (userEmail && password.toLowerCase().includes(userEmail.split("@")[0])) {
+        errors.push("Password cannot contain your email address");
+      }
+
+      if (userName && password.toLowerCase().includes(userName)) {
         errors.push("Password cannot contain your name");
       }
-      if (userInfo.email) {
-        const emailParts = userInfo.email.split("@")[0].toLowerCase();
-        if (lowerPassword.includes(emailParts)) {
-          errors.push("Password cannot contain your email username");
-        }
+
+      if (displayName && password.toLowerCase().includes(displayName)) {
+        errors.push("Password cannot contain your display name");
       }
     }
 
@@ -96,16 +83,16 @@ export default function ChangePasswordPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Enhanced validation
+    // Validate passwords
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.isValid) {
-      toast.error(passwordValidation.errors.join(", "));
+      toast.error(passwordValidation.errors[0]);
       setShowPasswordRequirements(true);
       return;
     }
 
     if (newPassword !== newPasswordConfirm) {
-      toast.error("Passwords do not match");
+      toast.error("New passwords do not match");
       return;
     }
 
@@ -115,47 +102,31 @@ export default function ChangePasswordPage() {
     }
 
     try {
-      const result = await updatePassword({
-        currentPassword,
-        newPassword,
-        newPasswordConfirm,
+      await updatePassword({
+        data: {
+          currentPassword,
+          newPassword,
+          newPasswordConfirm,
+        },
       }).unwrap();
 
-      toast.success(
-        result?.message || "Password updated successfully. Please login again.",
-      );
-
-      // Clear all authentication data
-      try {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        sessionStorage.clear();
-      } catch (error) {
-        console.error("Failed to clear storage:", error);
-      }
-
-      // Redirect to login with a message
-      setTimeout(() => {
-        router.push("/?message=password_changed");
-      }, 2000);
+      toast.success("Password updated successfully! Please log in again.");
+      // Clear localStorage and redirect to login
+      localStorage.clear();
+      router.push("/");
     } catch (err: any) {
-      console.error("Password update error:", err);
-
-      // Handle specific error messages from RTK Query
       let errorMessage = "Failed to update password";
-
-      if (err && "data" in err) {
-        errorMessage = (err as any).data?.message || errorMessage;
-      } else if (err && "error" in err) {
-        errorMessage = (err as any).error?.message || errorMessage;
+      
+      if (err?.data?.message) {
+        errorMessage = err.data.message;
+      } else if (err?.error?.message) {
+        errorMessage = err.error.message;
       } else if (err?.message) {
         errorMessage = err.message;
       }
 
       if (errorMessage.includes("history") || errorMessage.includes("reuse")) {
-        toast.error(
-          "You cannot reuse a previous password. Please choose a different one.",
-        );
+        toast.error("You cannot reuse a previous password. Please choose a different one.");
       } else if (errorMessage.includes("validation")) {
         toast.error("Password does not meet security requirements.");
         setShowPasswordRequirements(true);
@@ -181,52 +152,61 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-      <div className="w-full max-w-md">
-        <div className="bg-white p-8 rounded-lg shadow-lg">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Change Password
-            </h1>
-            <p className="text-sm text-gray-600 mt-2">
-              Please enter your current password and choose a new secure
-              password
-            </p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-gray-900 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <span className="text-white text-2xl font-bold">LG</span>
           </div>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Change Password
+          </h1>
+          <p className="text-gray-600 mt-2">Please enter your current password and choose a new secure password</p>
+        </div>
 
-          <form onSubmit={onSubmit} className="space-y-6">
-            {/* Current Password */}
-            <div>
-              <label
-                htmlFor="currentPassword"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Current Password
-              </label>
+        <form onSubmit={onSubmit} className="space-y-6">
+          {/* Current Password */}
+          <div>
+            <label
+              htmlFor="currentPassword"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Current Password
+            </label>
+            <div className="relative">
               <input
                 id="currentPassword"
-                type="password"
+                type={showCurrentPassword ? "text" : "password"}
                 required
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                 placeholder="Enter current password"
                 data-tour="old-password"
               />
-            </div>
-
-            {/* New Password */}
-            <div>
-              <label
-                htmlFor="newPassword"
-                className="block text-sm font-medium text-gray-700 mb-1"
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                className="absolute inset-y-0 right-0 my-auto h-8 px-3 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
               >
-                New Password
-              </label>
+                {showCurrentPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          {/* New Password */}
+          <div>
+            <label
+              htmlFor="newPassword"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              New Password
+            </label>
+            <div className="relative">
               <input
                 id="newPassword"
-                type="password"
+                type={showNewPassword ? "text" : "password"}
                 required
                 value={newPassword}
                 onChange={(e) => {
@@ -235,125 +215,111 @@ export default function ChangePasswordPage() {
                     setShowPasswordRequirements(true);
                   }
                 }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                 placeholder="Enter new password"
                 data-tour="new-password"
               />
-            </div>
-
-            {/* Password Strength Meter */}
-            {showPasswordRequirements && (
-              <div className="mt-2">
-                <PasswordStrengthMeter
-                  password={newPassword}
-                  userInfo={userInfo}
-                  showDetails={true}
-                />
-              </div>
-            )}
-
-            {/* Confirm New Password */}
-            <div>
-              <label
-                htmlFor="newPasswordConfirm"
-                className="block text-sm font-medium text-gray-700 mb-1"
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute inset-y-0 right-0 my-auto h-8 px-3 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                aria-label={showNewPassword ? "Hide new password" : "Show new password"}
               >
-                Confirm New Password
-              </label>
+                {showNewPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          {/* Password Strength Meter */}
+          {showPasswordRequirements && (
+            <div className="mt-2">
+              <PasswordStrengthMeter
+                password={newPassword}
+                userInfo={userInfo}
+                showDetails={true}
+              />
+            </div>
+          )}
+
+          {/* Confirm New Password */}
+          <div>
+            <label
+              htmlFor="newPasswordConfirm"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Confirm New Password
+            </label>
+            <div className="relative">
               <input
                 id="newPasswordConfirm"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 required
                 value={newPasswordConfirm}
                 onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                 placeholder="Confirm new password"
               />
-              {newPasswordConfirm && newPassword !== newPasswordConfirm && (
-                <p className="text-red-500 text-sm mt-1">
-                  Passwords do not match
-                </p>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 my-auto h-8 px-3 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+              >
+                {showConfirmPassword ? "Hide" : "Show"}
+              </button>
             </div>
+            {newPasswordConfirm && newPassword !== newPasswordConfirm && (
+              <p className="text-gray-600 text-sm mt-1">
+                Passwords do not match
+              </p>
+            )}
+          </div>
 
-            {/* Security Notice */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-blue-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">
-                    Security Notice
-                  </h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Password must be at least 12 characters long</li>
-                      <li>
-                        Include uppercase, lowercase, numbers, and special
-                        characters
-                      </li>
-                      <li>You cannot reuse previous passwords</li>
-                      <li>
-                        All sessions will be logged out after password change
-                      </li>
-                    </ul>
-                  </div>
+          {/* Security Notice */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-gray-600"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-gray-900">
+                  Security Notice
+                </h3>
+                <div className="mt-2 text-sm text-gray-600">
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Password must be at least 12 characters long</li>
+                    <li>Include uppercase, lowercase, numbers, and special characters</li>
+                    <li>You cannot reuse previous passwords</li>
+                    <li>All sessions will be logged out after password change</li>
+                  </ul>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading || !isFormValid()}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? "Updating..." : "Update Password"}
-            </button>
-          </form>
-
-          {/* Error Display */}
-          {error && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-red-400"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Error</h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    {error && "data" in error
-                      ? (error as any).data?.message
-                      : error && "error" in error
-                        ? (error as any).error?.message
-                        : "An error occurred while updating your password."}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isLoading || !isFormValid()}
+            className={`w-full py-3 px-4 text-white font-medium rounded-md transition-all ${
+              isLoading || !isFormValid()
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+            }`}
+          >
+            {isLoading ? "Updating..." : "Update Password"}
+          </button>
+        </form>
       </div>
     </div>
   );
