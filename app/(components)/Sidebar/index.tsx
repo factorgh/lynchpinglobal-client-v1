@@ -82,7 +82,11 @@ const Sidebar = () => {
               label="Dashboard"
             />
             <SidebarLink href="/portfolio" icon={Gauge} label="My Portfolio" />
-            <SidebarLink href="/withdrawal" icon={Wallet} label="Withdrawal" />
+            <SidebarLink
+              href="/withdrawal"
+              icon={Wallet}
+              label="Mandate Disbursement"
+            />
             <SidebarLink
               href="/terms"
               icon={Handshake}
@@ -103,7 +107,11 @@ const Sidebar = () => {
               icon={Clipboard}
               label="Loans & Rentals"
             />
-            <SidebarLink href="/cashout" icon={Combine} label="Cashouts" />
+            <SidebarLink
+              href="/cashout"
+              icon={Combine}
+              label="Mandate Disbursement"
+            />
             <SidebarLink href="/users" icon={Group} label="User Mgt." />
             <SidebarLink
               href="/activity"

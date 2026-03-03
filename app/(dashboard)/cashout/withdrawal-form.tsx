@@ -57,10 +57,20 @@ const WithdrawalForm: React.FC = () => {
 
   return (
     <>
-      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} data-tour="withdrawal-new-request">
-        Capital Withdrawal
+      <Button
+        type="primary"
+        onClick={showDrawer}
+        icon={<PlusOutlined />}
+        data-tour="withdrawal-new-request"
+      >
+        Mandate Disbursement
       </Button>
-      <Drawer title="Create Capital Withdrawal" width={400} onClose={onClose} open={open}>
+      <Drawer
+        title="Create Mandate Disbursement"
+        width={400}
+        onClose={onClose}
+        open={open}
+      >
         <Form
           form={form}
           onFinish={handleFormSubmit}

@@ -59,11 +59,16 @@ const PaymentForm: React.FC = () => {
 
   return (
     <>
-      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} data-tour="cashout-new-payment">
-        Profit Payment
+      <Button
+        type="primary"
+        onClick={showDrawer}
+        icon={<PlusOutlined />}
+        data-tour="cashout-new-payment"
+      >
+        Mandate Contribution
       </Button>
       <Drawer
-        title="Create Profit Payment"
+        title="Create Mandate Contribution"
         width={400}
         onClose={onClose}
         open={open}
@@ -118,7 +123,10 @@ const PaymentForm: React.FC = () => {
               },
             ]}
           >
-            <DatePicker style={{ width: "100%" }} data-tour="payment-requested-date" />
+            <DatePicker
+              style={{ width: "100%" }}
+              data-tour="payment-requested-date"
+            />
           </Form.Item>
 
           <Form.Item label="Approval Date" name="approvedDate">
@@ -144,7 +152,13 @@ const PaymentForm: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button loading={isLoading} type="primary" htmlType="submit" block data-tour="payment-submit">
+            <Button
+              loading={isLoading}
+              type="primary"
+              htmlType="submit"
+              block
+              data-tour="payment-submit"
+            >
               Create
             </Button>
           </Form.Item>

@@ -88,7 +88,7 @@ const WithdrawalPage = () => {
       <Wrapper>
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold mb-4 text-white mt-7">
-            Capital Withdrawal & Profit Payment
+            Mandate Contribution & Disbursement
           </h1>
           <Button
             type="primary"

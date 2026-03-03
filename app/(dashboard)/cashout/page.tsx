@@ -11,15 +11,22 @@ import WithdrawalTable from "./withdrawal-table";
 const CashOutPage: React.FC = () => {
   return (
     <Wrapper>
-      <Tabs defaultValue="payments" className="w-[100%] mt-6" data-tour="cashout-tabs">
+      <Tabs
+        defaultValue="payments"
+        className="w-[100%] mt-6"
+        data-tour="cashout-tabs"
+      >
         <TabsList data-tour="cashout-tab-list">
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
+          <TabsTrigger value="payments">Payment</TabsTrigger>
+          <TabsTrigger value="withdrawals">Mandate Disbursement</TabsTrigger>
         </TabsList>
 
         {/* Payments Tab Content */}
         <TabsContent value="payments">
-          <div className="flex items-center justify-end mb-3" data-tour="cashout-new-payment">
+          <div
+            className="flex items-center justify-end mb-3"
+            data-tour="cashout-new-payment"
+          >
             <PaymentForm />
           </div>
           <div data-tour="payment-table">
@@ -29,7 +36,10 @@ const CashOutPage: React.FC = () => {
 
         {/* Withdrawals Tab Content */}
         <TabsContent value="withdrawals">
-          <div className="flex items-center justify-end mb-3" data-tour="withdrawal-form">
+          <div
+            className="flex items-center justify-end mb-3"
+            data-tour="withdrawal-form"
+          >
             <WithdrawalForm />
           </div>
           <div data-tour="admin-withdrawal-table">
