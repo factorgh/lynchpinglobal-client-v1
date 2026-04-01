@@ -27,7 +27,7 @@ const CustomList = ({ dataSource, loading }: any) => {
   return (
     <div className="max-w-4xl mx-auto rounded-lg p-4">
       <h2 className="text-xl font-bold text-gray-800 mb-4">
-        Recent Transactions
+        Recent Mandate Contributions and Disbursements
       </h2>
 
       <List

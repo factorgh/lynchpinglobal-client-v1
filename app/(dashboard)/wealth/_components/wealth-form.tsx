@@ -104,12 +104,12 @@ const WealthForm: React.FC = () => {
     try {
       await createInvestment(formattedValues).unwrap();
       await createActivity({
-        activity: "New Investment",
-        description: "A new investment was created",
+        activity: "New Mandate",
+        description: "A new mandate was created",
         user: loggedInUser._id,
       }).unwrap();
 
-      toast.success("Investment created successfully");
+      toast.success("Mandate created successfully");
       setOpen(false);
       form.resetFields();
     } catch (error: any) {
@@ -132,10 +132,10 @@ const WealthForm: React.FC = () => {
         icon={<PlusOutlined />}
         data-tour="wealth-new"
       >
-        New Wealth
+        New Mandate
       </Button>
       <Drawer
-        title="Create a New Wealth"
+        title="Create a New Mandate"
         width="70%"
         onClose={onClose}
         open={open}
@@ -197,7 +197,7 @@ const WealthForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="principal"
-                label="Principal (GH)"
+                label="Mandate Contribution (GH)"
                 rules={[
                   { required: true, message: "Please enter the principal" },
                 ]}
@@ -213,7 +213,7 @@ const WealthForm: React.FC = () => {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="performanceYield" label="Performance Yield (GH)">
+              <Form.Item name="performanceYield" label="Performance-Linked Disbursement (GH)">
                 <InputNumber
                   placeholder="Enter performance yield"
                   style={{ width: "100%" }}
@@ -224,7 +224,7 @@ const WealthForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="guaranteedRate"
-                label="Guaranteed Rate (%)"
+                label="Contractual Terms (%)"
                 rules={[
                   {
                     required: true,
@@ -244,7 +244,7 @@ const WealthForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="managementFeeRate"
-                label="Management Fee Rate (%)"
+                label="Service Fee Rate (%)"
                 rules={[
                   { required: true, message: "Please select a management fee" },
                 ]}
@@ -274,7 +274,7 @@ const WealthForm: React.FC = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="operationalCost" label="Operational Cost (GH)">
+              <Form.Item name="operationalCost" label="Operational Charge (GH)">
                 <InputNumber
                   placeholder="Enter operational cost"
                   style={{ width: "100%" }}

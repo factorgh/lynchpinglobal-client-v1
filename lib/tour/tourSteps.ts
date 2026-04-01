@@ -38,84 +38,84 @@ export const clientLandingSteps: DriveStep[] = [
   step(
     '[data-tour="client-menu"]',
     "📍 Your Navigation Menu",
-    "This is your main menu. Access your Dashboard, Portfolio, Withdrawals, and Terms & Conditions from here.",
-    "right",
+    "This is your main menu. Access your Dashboard, Mandates, Disbursements, and Terms & Conditions from here.",
+    "right"
   ),
   step(
     '[data-tour="cta-primary"]',
     "💰 Total Balance",
-    "Your complete portfolio value at a glance. This includes your principal, accrued interest, and all returns.",
-    "bottom",
+    "Your complete mandate value at a glance. This includes your mandate contribution, accrued disbursements, and all transactions.",
+    "bottom"
   ),
   step(
     '[data-tour="feature-cards"]',
-    "📊 Investment Breakdown",
-    "Here's a detailed breakdown: Principal investment amount, Accrued interest earned, Add-ons you've made, and Add-on interest.",
-    "bottom",
+    "📊 Mandate Breakdown",
+    "Here's a detailed breakdown: Mandate Contribution, Accrued Disbursements, Additional Contributions, and Additional Disbursements.",
+    "bottom"
   ),
   step(
     '[data-tour="yield-cards"]',
-    "📈 Yields & Deductions",
-    "Track your one-off yields, performance yields, management fees, and operational costs in this section.",
-    "top",
+    "📈 Disbursements & Charges",
+    "Track one-off disbursements, performance-linked disbursements, service fees, and operational charges in this section.",
+    "top"
   ),
   step(
     '[data-tour="assets-under"]',
-    "🏢 Your Assets",
-    "View all assets under management with their current values and status.",
-    "top",
+    "🏢 Active Mandates",
+    "View all active mandates and associated transactions with their current status.",
+    "top"
   ),
   step(
     '[data-tour="payments-list"]',
-    "💸 Payment History",
-    "Your recent payments and transactions are displayed here for easy tracking.",
-    "top",
+    "💸 Disbursement History",
+    "Your recent mandate contributions and disbursements are displayed here for easy tracking.",
+    "top"
   ),
   welcome(
     "✅ You're All Set!",
-    "That's your dashboard! Click 'My Portfolio' in the menu to see your detailed investments. You can restart this tour anytime using the Help button.",
+    "That's your dashboard! Click 'My Mandates' in the menu to see your detailed mandate participations. You can restart this tour anytime using the Help button."
   ),
 ];
 
 export const clientPortfolioSteps: DriveStep[] = [
   welcome(
-    "📂 Your Investment Portfolio",
-    "Welcome to your portfolio! Here you can view all your investments, loans, assets, and rentals in detail.",
+    "📂 Mandate Participation",
+    "Welcome to your mandate overview! Here you can view all mandate participations, lending transactions, asset-related engagements, and rental engagements in detail."
   ),
   step(
     '[data-tour="portfolio-tab-list"]',
-    "📑 Portfolio Tabs",
-    "Switch between different views: Wealth (investments), Loans, Assets, and Rentals.",
-    "bottom",
+    "📑 Mandate Tabs",
+    "Switch between different views: Mandates, Loans, Asset Transactions, and Rentals.",
+    "bottom"
   ),
   step(
     '[data-tour="positions-table"]',
-    "💼 Your Investments",
-    "This table shows all your investment positions with principal, rates, accrued returns, and document links.",
-    "top",
+    "💼 Your Mandates",
+    "This table shows all mandate participations including contribution amount, contractual terms, accrued disbursements, and related documentation.",
+    "top"
   ),
   welcome(
     "💡 Quick Tip",
-    "Click on any investment row to expand and see more details including documents and transaction history!",
+    "Click on any mandate entry to expand and view additional details, documentation, and transaction history!"
   ),
 ];
 
 export const clientWithdrawalSteps: DriveStep[] = [
   welcome(
-    "🏦 Mandate Contribution & Disbursement",
-    "Request mandate contributions or mandate disbursements from your investments here.",
+    "🏦 Contributions & Disbursements",
+    "Request mandate contributions or disbursements linked to your active mandate participations here."
   ),
   step(
     '[data-tour="withdrawal-new-request"]',
     "📝 Make a Request",
-    "Click this button to submit a new mandate contribution or mandate disbursement request to the admin team.",
-    "left",
+    "Click this button to submit a new contribution or disbursement request to the admin team.",
+    "left"
   ),
   step(
     '[data-tour="withdrawal-table"]',
     "📋 Request History",
-    "Track all your mandate disbursement requests here. You can see the status (Pending, Approved, Processing, or Cancelled).",
-    "top",
+    "Track all your requests here. You can see the status (Pending, Approved, Processing, or Cancelled).",
+    "top"
   ),
   welcome(
     "✅ That's It!",
@@ -130,19 +130,19 @@ export const clientWithdrawalSteps: DriveStep[] = [
 export const adminDashboardSteps: DriveStep[] = [
   welcome(
     "👋 Welcome, Admin!",
-    "Let's explore your management dashboard. You have full control over investments, assets, loans, and user accounts.",
+    "Let's explore your management dashboard. You have full control over mandates, assets, loans, and user accounts."
   ),
   step(
     '[data-tour="admin-menu"]',
     "📍 Admin Navigation",
-    "Your complete admin toolkit: Dashboard, Wealth Management, Assets, Loans & Rentals, Cashouts, User Management, and Activity Logs.",
-    "right",
+    "Your complete admin toolkit: Dashboard, Mandate Management, Assets, Loans & Rentals, Disbursements, User Management, and Activity Logs.",
+    "right"
   ),
   step(
     '[data-tour="portfolio-summary"]',
     "📊 Key Metrics",
-    "At-a-glance overview: Total assets under management, active clients, outstanding payments, and total loans.",
-    "bottom",
+    "At-a-glance overview: Total active mandates, active clients, outstanding disbursements, and total loans.",
+    "bottom"
   ),
   step(
     '[data-tour="statistics"]',
@@ -152,36 +152,36 @@ export const adminDashboardSteps: DriveStep[] = [
   ),
   welcome(
     "🚀 Let's Get Started!",
-    "Head to 'Wealth' in the menu to manage client investments. You can restart this tour anytime!",
+    "Head to 'Mandates' in the menu to manage client mandate participations. You can restart this tour anytime!"
   ),
 ];
 
 export const adminWealthSteps: DriveStep[] = [
   welcome(
-    "💰 Wealth Management",
-    "This is where you create and manage client investment portfolios. Let's see how it works.",
+    "💰 Mandate Management",
+    "This is where you create and manage client mandate participations. Let's see how it works."
   ),
   step(
     '[data-tour="wealth-header"]',
-    "📋 Wealth Overview",
-    "The Wealth Management dashboard shows all client investments at a glance.",
-    "bottom",
+    "📋 Mandate Overview",
+    "The Mandate Management dashboard shows all client mandate participations at a glance.",
+    "bottom"
   ),
   step(
     '[data-tour="wealth-new"]',
-    "➕ Create Investment",
-    "Click here to create a new investment. You can set principal, rates, co-owners, and upload documents.",
-    "left",
+    "➕ Create Mandate",
+    "Click here to create a new mandate. You can set mandate contribution, contractual terms, co owners, and upload documents.",
+    "left"
   ),
   step(
     '[data-tour="wealth-table"]',
-    "📊 Investment Table",
-    "All investments are listed here. Click any row to expand and see details, add-ons, one-offs, and documents.",
-    "top",
+    "📊 Mandate Table",
+    "All mandates are listed here. Click any row to expand and see details, add ons, one offs, and documents.",
+    "top"
   ),
   welcome(
     "💡 Pro Tips",
-    "• Daily cron jobs automatically calculate accrued returns<br>• You can add co-owners for joint investments<br>• Upload certificates, mandates, and other documents",
+    "• Daily cron jobs automatically calculate accrued disbursements<br>• You can add co owners for joint mandates<br>• Upload certificates, mandates, and other documents"
   ),
 ];
 
@@ -198,9 +198,9 @@ export const adminAssetSteps: DriveStep[] = [
   ),
   step(
     '[data-tour="asset-table"]',
-    "📊 Asset Portfolio",
-    "View all assets with their values, accrued interest, status, and maturity information.",
-    "top",
+    "📊 Asset Transactions",
+    "View all assets with their values, accrued disbursements, status, and maturity information.",
+    "top"
   ),
   welcome(
     "✅ Asset Tips",
@@ -251,30 +251,30 @@ export const adminRentalsSteps: DriveStep[] = [
 
 export const adminCashoutSteps: DriveStep[] = [
   welcome(
-    "💸 Mandate Disbursement",
-    "Process mandate contributions and manage client mandate disbursement requests.",
+    "💸 Disbursements",
+    "Process disbursements and manage client disbursement requests."
   ),
   step(
     '[data-tour="cashout-tab-list"]',
-    "📑 Payment & Mandate Disbursement",
-    "Two sections: Payment (outgoing to clients) and Mandate Disbursement (client requests).",
-    "bottom",
+    "📑 Disbursements",
+    "Two sections: Disbursements (outgoing to clients) and Requests (client-initiated).",
+    "bottom"
   ),
   step(
     '[data-tour="cashout-new-payment"]',
-    "➕ New Payment",
-    "Create mandate contributions to investors. Select user, enter amount, and set approval status.",
-    "left",
+    "➕ New Disbursement",
+    "Create disbursements to mandate participants. Select user, enter amount, and set approval status.",
+    "left"
   ),
   step(
     '[data-tour="payment-table"]',
-    "📋 Payment History",
-    "View all processed payments with dates, amounts, and status.",
-    "top",
+    "📋 Disbursement History",
+    "View all processed disbursements with dates, amounts, and status.",
+    "top"
   ),
   welcome(
-    "📥 Mandate Disbursement Requests",
-    "Switch to the Mandate Disbursement tab to review and approve client mandate disbursement requests.",
+    "📥 Disbursement Requests",
+    "Switch to the Requests tab to review and approve client disbursement requests."
   ),
 ];
 

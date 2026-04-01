@@ -81,12 +81,8 @@ const Sidebar = () => {
               icon={ChartNoAxesCombined}
               label="Dashboard"
             />
-            <SidebarLink href="/portfolio" icon={Gauge} label="My Portfolio" />
-            <SidebarLink
-              href="/withdrawal"
-              icon={Wallet}
-              label="Mandate Disbursement"
-            />
+            <SidebarLink href="/portfolio" icon={Gauge} label="My Mandates" />
+            <SidebarLink href="/withdrawal" icon={Wallet} label="Disbursements" />
             <SidebarLink
               href="/terms"
               icon={Handshake}
@@ -99,19 +95,15 @@ const Sidebar = () => {
             <SidebarLink
               href="/wealth"
               icon={CircleDollarSign}
-              label="Wealth"
+              label="Mandates"
             />
-            <SidebarLink href="/assets" icon={Wallet} label="Assets Mgt." />
+            <SidebarLink href="/assets" icon={Wallet} label="Asset Transactions" />
             <SidebarLink
               href="/rentals"
               icon={Clipboard}
               label="Loans & Rentals"
             />
-            <SidebarLink
-              href="/cashout"
-              icon={Combine}
-              label="Mandate Disbursement"
-            />
+            <SidebarLink href="/cashout" icon={Combine} label="Disbursements" />
             <SidebarLink href="/users" icon={Group} label="User Mgt." />
             <SidebarLink
               href="/activity"

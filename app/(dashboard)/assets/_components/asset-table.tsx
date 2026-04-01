@@ -38,12 +38,12 @@ import AssetsDrawer from "./assets-drawer";
 
 /*************  ✨ Codeium Command ⭐  *************/
 /**
- * WealthTable component renders a table of general investment expenses with functionalities
+ * AssetTransactionTable component renders a table of mandate-related engagements with functionalities
  * to add, edit, and delete entries. It includes a search feature for filtering data and a drawer
  * form for editing entries. The component uses Ant Design for UI elements and integrates with
- * a backend API to fetch and mutate investment data.
+ * a backend API to fetch and mutate asset data.
  */
-/******  9086d653-a04c-4e0b-bac6-b7052991ffc2  *******/ const WealthTable =
+const AssetTransactionTable =
   () => {
     const searchInput = useRef(null);
     const { data: assetsData, isFetching: investmentLoading } =
@@ -173,12 +173,12 @@ import AssetsDrawer from "./assets-drawer";
           }).unwrap();
           toast.success("Assets updated successfully");
           await createActivity({
-            activity: "Asset Updated",
-            description: "An asset entry was updated successfully",
+            activity: "Asset Transaction Updated",
+            description: "An asset transaction entry was updated successfully",
             user: loggedInUser._id,
           }).unwrap();
         } else {
-          toast.success("New Asset added successfully");
+          toast.success("Asset Transaction added successfully");
         }
 
         setIsDrawerVisible(false);
@@ -202,8 +202,8 @@ import AssetsDrawer from "./assets-drawer";
         if (result.isConfirmed) {
           await deleteAsset(id).unwrap();
           await createActivity({
-            activity: "Asset Deleted",
-            description: "An asset entry was deleted successfully",
+            activity: "Asset Transaction Deleted",
+            description: "An asset transaction entry was deleted successfully",
             user: loggedInUser._id,
           }).unwrap();
           toast.success("Entry deleted successfully");
@@ -283,18 +283,18 @@ import AssetsDrawer from "./assets-drawer";
       },
 
       {
-        title: "Accrued Interest",
+        title: "Accrued Disbursements",
         dataIndex: "accruedInterest",
         key: "accruedInterest",
         ...getColumnSearchProps("accruedInterest"),
-        render: (value: any) => formatPriceGHS(value), // Format performance yield
+        render: (value: any) => formatPriceGHS(value), // Format accrued disbursements
       },
       {
-        title: "Management Fee ",
+        title: "Service Fee",
         dataIndex: "managementFee",
         key: "managementFee",
         ...getColumnSearchProps("managementFee"),
-        render: (value: any) => formatPriceGHS(value), // Add "%" suffix
+        render: (value: any) => formatPriceGHS(value),
       },
       {
         title: "Quarter",
@@ -357,7 +357,7 @@ import AssetsDrawer from "./assets-drawer";
           }}
         />
         <Drawer
-          title="Edit Asset"
+          title="Edit Asset Transaction"
           placement="right"
           width="50%" // Adjust to center the drawer
           onClose={handleCloseDrawer}
@@ -412,16 +412,16 @@ import AssetsDrawer from "./assets-drawer";
               <Col span={12}>
                 <Form.Item
                   name="accruedInterest"
-                  label="Accrued Interest"
+                  label="Accrued Disbursements"
                   rules={[
                     {
                       required: true,
-                      message: "Please enter the accrued interest",
+                      message: "Please enter the accrued disbursements",
                     },
                   ]}
                 >
                   <InputNumber
-                    placeholder="Enter accrued interest"
+                    placeholder="Enter accrued disbursements"
                     style={{ width: "100%" }}
                   />
                 </Form.Item>
@@ -450,16 +450,16 @@ import AssetsDrawer from "./assets-drawer";
               <Col span={12}>
                 <Form.Item
                   name="managementFee"
-                  label="Management Fee"
+                  label="Service Fee"
                   rules={[
                     {
                       required: true,
-                      message: "Please select a management fee",
+                      message: "Please select a service fee",
                     },
                   ]}
                 >
                   <InputNumber
-                    placeholder="Enter management fee"
+                    placeholder="Enter service fee"
                     style={{ width: "100%" }}
                   />
                 </Form.Item>
@@ -467,13 +467,13 @@ import AssetsDrawer from "./assets-drawer";
               <Col span={12}>
                 <Form.Item
                   name="quater"
-                  label="Quater"
+                  label="Quarter"
                   rules={[
-                    { required: true, message: "Please select a quater" },
+                    { required: true, message: "Please select a quarter" },
                   ]}
                 >
                   <Select
-                    placeholder="Select quater"
+                    placeholder="Select quarter"
                     showSearch
                     filterOption={(input, option) =>
                       (option?.label ?? "")
@@ -608,4 +608,4 @@ import AssetsDrawer from "./assets-drawer";
     );
   };
 
-export default WealthTable;
+export default AssetTransactionTable;

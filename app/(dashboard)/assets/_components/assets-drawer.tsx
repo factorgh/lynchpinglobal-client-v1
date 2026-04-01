@@ -107,7 +107,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
         {/* Investment Summary Section */}
         <Card title="Asset Summary" bordered={false}>
           <Descriptions column={2} bordered>
-            <Descriptions.Item label="Asset Name">
+            <Descriptions.Item label="Engagement Name">
               {assets?.assetName}
             </Descriptions.Item>
             <Descriptions.Item label="Asset Class">
@@ -116,7 +116,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
             <Descriptions.Item label="Asset Designation">
               {assets?.assetDesignation}
             </Descriptions.Item>
-            <Descriptions.Item label="Asset Value">
+            <Descriptions.Item label="Participation Amount">
               {formatPriceGHS(assets?.assetValue)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
@@ -131,7 +131,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
             <Descriptions.Item label="Start Date">
               {new Date(assets?.startDate).toLocaleDateString()}
             </Descriptions.Item>
-            <Descriptions.Item label="Management Fee">
+            <Descriptions.Item label="Service Fee">
               {formatPriceGHS(assets?.managementFee)}
             </Descriptions.Item>
           </Descriptions>
@@ -151,7 +151,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
         )}
 
         {/* Investment Documents Section */}
-        <Card title="Assets Documents" bordered={false}>
+        <Card title="Asset Documentation" bordered={false}>
           {assets?.certificate.length > 0 && (
             <div>
               <Title level={4}>Certificates</Title>

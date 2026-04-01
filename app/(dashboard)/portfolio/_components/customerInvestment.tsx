@@ -196,34 +196,34 @@ const CustomerInvestment: React.FC = () => {
         ),
     },
     {
-      title: "Principal",
+      title: "Mandate Contribution",
       dataIndex: "principal",
       key: "principal",
       ...getColumnSearchProps("principal"),
       render: (value) => formatPriceGHS(value),
     },
     {
-      title: "Expected Return",
+      title: "Contractual Terms",
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),
       render: (value) => `${toTwoDecimalPlaces(value)}%`,
     },
     {
-      title: "Performance Yield",
+      title: "Performance-Linked Disbursement",
       dataIndex: "performanceYield",
       key: "performanceYield",
       ...getColumnSearchProps("performanceYield"),
       render: (value) => formatPriceGHS(value),
     },
     {
-      title: "Management Fee",
+      title: "Service Fee",
       dataIndex: "managementFee",
       key: "managementFee",
       render: (value) => formatPriceGHS(value),
     },
     {
-      title: "Total Accrued Return",
+      title: "Total Disbursements",
       dataIndex: "totalAccruedReturn",
       key: "totalAccruedReturn",
       ...getColumnSearchProps("totalAccruedReturn"),
@@ -265,7 +265,7 @@ const CustomerInvestment: React.FC = () => {
 
       {/* Drawer for displaying detailed information */}
       <Drawer
-        title="Investment Details"
+        title="Mandate Details"
         visible={drawerVisible}
         onClose={onCloseDrawer}
         width={600}
@@ -293,19 +293,19 @@ const CustomerInvestment: React.FC = () => {
                 </div>
               </Descriptions.Item>
             )}
-            <Descriptions.Item label="Principal">
+            <Descriptions.Item label="Mandate Contribution">
               {formatPriceGHS(selectedInvestment.principal)}
             </Descriptions.Item>
-            <Descriptions.Item label="Guaranteed Return">
+            <Descriptions.Item label="Contractual Terms">
               {toTwoDecimalPlaces(selectedInvestment.guaranteedRate)}%
             </Descriptions.Item>
-            <Descriptions.Item label="Performance Yield">
+            <Descriptions.Item label="Performance-Linked Disbursement">
               {formatPriceGHS(selectedInvestment.performanceYield)}
             </Descriptions.Item>
-            <Descriptions.Item label="Management Fee">
+            <Descriptions.Item label="Service Fee">
               {formatPriceGHS(selectedInvestment.managementFee)}
             </Descriptions.Item>
-            <Descriptions.Item label="Total Accrued Return">
+            <Descriptions.Item label="Total Disbursements">
               {formatPriceGHS(selectedInvestment.totalAccruedReturn)}
             </Descriptions.Item>
           </Descriptions>
@@ -315,7 +315,7 @@ const CustomerInvestment: React.FC = () => {
         {selectedInvestment && (
           <>
             {" "}
-            <Card title="Add-ons" bordered={false}>
+            <Card title="Additional Contributions" bordered={false}>
               {selectedInvestment?.addOns.length > 0 ? (
                 <Table
                   rowKey="id"
@@ -325,10 +325,10 @@ const CustomerInvestment: React.FC = () => {
                   size="small"
                 />
               ) : (
-                <Tag color="orange">No add-ons added</Tag>
+                <Tag color="orange">No additional contributions added</Tag>
               )}
             </Card>
-            <Card title="One-Offs" bordered={false}>
+            <Card title="One-Off Disbursements" bordered={false}>
               {selectedInvestment?.oneOffs.length > 0 ? (
                 <Table
                   rowKey="id"
@@ -340,7 +340,7 @@ const CustomerInvestment: React.FC = () => {
                   size="small"
                 />
               ) : (
-                <Tag color="orange">No One Offs added</Tag>
+                <Tag color="orange">No One-Off Disbursements added</Tag>
               )}
             </Card>
           </>
@@ -348,7 +348,7 @@ const CustomerInvestment: React.FC = () => {
             )}
         {/* Documents Section */}
         {selectedInvestment && (
-          <Card title="Investment Documents" bordered={false}>
+          <Card title="Mandate Documentation" bordered={false}>
             {selectedInvestment?.certificate.length > 0 && (
               <div>
                 <h3 >Certificates</h3>

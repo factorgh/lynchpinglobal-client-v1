@@ -279,13 +279,13 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
   return (
     <>
       <Drawer
-        title="Investment Details"
+        title="Mandate Details"
         width={1000}
         onClose={onClose}
         visible={visible}
         bodyStyle={{ paddingBottom: 80 }}
       >
-        <Card title="Investment Summary" bordered={false}>
+        <Card title="Mandate Summary" bordered={false}>
           <Descriptions column={2} bordered>
             <Descriptions.Item label="Transaction ID">
               {investment?.transactionId}
@@ -314,19 +314,19 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Descriptions.Item label="Start Date">
               {moment(investment?.startDate).format("YYYY-MM-DD")}
             </Descriptions.Item>
-            <Descriptions.Item label="Principal">
+            <Descriptions.Item label="Mandate Contribution">
               {formatPriceGHS(investment?.principal)}
             </Descriptions.Item>
-            <Descriptions.Item label="Principal Accrued Return">
+            <Descriptions.Item label="Accrued Disbursements">
               {formatPriceGHS(investment?.principalAccruedReturn)}
             </Descriptions.Item>
             <Descriptions.Item label="Guaranteed Rate">
-              {investment?.guaranteedRate}%
+              {investment?.guaranteedRate}% (Contractual Terms)
             </Descriptions.Item>
-            <Descriptions.Item label="Addon Accrued Return">
+            <Descriptions.Item label="Additional Disbursements">
               {formatPriceGHS(investment?.addOnAccruedReturn)}
             </Descriptions.Item>
-            <Descriptions.Item label="Total Accrued Return">
+            <Descriptions.Item label="Total Disbursements">
               {formatPriceGHS(investment?.totalAccruedReturn)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter End Date">
@@ -338,10 +338,10 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Descriptions.Item label="Management Fee Rate">
               {investment?.managementFeeRate ?? "-"}%
             </Descriptions.Item>
-            <Descriptions.Item label="Management Fee">
+            <Descriptions.Item label="Service Fee">
               {formatPriceGHS(investment?.managementFee)}
             </Descriptions.Item>
-            <Descriptions.Item label="Performance Yield">
+            <Descriptions.Item label="Performance-Linked Disbursement">
               {formatPriceGHS(investment?.performanceYield)}
             </Descriptions.Item>
           </Descriptions>
@@ -367,7 +367,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
           />
         </Card>
 
-        <Card title="Investment Documents" bordered={false}>
+        <Card title="Mandate Documentation" bordered={false}>
           {renderDocSection("Certificates", investment?.certificate)}
           {renderDocSection("Partner Forms", investment?.partnerForm)}
           {renderDocSection("Checklists", investment?.checklist)}

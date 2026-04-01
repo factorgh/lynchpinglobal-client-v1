@@ -195,11 +195,11 @@ const AssetForm: React.FC = () => {
     try {
       await createAssets(formattedValues).unwrap();
       await createActivity({
-        activity: " Assets Entry",
-        description: "An asset entry was made successfully",
+        activity: "Asset Transaction Entry",
+        description: "An asset transaction entry was made successfully",
         user: loggedInUser._id,
       }).unwrap();
-      toast.success("Asset created successfully");
+      toast.success("Asset Transaction created successfully");
       setOpen(false);
     } catch (error: any) {
       console.error("Error creating asset:", error);
@@ -244,10 +244,10 @@ const AssetForm: React.FC = () => {
   return (
     <>
       <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
-        New Asset
+        New Asset Transaction
       </Button>
       <Drawer
-        title="Create a New Asset"
+        title="Create a New Asset Transaction"
         width={720}
         onClose={onClose}
         open={open}
@@ -299,10 +299,10 @@ const AssetForm: React.FC = () => {
           <Col span={12}>
             <Form.Item
               name="assetName"
-              label="Asset Name"
+              label="Engagement Name"
               rules={[{ required: true, message: "Please enter the asset name" }]}
             >
-              <Input placeholder="Enter asset name" style={{ width: "100%" }} />
+              <Input placeholder="Enter engagement name" style={{ width: "100%" }} />
             </Form.Item>
           </Col>
         </Row>
@@ -343,7 +343,7 @@ const AssetForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="accruedInterest"
-                label="Accrued Interest"
+                label="Accrued Disbursements"
                 rules={[
                   {
                     required: true,
@@ -352,7 +352,7 @@ const AssetForm: React.FC = () => {
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter accrued interest"
+                  placeholder="Enter accrued disbursements"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -378,13 +378,13 @@ const AssetForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="managementFee"
-                label="Management Fee"
+                label="Service Fee"
                 rules={[
                   { required: true, message: "Please select a management fee" },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter management fee"
+                  placeholder="Enter service fee"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -393,7 +393,7 @@ const AssetForm: React.FC = () => {
               <Form.Item
                 name="quater"
                 label="Quarter"
-                rules={[{ required: true, message: "Please select a quater" }]}
+                rules={[{ required: true, message: "Please select a quarter" }]}
               >
                 <Select
                   placeholder="Select a quarter"
@@ -446,7 +446,7 @@ const AssetForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="assetValue"
-                label="Asset Value"
+                label="Participation Amount"
                 rules={[
                   {
                     required: true,
@@ -455,7 +455,7 @@ const AssetForm: React.FC = () => {
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter asset value"
+                  placeholder="Enter participation amount"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -488,7 +488,7 @@ const AssetForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="assetImage"
-                label="Asset Image"
+                label="Engagement Image"
                 rules={[
                   { required: true, message: "Please upload an asset image" },
                 ]}
@@ -498,7 +498,7 @@ const AssetForm: React.FC = () => {
                     onChange={handleAssetImageChange}
                     icon={<UploadOutlined />}
                   >
-                    Click to Upload Asset Image
+                    Click to Upload Engagement Image
                   </Button>
                 </Upload>
               </Form.Item>

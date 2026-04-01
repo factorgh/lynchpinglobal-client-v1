@@ -40,26 +40,26 @@ const PortfolioPage = () => {
   return (
     <Wrapper>
       <div className="mt-7 text-white">
-        <h1 className="text-2xl font-bold mb-4 text-white">Portfolio</h1>
+        <h1 className="text-2xl font-bold mb-4 text-white">Mandates</h1>
         <Tabs defaultValue="investment" data-tour="portfolio-tabs">
           {/* Tab List */}
           <TabsList className="mb-6" data-tour="portfolio-tab-list">
-            <TabsTrigger value="investment">Wealth</TabsTrigger>
+            <TabsTrigger value="investment">Mandates</TabsTrigger>
             <TabsTrigger value="loans">Loans</TabsTrigger>
-            <TabsTrigger value="assets">Assets</TabsTrigger>
+            <TabsTrigger value="assets">Asset Transactions</TabsTrigger>
             <TabsTrigger value="rentals">Rentals</TabsTrigger>
           </TabsList>
 
           {/* Tab Content */}
           <TabsContent value="investment">
-            <h2 className="text-lg font-semibold mb-2">Wealth</h2>
+            <h2 className="text-lg font-semibold mb-2">Mandates</h2>
             <div data-tour="positions-table">
               <CustomerInvestment />
             </div>
           </TabsContent>
 
           <TabsContent value="assets">
-            <h2 className="text-lg font-semibold mb-2">Assets</h2>
+            <h2 className="text-lg font-semibold mb-2">Asset Transactions</h2>
             <div className="flex items-center justify-center py-10">
               <img
                 src="/fallback.png"

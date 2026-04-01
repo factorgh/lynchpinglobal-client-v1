@@ -32,7 +32,7 @@ const Wealth = () => {
               color: "#111827",
             }}
           >
-            Wealth Management
+            Mandate Management
           </h1>
           <WealthForm />
         </div>
@@ -44,7 +44,7 @@ const Wealth = () => {
             marginBottom: "20px",
           }}
         >
-          Latest investment transactions
+          Latest mandate transactions
         </p>
         <div data-tour="wealth-table">
           <WealthTable />

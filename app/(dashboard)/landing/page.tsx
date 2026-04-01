@@ -142,25 +142,25 @@ const CustomerLanding = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2" data-tour="feature-cards">
             <LandingCard
               icon={<HandCoins />}
-              title="PRINCIPAL"
+              title="MANDATE CONTRIBUTION"
               amount={formatPriceGHS(principal)}
               color={principal > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <LandingCard
               icon={<PieChartOutlined />}
-              title="ACCRUED INTEREST"
+              title="ACCRUED DISBURSEMENTS"
               amount={formatPriceGHS(accruedInterest)}
               color={accruedInterest > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <LandingCard
               icon={<PlusCircleOutlined />}
-              title="ADD ONS"
+              title="ADDITIONAL CONTRIBUTIONS"
               amount={formatPriceGHS(addOns)}
               color={addOns > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <LandingCard
               icon={<PieChartOutlined />}
-              title="ADD ON INTEREST"
+              title="ADDITIONAL DISBURSEMENTS"
               amount={formatPriceGHS(addonAccruedReturn)}
               color={addonAccruedReturn > 0 ? "bg-green-400" : "bg-blue-400"}
             />
@@ -175,25 +175,25 @@ const CustomerLanding = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6" data-tour="yield-cards">
             <CustomCard
               icon={<PlusCircleOutlined />}
-              title="ONE-OFF YIELD"
+              title="ONE-OFF DISBURSEMENT"
               amount={formatPriceGHS(oneOffs)}
               color={oneOffs > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <CustomCard
               icon={<PlusCircleOutlined />}
-              title="PERFORMANCE YIELD"
+              title="PERFORMANCE-LINKED DISBURSEMENT"
               amount={formatPriceGHS(performanceYield)}
               color={performanceYield > 0 ? "bg-green-400" : "bg-blue-400"}
             />
             <CustomCard
               icon={<MinusCircleOutlined />}
-              title="MANAGEMENT FEE"
+              title="SERVICE FEE"
               amount={formatPriceGHS(managementFee)}
               color="bg-red-500"
             />
             <CustomCard
               icon={<MinusCircleOutlined />}
-              title="OPERATIONAL COST"
+              title="OPERATIONAL CHARGE"
               amount={formatPriceGHS(operationalCost)}
               color="bg-red-400"
             />

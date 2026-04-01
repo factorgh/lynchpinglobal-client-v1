@@ -159,14 +159,14 @@ const WealthTable = () => {
         icon={<PayCircleOutlined />}
         onClick={() => showAddOnDrawer(record)}
       >
-        Create Add On
+        Create Additional Contribution
       </Menu.Item>
       <Menu.Item
         key="addOff"
         icon={<PlusCircleOutlined />}
         onClick={() => showAddOffDrawer(record)}
       >
-        Create One Off
+        Create One-Off Disbursement
       </Menu.Item>
     </Menu>
   );
@@ -297,20 +297,20 @@ const WealthTable = () => {
           }).unwrap();
 
           await createActivity({
-            activity: "Investment Updated",
-            description: `An investment was updated with ID ${editRentalId} and name ${values.name}`,
+            activity: "Mandate Updated",
+            description: `A mandate was updated with ID ${editRentalId}`,
             user: loggedInUser._id,
           }).unwrap();
 
-          toast.success("Investment updated successfully");
+          toast.success("Mandate updated successfully");
         } else {
           await createActivity({
-            activity: "New Investment",
-            description: "A new investment was created",
+            activity: "New Mandate",
+            description: "A new mandate was created",
             user: loggedInUser._id,
           }).unwrap();
 
-          toast.success("New investment added successfully");
+          toast.success("New mandate added successfully");
         }
 
         setIsDrawerVisible(false);
@@ -335,8 +335,8 @@ const WealthTable = () => {
       if (result.isConfirmed) {
         await deleteInvestment(id).unwrap();
         await createActivity({
-          activity: "Investment Deleted",
-          description: `An investment with id ${id} was deleted`,
+          activity: "Mandate Deleted",
+          description: `A mandate with id ${id} was deleted`,
           user: loggedInUser._id,
         }).unwrap();
         toast.success("Entry deleted successfully");
@@ -403,35 +403,35 @@ const WealthTable = () => {
         ),
     },
     {
-      title: "Principal",
+      title: "Mandate Contribution",
       dataIndex: "principal",
       key: "principal",
       ...getColumnSearchProps("principal"),
-      render: (value: any) => formatPriceGHS(value), // Format principal
+      render: (value: any) => formatPriceGHS(value), // Format mandate contribution
     },
     {
-      title: "Expected Return",
+      title: "Contractual Terms",
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),
       render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
     },
     {
-      title: "Performance Yield",
+      title: "Performance-Linked Disbursement",
       dataIndex: "performanceYield",
       key: "performanceYield",
       ...getColumnSearchProps("performanceYield"),
-      render: (value: any) => formatPriceGHS(value), // Format performance yield
+      render: (value: any) => formatPriceGHS(value), // Format performance-linked disbursement
     },
     {
-      title: "Management Fee Rate",
+      title: "Service Fee Rate",
       dataIndex: "managementFeeRate",
       key: "managementFeeRate",
       ...getColumnSearchProps("managementFeeRate"),
       render: (value: any) => `${toTwoDecimalPlaces(value)}%`, // Add "%" suffix
     },
     {
-      title: "Total Accrued Return",
+      title: "Total Disbursements",
       dataIndex: "totalAccruedReturn",
 
       key: "totalAccruedReturn",
@@ -470,7 +470,7 @@ const WealthTable = () => {
       />
       </div>
       <Drawer
-        title="Edit Wealth"
+        title="Edit Mandate"
         placement="right"
         width="50%" // Adjust to center the drawer
         onClose={handleCloseDrawer}
@@ -486,13 +486,13 @@ const WealthTable = () => {
             <Col span={12}>
               <Form.Item
                 name="principal"
-                label="Principal (GH)"
+                label="Mandate Contribution (GH)"
                 rules={[
-                  { required: true, message: "Please enter the principal" },
+                  { required: true, message: "Please enter the mandate contribution" },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter principal"
+                  placeholder="Enter mandate contribution"
                   style={{ width: "100%" }}
                   min={1}
                 />
@@ -502,9 +502,9 @@ const WealthTable = () => {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="performanceYield" label="Performance Yield (GH)">
+              <Form.Item name="performanceYield" label="Performance-Linked Disbursement (GH)">
                 <InputNumber
-                  placeholder="Enter performance yield"
+                  placeholder="Enter performance-linked disbursement"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -513,16 +513,16 @@ const WealthTable = () => {
             <Col span={12}>
               <Form.Item
                 name="guaranteedRate"
-                label="Guaranteed Rate (%)"
+                label="Contractual Terms (%)"
                 rules={[
                   {
                     required: true,
-                    message: "Please select a guaranteed rate",
+                    message: "Please select contractual terms",
                   },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter guaranteed rate"
+                  placeholder="Enter contractual terms"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -533,13 +533,13 @@ const WealthTable = () => {
             <Col span={12}>
               <Form.Item
                 name="managementFeeRate"
-                label="Management Fee Rate (%)"
+                label="Service Fee Rate (%)"
                 rules={[
-                  { required: true, message: "Please select a management fee" },
+                  { required: true, message: "Please select a service fee" },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter management fee"
+                  placeholder="Enter service fee"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -563,9 +563,9 @@ const WealthTable = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="operationalCost" label="Operational Cost (GH)">
+              <Form.Item name="operationalCost" label="Operational Charge (GH)">
                 <InputNumber
-                  placeholder="Enter operational cost"
+                  placeholder="Enter operational charge"
                   style={{ width: "100%" }}
                 />
               </Form.Item>
@@ -619,7 +619,7 @@ const WealthTable = () => {
         onClose={closeInvestmentDetailsDrawer}
       />
       <Drawer
-        title="Create Add On"
+        title="Create Additional Contribution"
         placement="right"
         width="50%"
         onClose={closeAddOnDrawer}
@@ -628,10 +628,10 @@ const WealthTable = () => {
         <Form form={form} onFinish={handleFormSubmit} layout="vertical">
           <Form.Item
             name="amount"
-            label="Add On Amount"
-            rules={[{ required: true, message: "Please enter an add-on" }]}
+            label="Additional Contribution Amount"
+            rules={[{ required: true, message: "Please enter an additional contribution" }]}
           >
-            <Input placeholder="Enter add-on amount" />
+            <Input placeholder="Enter additional contribution amount" />
           </Form.Item>
           {/* <Form.Item
             name="status"
@@ -667,7 +667,7 @@ const WealthTable = () => {
       </Drawer>
 
       <Drawer
-        title="Create One Off"
+        title="Create One-Off Disbursement"
         placement="right"
         width="50%"
         onClose={closeAddOffDrawer}
@@ -676,15 +676,15 @@ const WealthTable = () => {
         <Form form={form} onFinish={handleFormSubmit} layout="vertical">
           <Form.Item
             name="amount"
-            label="One Off Amount"
-            rules={[{ required: true, message: "Please enter an add-off" }]}
+            label="One-Off Disbursement Amount"
+            rules={[{ required: true, message: "Please enter a one-off disbursement" }]}
           >
-            <Input placeholder="Enter add-off details" />
+            <Input placeholder="Enter one-off disbursement details" />
           </Form.Item>
 
           <Form.Item
             name="oneOffYield"
-            label="Yield"
+            label="Disbursement Yield"
             rules={[
               {
                 required: true,
