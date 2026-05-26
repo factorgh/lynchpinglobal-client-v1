@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useSignupMutation } from "@/services/auth";
+import { useAuth } from "@/context/authContext";
 
 const RegisterForm = () => {
   const [email, setEmail] = useState("");
@@ -24,6 +25,7 @@ const RegisterForm = () => {
 
   const router = useRouter();
   const [signup, { isLoading }] = useSignupMutation();
+  const { setRoles, setUser, setToken } = useAuth();
 
   const validateEmail = (value: string) => {
     if (!value) return "Email is required.";
@@ -88,24 +90,26 @@ const RegisterForm = () => {
     }
 
     try {
-      const { token, user } = await signup({
+      const response = await signup({
         email,
         password,
         name: userName,
         displayName,
         passwordConfirm,
       }).unwrap();
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("roles", JSON.stringify(user.role));
+
+      const { token, data } = response;
+      const user = data.user;
+
+      setToken(token);
+      setUser(user);
+      setRoles(user.role);
 
       toast.success("Registration successful");
       router.replace(user.role === "admin" ? "/dashboard" : "/landing");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Registration failed:", err);
-      // Optionally surface API-provided message
-      // @ts-ignore
-      toast.error((err?.data?.message as string) || "Registration failed");
+      toast.error(err?.data?.message || "Registration failed");
     }
   };
 
