@@ -8,6 +8,7 @@ interface DashboardCardProps {
   percentageChange?: string;
   trendColor?: string;
   color?: string;
+  action?: React.ReactNode;
 }
 
 const LandingCard: React.FC<DashboardCardProps> = ({
@@ -17,6 +18,7 @@ const LandingCard: React.FC<DashboardCardProps> = ({
   percentageChange,
   trendColor,
   color,
+  action,
 }) => {
   return (
     <Card
@@ -36,9 +38,12 @@ const LandingCard: React.FC<DashboardCardProps> = ({
       </div>
 
       {/* Amount */}
-      <span className="text-md font-bold text-gray-800 text-start">
-        {amount}
-      </span>
+      <div className="flex items-baseline justify-between mt-2">
+        <span className="text-md font-bold text-gray-800 text-start">
+          {amount}
+        </span>
+        {action}
+      </div>
 
       {/* Divider */}
       <div className={`mt-4 h-1 w-full rounded-full ${color}`}></div>

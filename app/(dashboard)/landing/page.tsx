@@ -10,9 +10,10 @@ import {
   PieChartOutlined,
   PlusCircleOutlined,
 } from "@ant-design/icons";
-import { Divider, Pagination, Table } from "antd";
+import { Divider, Pagination, Table, Modal, Button, Tag } from "antd";
 import { HandCoins, LucideCreditCard } from "lucide-react";
 import { useEffect, useState } from "react";
+import moment from "moment";
 import Wrapper from "../wealth/_components/wapper";
 import AssetsUnder from "./_components/assetsUnder";
 import CustomCard from "./_components/customCard";
@@ -37,6 +38,7 @@ const CustomerLanding = () => {
   const [guaranteedRate, setGuaranteedRate] = useState(0);
   const [activeInves, setActiveInves] = useState([]);
   const [quarter, setQuarter] = useState("");
+  const [isAddOnModalVisible, setIsAddOnModalVisible] = useState(false);
 
   //  others
   const { data: assetsData, isFetching } = useGetUserAssetsQuery(null);
@@ -89,7 +91,7 @@ const CustomerLanding = () => {
             return sum; // Ignore unhandled currencies
           }
         }, 0);
-        totalAddonAccruedReturn = investment.addOnAccruedReturn;
+        totalAddonAccruedReturn += investment.addOnAccruedReturn || 0;
         totalManagementFee += investment.managementFee || 0; // Assuming managementFee is a field
         totalPerformanceYield += investment.performanceYield || 0; // Assuming performanceYield is a field
         totalOperationalCost += investment.operationalCost || 0;
@@ -124,6 +126,52 @@ const CustomerLanding = () => {
     }
   }, [userInvestments]);
 
+  // Extract all add-ons from active investments
+  const allAddOns = activeInves.flatMap((investment: any) =>
+    (investment.addOns || []).map((addOn: any) => ({
+      ...addOn,
+      investmentQuarter: investment.quarter || "N/A",
+      investmentId: investment._id,
+    }))
+  );
+
+  const addOnColumns = [
+    {
+      title: "Mandate Quarter",
+      dataIndex: "investmentQuarter",
+      key: "investmentQuarter",
+      render: (text: string) => <Tag color="blue">{text}</Tag>,
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
+      render: (amount: number) => formatPriceGHS(amount || 0),
+    },
+    {
+      title: "Start Date",
+      dataIndex: "startDate",
+      key: "startDate",
+      render: (date: any) => (date ? moment(date).format("YYYY-MM-DD") : "—"),
+    },
+    {
+      title: "Accrued Interest",
+      dataIndex: "accruedAddOnInterest",
+      key: "accruedAddOnInterest",
+      render: (value: number, record: any) => formatPriceGHS(record.accruedAddOnInterest || record.accruedInterest || 0),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status: string) => (
+        <Tag color={status === "active" ? "green" : "volcano"}>
+          {(status || "inactive").charAt(0).toUpperCase() + (status || "inactive").slice(1)}
+        </Tag>
+      ),
+    },
+  ];
+
   return (
     <div className="">
       <Wrapper>
@@ -157,6 +205,16 @@ const CustomerLanding = () => {
               title="ADDITIONAL CONTRIBUTIONS"
               amount={formatPriceGHS(addOns)}
               color={addOns > 0 ? "bg-green-400" : "bg-blue-400"}
+              action={
+                <Button
+                  type="link"
+                  size="small"
+                  className="p-0 h-auto font-medium text-blue-600 hover:text-blue-800"
+                  onClick={() => setIsAddOnModalVisible(true)}
+                >
+                  View All
+                </Button>
+              }
             />
             <LandingCard
               icon={<PieChartOutlined />}
@@ -211,6 +269,37 @@ const CustomerLanding = () => {
             />
           </Card>
         </div>
+        <Modal
+          title="Additional Contributions Details"
+          visible={isAddOnModalVisible}
+          onCancel={() => setIsAddOnModalVisible(false)}
+          footer={[
+            <Button key="close" type="primary" onClick={() => setIsAddOnModalVisible(false)}>
+              Close
+            </Button>
+          ]}
+          width={750}
+        >
+          <div className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Contributions</p>
+                <p className="text-lg font-bold text-gray-800">{formatPriceGHS(addOns)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Accumulated Interest</p>
+                <p className="text-lg font-bold text-gray-800">{formatPriceGHS(addonAccruedReturn)}</p>
+              </div>
+            </div>
+            <Table
+              dataSource={allAddOns}
+              columns={addOnColumns}
+              rowKey="_id"
+              pagination={{ pageSize: 5 }}
+              size="middle"
+            />
+          </div>
+        </Modal>
       </Wrapper>
     </div>
   );
