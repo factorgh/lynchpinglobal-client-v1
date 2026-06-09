@@ -246,20 +246,22 @@ export default function DashboardPage() {
             <Statistics />
           </div>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Recent Clients</CardTitle>
-              </div>
-              <CardDescription>Latest client activities</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <Card className="shadow-md rounded-2xl p-6 border-0 bg-white">
+            <div className="mb-4">
+              <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
+                Recent Clients
+              </h6>
+              <p className="text-slate-400 text-xs font-medium">
+                Latest client activities
+              </p>
+            </div>
+            <div className="space-y-3 mt-4">
               {activeClients?.allUsers
                 .slice(0, 5)
                 .map((client: any, index: any) => (
                   <ClientRow key={index} client={client} />
                 ))}
-            </CardContent>
+            </div>
           </Card>
         </div>
       </div>

@@ -1,10 +1,10 @@
 "use client";
 import { Card } from "@/components/ui/card";
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
   Legend,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -24,21 +24,20 @@ const data = [
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div
-        style={{
-          backgroundColor: "#fff",
-          padding: "10px",
-          borderRadius: "8px",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-        }}
-      >
-        <p style={{ margin: 0, fontWeight: "bold" }}>{label}</p>
-        <p style={{ margin: 0, color: "#3182ce" }}>
-          Current Quarter: {payload[0]?.value}
-        </p>
-        <p style={{ margin: 0, color: "#ed64a6" }}>
-          Last Quarter: {payload[1]?.value}
-        </p>
+      <div className="bg-white/95 backdrop-blur-md border border-slate-100 p-3.5 rounded-xl shadow-xl space-y-2">
+        <p className="font-semibold text-slate-800 text-xs tracking-tight">{label}</p>
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#0284c7" }}></span>
+          <span className="text-slate-600 text-xs font-medium">
+            Current Quarter: <span className="font-bold text-slate-900">{payload[0]?.value}</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#c084fc" }}></span>
+          <span className="text-slate-600 text-xs font-medium">
+            Last Quarter: <span className="font-bold text-slate-900">{payload[1]?.value}</span>
+          </span>
+        </div>
       </div>
     );
   }
@@ -49,9 +48,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export default function Statistics() {
   if (!data || data.length === 0) {
     return (
-      <Card className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded p-4">
+      <Card className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-md rounded-2xl p-6 border-0 bg-white">
         <div className="text-center py-10">
-          <h6 className="text-gray-500 text-md font-semibold">
+          <h6 className="text-slate-400 text-sm font-semibold">
             No data available
           </h6>
         </div>
@@ -60,67 +59,86 @@ export default function Statistics() {
   }
 
   return (
-    <Card className="relative flex flex-col min-w-0 break-words w-full  shadow-lg rounded p-4 ">
-      <div className="rounded-t mb-0 px-4 py-3 bg-transparent">
-        <h6 className="text-blueGray-700 mb-1 text-md font-semibold">
+    <Card className="relative flex flex-col min-w-0 break-words w-full shadow-md rounded-2xl p-6 border-0 bg-white">
+      <div className="rounded-t mb-2 bg-transparent">
+        <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
           Statistics
         </h6>
-        <h5 className="text-gray-500 text-sm">
+        <p className="text-slate-400 text-xs font-medium">
           Investment metrics over the last year
-        </h5>
+        </p>
       </div>
       <div
         style={{
           width: "100%",
-          height: "450px",
-          padding: "20px",
-          borderRadius: "10px",
+          height: "400px",
+          borderRadius: "16px",
         }}
       >
         <ResponsiveContainer
-          className="mx-3 my-7 shadow-lg"
           width="100%"
-          height={370}
+          height="100%"
         >
-          <LineChart
+          <BarChart
             data={data}
-            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            barGap={6}
+            margin={{ top: 20, right: 10, left: -20, bottom: 0 }}
           >
+            <defs>
+              <linearGradient id="currentQuarterGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0284c7" stopOpacity={0.95}/>
+                <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.75}/>
+              </linearGradient>
+              <linearGradient id="lastQuarterGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#c084fc" stopOpacity={0.95}/>
+                <stop offset="100%" stopColor="#e879f9" stopOpacity={0.75}/>
+              </linearGradient>
+            </defs>
             <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="rgba(200, 200, 200, 0.5)"
+              strokeDasharray="4 4"
+              stroke="#f1f5f9"
+              vertical={false}
             />
-            <XAxis dataKey="month" stroke="#3182ce" />
-            <YAxis stroke="#3182ce" />
+            <XAxis 
+              dataKey="month" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 500 }} 
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 500 }} 
+            />
             <Tooltip
               content={<CustomTooltip />}
-              contentStyle={{
-                backgroundColor: "#fff",
-                borderColor: "#ccc",
-              }}
-              labelStyle={{ color: "#000" }}
-              itemStyle={{ color: "#000" }}
+              cursor={{ fill: '#f8fafc', opacity: 0.5 }}
             />
             <Legend
+              iconType="circle"
+              iconSize={8}
               wrapperStyle={{
-                color: "#000",
+                paddingTop: "24px",
+                fontSize: "12px",
+                fontWeight: "500",
+                color: "#64748b",
               }}
             />
-            <Line
-              type="monotone"
+            <Bar
               dataKey="currentQuarter"
-              stroke="#3182ce"
-              strokeWidth={2}
-              dot={false}
+              name="Current Quarter"
+              fill="url(#currentQuarterGradient)"
+              radius={[4, 4, 0, 0]}
+              barSize={14}
             />
-            <Line
-              type="monotone"
+            <Bar
               dataKey="lastQuarter"
-              stroke="#ed64a6"
-              strokeWidth={2}
-              dot={false}
+              name="Last Quarter"
+              fill="url(#lastQuarterGradient)"
+              radius={[4, 4, 0, 0]}
+              barSize={14}
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </Card>
