@@ -17,7 +17,7 @@ export const AddOnApi = baseApi.injectEndpoints({
       }),
       deleteAddOn: builder.mutation({
         query: (id) => AddOnCrud.delete(id),
-        invalidatesTags: ["AddOn"],
+        invalidatesTags: ["AddOn", "Investment"],
       }),
       getAllAddOns: builder.query({
         query: () => AddOnCrud.getAll(),

@@ -55,20 +55,45 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     }
   }, []);
 
+  const propagateToParent = (categories: Record<string, FileEntry[]>) => {
+    const result: Record<string, string[]> = {};
+    FILE_CATEGORIES.forEach((cat) => {
+      result[cat] = (categories[cat] || [])
+        .filter((f) => f.uploaded)
+        .map((f) => f.previewUrl);
+    });
+    console.log("[FileUpload] propagateToParent result:", result);
+    onFileUpload(result);
+  };
+
   /** Initialize with pre-uploaded URLs (only when prop actually changes and is non-empty) */
   const prevInitialStrRef = useRef<string | null>(null);
   useEffect(() => {
+    console.log("[FileUpload] initialFiles received:", initialFiles);
     const hasInitial = initialFiles && Object.keys(initialFiles).length > 0;
     const currStr = hasInitial ? JSON.stringify(initialFiles) : null;
-    if (!currStr || currStr === prevInitialStrRef.current) return;
+    if (currStr === prevInitialStrRef.current) return;
+
+    if (!hasInitial) {
+      console.log("[FileUpload] No initial files or empty initialFiles");
+      setFileCategories({});
+      prevInitialStrRef.current = null;
+      return;
+    }
 
     const formatted = Object.entries(
       initialFiles as Record<string, string[]>
     ).reduce<Record<string, FileEntry[]>>((acc, [category, urls]) => {
-      acc[category] = urls.map((url) => ({ previewUrl: url, uploaded: true }));
+      acc[category] = (urls || []).map((url) => ({
+        previewUrl: url,
+        uploaded: true,
+        name: url.split("/").pop() || "",
+      }));
       return acc;
     }, {});
+    console.log("[FileUpload] formatted state set to fileCategories:", formatted);
     setFileCategories(formatted);
+    propagateToParent(formatted);
     prevInitialStrRef.current = currStr;
   }, [initialFiles]);
 
@@ -110,7 +135,9 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     setFileCategories((prev) => {
       const updated = [...(prev[category] || [])];
       updated.splice(index, 1);
-      return { ...prev, [category]: updated };
+      const nextCategories = { ...prev, [category]: updated };
+      propagateToParent(nextCategories);
+      return nextCategories;
     });
   };
 
@@ -161,12 +188,32 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       if (!urls.length) throw new Error("Server returned no URLs.");
 
       toast.success(`${category} uploaded successfully.`);
-      onFileUpload({ [category]: urls });
 
-      setFileCategories((prev) => ({
-        ...prev,
-        [category]: prev[category].map((f) => ({ ...f, uploaded: true })),
-      }));
+      setFileCategories((prev) => {
+        const currentCategoryEntries = prev[category] || [];
+        let urlIndex = 0;
+        const updatedEntries = currentCategoryEntries.map((entry) => {
+          if (!entry.uploaded && entry.file) {
+            const remoteUrl = urls[urlIndex++];
+            return {
+              previewUrl: remoteUrl || entry.previewUrl,
+              uploaded: true,
+              mimeType: entry.mimeType,
+              name: entry.name,
+            };
+          }
+          return entry;
+        });
+
+        const nextCategories = {
+          ...prev,
+          [category]: updatedEntries,
+        };
+
+        propagateToParent(nextCategories);
+
+        return nextCategories;
+      });
     } catch (err: any) {
       toast.error(err?.message || "Upload failed.");
       console.error(`[Upload Error - ${category}]`, err);

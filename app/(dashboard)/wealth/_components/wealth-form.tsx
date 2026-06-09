@@ -38,7 +38,7 @@ const WealthForm: React.FC = () => {
   }>({});
 
   const handleFileUpload = (uploaded: { [key: string]: string[] }) => {
-    setUploadedFiles((prev) => ({ ...prev, ...uploaded }));
+    setUploadedFiles(uploaded);
   };
 
   const [fileCategories, setFileCategories] = useState({
@@ -112,6 +112,7 @@ const WealthForm: React.FC = () => {
       toast.success("Mandate created successfully");
       setOpen(false);
       form.resetFields();
+      setUploadedFiles({});
     } catch (error: any) {
       console.error("Error creating investment:", error);
       toast.error(error?.data?.message || "An error occurred");
@@ -122,7 +123,10 @@ const WealthForm: React.FC = () => {
   const showDrawer = () => setOpen(true);
 
   // Close drawer
-  const onClose = () => setOpen(false);
+  const onClose = () => {
+    setOpen(false);
+    setUploadedFiles({});
+  };
 
   return (
     <>
@@ -293,7 +297,7 @@ const WealthForm: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
-          <FileUploadComponent onFileUpload={handleFileUpload} />
+          {open && <FileUploadComponent onFileUpload={handleFileUpload} />}
 
           <Form.Item>
             <Button

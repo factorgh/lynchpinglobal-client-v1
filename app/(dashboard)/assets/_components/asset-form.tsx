@@ -151,6 +151,18 @@ const AssetForm: React.FC = () => {
     }));
   };
 
+  const resetFormState = () => {
+    form.resetFields();
+    setAssetImageUrl(null);
+    setFileCategories({
+      certificate: [],
+      partnerForm: [],
+      checklist: [],
+      mandate: [],
+      others: [],
+    });
+  };
+
   // Form submission handler
   const handleFormSubmit = async (values: any) => {
     setUploading({
@@ -201,6 +213,7 @@ const AssetForm: React.FC = () => {
       }).unwrap();
       toast.success("Asset Transaction created successfully");
       setOpen(false);
+      resetFormState();
     } catch (error: any) {
       console.error("Error creating asset:", error);
       toast.error(error?.data?.message || error.message || "An error occurred");
@@ -239,7 +252,10 @@ const AssetForm: React.FC = () => {
   const showDrawer = () => setOpen(true);
 
   // Close drawer
-  const onClose = () => setOpen(false);
+  const onClose = () => {
+    setOpen(false);
+    resetFormState();
+  };
 
   return (
     <>

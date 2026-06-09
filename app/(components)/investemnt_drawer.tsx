@@ -96,9 +96,9 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       if (result.isConfirmed) {
         try {
           await deleteAddOn(record._id).unwrap();
-          Swal.fire("Deleted!", "Add-on has been deleted.", "success");
+          Swal.fire("Deleted!", "Additional Contribution has been deleted.", "success");
         } catch (error) {
-          Swal.fire("Error!", "Failed to delete add-on.", "error");
+          Swal.fire("Error!", "Failed to delete Additional Contribution.", "error");
         }
       }
     });
@@ -114,11 +114,11 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             startDate: values.startDate.toISOString(),
           },
         }).unwrap();
-        message.success("Add-on updated successfully");
+        message.success("Additional Contribution updated successfully");
         setEditModalVisible(false);
         setEditingAddOn(null);
       } catch (error) {
-        message.error("Failed to update add-on");
+        message.error("Failed to update Additional Contribution");
       }
     }
   };
@@ -212,6 +212,12 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       dataIndex: "startDate",
       key: "startDate",
       render: (date: Date) => moment(date).format("YYYY-MM-DD"),
+    },
+    {
+      title: "Accrued Interest",
+      dataIndex: "accruedInterest",
+      key: "accruedInterest",
+      render: (value: number) => formatPriceGHS(value || 0),
     },
     {
       title: "Status",
@@ -347,7 +353,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
           </Descriptions>
         </Card>
 
-        <Card title="Add-ons" bordered={false}>
+        <Card title="Additional Contributions" bordered={false}>
           <Table
             columns={addOnColumns}
             dataSource={investment?.addOns}
@@ -379,7 +385,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       {/* Edit Modal */}
       <Modal
         visible={editModalVisible}
-        title="Edit Add-on"
+        title="Edit Additional Contribution"
         onCancel={() => setEditModalVisible(false)}
         onOk={() => form.submit()}
         okText="Update"

@@ -77,6 +77,9 @@ const AssetTransactionTable =
     ): Promise<string[]> => {
       try {
         const uploadPromises = categoryFiles.map(async (file) => {
+          if (file.url) {
+            return file.url;
+          }
           const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
           const snapshot = await uploadBytes(storageRef, file.originFileObj);
           return await getDownloadURL(snapshot.ref); // Get the file's download URL
@@ -108,6 +111,9 @@ const AssetTransactionTable =
       form.resetFields();
       setEditRentalId(null);
       setIsEditMode(false);
+      setFileCategories({
+        others: [],
+      });
     };
     const showEditDrawer = (investment: any) => {
       if (!investment) return; // Guard against null or undefined investment
@@ -116,6 +122,17 @@ const AssetTransactionTable =
 
       setIsEditMode(true);
       setEditRentalId(investment._id);
+
+      const existingOthers = (investment.others || []).map((url: string, index: number) => ({
+        uid: `existing-${index}`,
+        name: url.split("/").pop() || `File-${index}`,
+        status: "done",
+        url: url,
+      }));
+
+      setFileCategories({
+        others: existingOthers,
+      });
 
       // Set form values based on the data of the investment
       form.setFieldsValue({
@@ -183,6 +200,9 @@ const AssetTransactionTable =
 
         setIsDrawerVisible(false);
         form.resetFields();
+        setFileCategories({
+          others: [],
+        });
       } catch (error: any) {
         toast.error("Failed to save update entry: " + error?.data?.message);
       }

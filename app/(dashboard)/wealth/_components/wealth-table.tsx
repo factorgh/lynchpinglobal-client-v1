@@ -58,7 +58,7 @@ const WealthTable = () => {
   const [form] = Form.useForm();
   const [investmentDetailsDrawerVisible, setInvestmentDetailsDrawerVisible] =
     useState(false);
-  const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
+  const [selectedInvestmentId, setSelectedInvestmentId] = useState<string | null>(null);
 
   const [updateInvestment, { isLoading }] = useUpdateInvestmentMutation();
   const [createAddOn, { isLoading: addOnLoading }] = useCreateAddOnMutation();
@@ -92,7 +92,8 @@ const WealthTable = () => {
   }>({});
 
   const handleFileUpload = (uploaded: { [key: string]: string[] }) => {
-    setUploadedFiles((prev) => ({ ...prev, ...uploaded }));
+    console.log("[WealthTable] handleFileUpload called with:", uploaded);
+    setUploadedFiles(uploaded);
   };
   const onChange = (checked: boolean) => {
     console.log(`switch to ${checked}`);
@@ -121,12 +122,12 @@ const WealthTable = () => {
   };
 
   const showInvestmentDetailsDrawer = (investment: any) => {
-    setSelectedInvestment(investment);
+    setSelectedInvestmentId(investment._id);
     setInvestmentDetailsDrawerVisible(true);
   };
 
   const closeInvestmentDetailsDrawer = () => {
-    setSelectedInvestment(null);
+    setSelectedInvestmentId(null);
     setInvestmentDetailsDrawerVisible(false);
   };
   // Menu section
@@ -183,6 +184,8 @@ const WealthTable = () => {
     form.resetFields();
     setEditRentalId(null);
     setIsEditMode(false);
+    setUploadedFiles({});
+    setInitialFiles({});
   };
   const showEditDrawer = (investment: any) => {
     console.log(investment);
@@ -197,6 +200,7 @@ const WealthTable = () => {
     };
 
     setInitialFiles(files);
+    setUploadedFiles(files);
 
     form.setFieldsValue({
       principal: investment.principal,
@@ -279,6 +283,7 @@ const WealthTable = () => {
         console.log(values);
 
         if (isEditMode) {
+          console.log("[WealthTable] handleFormSubmit isEditMode, uploadedFiles:", uploadedFiles);
           const { certificate, mandate, partnerForm, checklist, others } =
             uploadedFiles;
 
@@ -290,6 +295,7 @@ const WealthTable = () => {
             checklist,
             others,
           };
+          console.log("[WealthTable] handleFormSubmit isEditMode, formattedValues to send:", formattedValues);
 
           await updateInvestment({
             id: editRentalId,
@@ -315,6 +321,8 @@ const WealthTable = () => {
 
         setIsDrawerVisible(false);
         form.resetFields();
+        setUploadedFiles({});
+        setInitialFiles({});
       }
     } catch (error: any) {
       toast.error("Unexpected error occurred");
@@ -584,10 +592,12 @@ const WealthTable = () => {
           </Row>
 
           {/* File upload sections */}
-          <FileUploadComponent
-            onFileUpload={handleFileUpload}
-            initialFiles={initialFiles}
-          />
+          {isDrawerVisible && (
+            <FileUploadComponent
+              onFileUpload={handleFileUpload}
+              initialFiles={initialFiles}
+            />
+          )}
           <Form.Item>
             {isLoading ? (
               <Button
@@ -612,9 +622,11 @@ const WealthTable = () => {
           </Form.Item>
         </Form>
       </Drawer>
-      {/* Investment Details Drawer */}
+       {/* Investment Details Drawer */}
       <InvestmentDetailDrawer
-        investment={selectedInvestment}
+        investment={investmentData?.data?.find(
+          (inv: any) => inv._id === selectedInvestmentId
+        )}
         visible={investmentDetailsDrawerVisible}
         onClose={closeInvestmentDetailsDrawer}
       />
