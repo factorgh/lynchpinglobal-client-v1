@@ -2,7 +2,7 @@
 
 import InboxForm from "@/app/(components)/Navbar/_components/inboxForm";
 import { formatPriceGHS } from "@/lib/helper";
-import { useGetWithdrawalsQuery } from "@/services/withdrawals";
+import { useGetUserWithdrawalsQuery } from "@/services/withdrawals";
 import { Button, Card, Form, message, Table, Tag } from "antd";
 import moment from "moment";
 import { useState } from "react";
@@ -14,7 +14,7 @@ const WithdrawalPage = () => {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingWithdrawal, setEditingWithdrawal] = useState<any>(null);
-  const { data: withdrawals, isFetching } = useGetWithdrawalsQuery(null);
+  const { data: withdrawals, isFetching } = useGetUserWithdrawalsQuery(null);
   const [showInboxForm, setShowInboxForm] = useState(false);
   console.log(withdrawals?.data.data);
 
