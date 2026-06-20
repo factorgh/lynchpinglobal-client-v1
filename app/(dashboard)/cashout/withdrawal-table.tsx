@@ -119,7 +119,7 @@ const WithdrawalTable = ({ onEdit }: any) => {
       title: "Customer",
       dataIndex: "user",
       key: "user",
-      render: (values) => values.name,
+      render: (values) => (typeof values === "object" && values ? values.name || values.displayName || "N/A" : values || "N/A"),
     },
     {
       title: "Amount",
