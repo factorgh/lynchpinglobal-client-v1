@@ -315,7 +315,7 @@ import LoanDrawer from "./loan-drawer";
               <Col span={12}>
                 <Form.Item
                   name="loanAmount"
-                  label="Loan Amount"
+                  label="Loan Amount (GHS)"
                   rules={[
                     {
                       required: true,
@@ -337,7 +337,7 @@ import LoanDrawer from "./loan-drawer";
               <Col span={12}>
                 <Form.Item
                   name="overdueRate"
-                  label="Overdue Rate"
+                  label="Overdue Daily Rate (%)"
                   rules={[
                     { required: true, message: "Please enter overdue rate" },
                   ]}
@@ -377,7 +377,7 @@ import LoanDrawer from "./loan-drawer";
               <Col span={12}>
                 <Form.Item
                   name="loanRate"
-                  label="Loan Rate"
+                  label="Interest Rate (%)"
                   rules={[
                     { required: true, message: "Please enter loan rate" },
                   ]}

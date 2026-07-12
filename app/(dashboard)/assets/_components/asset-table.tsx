@@ -303,14 +303,14 @@ const AssetTransactionTable =
       },
 
       {
-        title: "Accrued Disbursements",
+        title: "Accrued Disbursements (GHS)",
         dataIndex: "accruedInterest",
         key: "accruedInterest",
         ...getColumnSearchProps("accruedInterest"),
         render: (value: any) => formatPriceGHS(value), // Format accrued disbursements
       },
       {
-        title: "Service Fee",
+        title: "Service Fee (GHS)",
         dataIndex: "managementFee",
         key: "managementFee",
         ...getColumnSearchProps("managementFee"),
@@ -470,7 +470,7 @@ const AssetTransactionTable =
               <Col span={12}>
                 <Form.Item
                   name="managementFee"
-                  label="Service Fee"
+                  label="Service Fee (GHS)"
                   rules={[
                     {
                       required: true,

@@ -116,7 +116,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
             <Descriptions.Item label="Asset Designation">
               {assets?.assetDesignation}
             </Descriptions.Item>
-            <Descriptions.Item label="Participation Amount">
+            <Descriptions.Item label="Participation Amount (GHS)">
               {formatPriceGHS(assets?.assetValue)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
@@ -131,7 +131,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
             <Descriptions.Item label="Start Date">
               {new Date(assets?.startDate).toLocaleDateString()}
             </Descriptions.Item>
-            <Descriptions.Item label="Service Fee">
+            <Descriptions.Item label="Service Fee (GHS)">
               {formatPriceGHS(assets?.managementFee)}
             </Descriptions.Item>
           </Descriptions>

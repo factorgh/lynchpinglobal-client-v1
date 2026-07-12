@@ -203,27 +203,27 @@ const CustomerInvestment: React.FC = () => {
       render: (value) => formatPriceGHS(value),
     },
     {
-      title: "Contractual Terms",
+      title: "Contractual Terms (%)",
       dataIndex: "guaranteedRate",
       key: "guaranteedRate",
       ...getColumnSearchProps("guaranteedRate"),
       render: (value) => `${toTwoDecimalPlaces(value)}%`,
     },
     {
-      title: "Performance-Linked Disbursement",
+      title: "Performance-Linked Disbursement (GHS)",
       dataIndex: "performanceYield",
       key: "performanceYield",
       ...getColumnSearchProps("performanceYield"),
       render: (value) => formatPriceGHS(value),
     },
     {
-      title: "Service Fee",
+      title: "Service Fee (GHS)",
       dataIndex: "managementFee",
       key: "managementFee",
       render: (value) => formatPriceGHS(value),
     },
     {
-      title: "Total Disbursements",
+      title: "Total Disbursements (GHS)",
       dataIndex: "totalAccruedReturn",
       key: "totalAccruedReturn",
       ...getColumnSearchProps("totalAccruedReturn"),
@@ -293,19 +293,19 @@ const CustomerInvestment: React.FC = () => {
                 </div>
               </Descriptions.Item>
             )}
-            <Descriptions.Item label="Mandate Contribution">
+            <Descriptions.Item label="Mandate Contribution (GHS)">
               {formatPriceGHS(selectedInvestment.principal)}
             </Descriptions.Item>
-            <Descriptions.Item label="Contractual Terms">
+            <Descriptions.Item label="Contractual Terms (%)">
               {toTwoDecimalPlaces(selectedInvestment.guaranteedRate)}%
             </Descriptions.Item>
-            <Descriptions.Item label="Performance-Linked Disbursement">
+            <Descriptions.Item label="Performance-Linked Disbursement (GHS)">
               {formatPriceGHS(selectedInvestment.performanceYield)}
             </Descriptions.Item>
-            <Descriptions.Item label="Service Fee">
+            <Descriptions.Item label="Service Fee (GHS)">
               {formatPriceGHS(selectedInvestment.managementFee)}
             </Descriptions.Item>
-            <Descriptions.Item label="Total Disbursements">
+            <Descriptions.Item label="Total Disbursements (GHS)">
               {formatPriceGHS(selectedInvestment.totalAccruedReturn)}
             </Descriptions.Item>
           </Descriptions>

@@ -18,11 +18,11 @@ const NonClientLoanDrawer: React.FC<NonClientLoanDrawerProps> = ({ loan, visible
           <Descriptions.Item label="Name">{loan.externalName}</Descriptions.Item>
           <Descriptions.Item label="Phone">{loan.externalPhone}</Descriptions.Item>
           <Descriptions.Item label="Ghana Card">{loan.externalGhanaCard}</Descriptions.Item>
-          <Descriptions.Item label="Loan Amount">{formatPriceGHS(loan.loanAmount)}</Descriptions.Item>
-          <Descriptions.Item label="Loan Rate">{loan.loanRate}%</Descriptions.Item>
-          <Descriptions.Item label="Overdue Rate">{loan.overdueRate}%</Descriptions.Item>
+          <Descriptions.Item label="Loan Amount (GHS)">{formatPriceGHS(loan.loanAmount)}</Descriptions.Item>
+          <Descriptions.Item label="Loan Rate (%)">{loan.loanRate}%</Descriptions.Item>
+          <Descriptions.Item label="Overdue Rate (%)">{loan.overdueRate}%</Descriptions.Item>
           <Descriptions.Item label="Quarter">{loan.quater}</Descriptions.Item>
-          <Descriptions.Item label="Amount Due">{formatPriceGHS(loan.amountDue)}</Descriptions.Item>
+          <Descriptions.Item label="Amount Due (GHS)">{formatPriceGHS(loan.amountDue)}</Descriptions.Item>
           <Descriptions.Item label="Status">
             <Tag color={loan.status === "Active" ? "green" : "default"}>{loan.status}</Tag>
           </Descriptions.Item>

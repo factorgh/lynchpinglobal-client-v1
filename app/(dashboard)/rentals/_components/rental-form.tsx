@@ -182,7 +182,7 @@ const RentalForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="amountDue"
-                label="Amount Due"
+                label="Amount Due (GHS)"
                 rules={[
                   {
                     required: true,
@@ -235,7 +235,7 @@ const RentalForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="overdueFee"
-                label="Overdue Fee"
+                label="Overdue Fee (GHS)"
                 rules={[
                   {
                     required: true,

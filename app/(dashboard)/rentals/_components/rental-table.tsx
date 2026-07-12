@@ -308,7 +308,7 @@ import RentalDrawer from "./rental-drawer";
               <Col span={12}>
                 <Form.Item
                   name="overdueFee"
-                  label="Overdue Fee"
+                  label="Overdue Fee (GHS)"
                   rules={[
                     {
                       required: true,
@@ -387,7 +387,7 @@ import RentalDrawer from "./rental-drawer";
               <Col span={12}>
                 <Form.Item
                   name="amountDue"
-                  label="Amount Due"
+                  label="Amount Due (GHS)"
                   rules={[
                     {
                       required: true,

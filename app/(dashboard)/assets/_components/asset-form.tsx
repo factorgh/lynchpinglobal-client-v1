@@ -359,7 +359,7 @@ const AssetForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="accruedInterest"
-                label="Accrued Disbursements"
+                label="Accrued Disbursements (GHS)"
                 rules={[
                   {
                     required: true,
@@ -394,7 +394,7 @@ const AssetForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="managementFee"
-                label="Service Fee"
+                label="Service Fee (GHS)"
                 rules={[
                   { required: true, message: "Please select a management fee" },
                 ]}
@@ -462,7 +462,7 @@ const AssetForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="assetValue"
-                label="Participation Amount"
+                label="Participation Amount (GHS)"
                 rules={[
                   {
                     required: true,

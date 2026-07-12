@@ -98,7 +98,7 @@ const WithdrawalForm: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            label="Amount"
+            label="Amount (GHS)"
             name="amount"
             rules={[
               {

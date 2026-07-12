@@ -119,19 +119,19 @@ const LoanDrawer = ({
       {loan ? (
         <>
           <Descriptions column={1} bordered>
-            <Descriptions.Item label="Loan Amount">
+            <Descriptions.Item label="Loan Amount (GHS)">
               {formatPriceGHS(loan.loanAmount)}
             </Descriptions.Item>
-            <Descriptions.Item label="Overdue Rate">
+            <Descriptions.Item label="Overdue Daily Rate (%)">
               {loan.overdueRate}%
             </Descriptions.Item>
-            <Descriptions.Item label="Loan Rate">
+            <Descriptions.Item label="Interest Rate (%)">
               {loan.loanRate}%
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
               <Tag color="blue">{loan.quater}</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Amount Due">
+            <Descriptions.Item label="Amount Due (GHS)">
               {loan.amountDue ? formatPriceGHS(loan.amountDue) : "N/A"}
             </Descriptions.Item>
             <Descriptions.Item label="Status">

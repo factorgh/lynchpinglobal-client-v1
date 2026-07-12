@@ -75,10 +75,10 @@ const RentalDrawer = ({ visible, onClose, rental }: any) => {
             <Descriptions.Item label="Asset Designation">
               {rental.assetDesignation}
             </Descriptions.Item>
-            <Descriptions.Item label="Amount Due">
+            <Descriptions.Item label="Amount Due (GHS)">
               {formatPriceGHS(rental.amountDue)}
             </Descriptions.Item>
-            <Descriptions.Item label="Overdue Fee">
+            <Descriptions.Item label="Overdue Fee (GHS)">
               {formatPriceGHS(rental.overdueFee)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">

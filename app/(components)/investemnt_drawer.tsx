@@ -320,19 +320,19 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Descriptions.Item label="Start Date">
               {moment(investment?.startDate).format("YYYY-MM-DD")}
             </Descriptions.Item>
-            <Descriptions.Item label="Mandate Contribution">
+            <Descriptions.Item label="Mandate Contribution (GHS)">
               {formatPriceGHS(investment?.principal)}
             </Descriptions.Item>
-            <Descriptions.Item label="Accrued Disbursements">
+            <Descriptions.Item label="Accrued Disbursements (GHS)">
               {formatPriceGHS(investment?.principalAccruedReturn)}
             </Descriptions.Item>
-            <Descriptions.Item label="Guaranteed Rate">
+            <Descriptions.Item label="Contractual Terms (%)">
               {investment?.guaranteedRate}% (Contractual Terms)
             </Descriptions.Item>
-            <Descriptions.Item label="Additional Disbursements">
+            <Descriptions.Item label="Additional Disbursements (GHS)">
               {formatPriceGHS(investment?.addOnAccruedReturn)}
             </Descriptions.Item>
-            <Descriptions.Item label="Total Disbursements">
+            <Descriptions.Item label="Total Disbursements (GHS)">
               {formatPriceGHS(investment?.totalAccruedReturn)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter End Date">
@@ -341,13 +341,13 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
             <Descriptions.Item label="Quarter">
               {investment?.quarter}
             </Descriptions.Item>
-            <Descriptions.Item label="Management Fee Rate">
+            <Descriptions.Item label="Service Fee Rate (%)">
               {investment?.managementFeeRate ?? "-"}%
             </Descriptions.Item>
-            <Descriptions.Item label="Service Fee">
+            <Descriptions.Item label="Service Fee (GHS)">
               {formatPriceGHS(investment?.managementFee)}
             </Descriptions.Item>
-            <Descriptions.Item label="Performance-Linked Disbursement">
+            <Descriptions.Item label="Performance-Linked Disbursement (GHS)">
               {formatPriceGHS(investment?.performanceYield)}
             </Descriptions.Item>
           </Descriptions>

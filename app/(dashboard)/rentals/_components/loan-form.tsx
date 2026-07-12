@@ -171,7 +171,7 @@ const LoanForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="loanAmount"
-                label="Loan Amount"
+                label="Loan Amount (GHS)"
                 rules={[
                   { required: true, message: "Please enter the loan amount " },
                 ]}

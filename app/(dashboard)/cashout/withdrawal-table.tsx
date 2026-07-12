@@ -122,7 +122,7 @@ const WithdrawalTable = ({ onEdit }: any) => {
       render: (values) => (typeof values === "object" && values ? values.name || values.displayName || "N/A" : values || "N/A"),
     },
     {
-      title: "Amount",
+      title: "Amount (GHS)",
       dataIndex: "amount",
       key: "amount",
       render: (amount: number) => formatPriceGHS(amount),
@@ -180,7 +180,7 @@ const WithdrawalTable = ({ onEdit }: any) => {
           hideRequiredMark
         >
           <Form.Item
-            label="Amount"
+            label="Amount (GHS)"
             name="amount"
             rules={[
               {

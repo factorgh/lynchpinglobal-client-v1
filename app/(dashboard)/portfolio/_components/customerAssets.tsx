@@ -187,14 +187,14 @@ const CustomerAssets: React.FC = () => {
       render: (value: any) => value,
     },
     {
-      title: "Accrued Interest",
+      title: "Accrued Interest (GHS)",
       dataIndex: "accruedInterest",
       key: "accruedInterest",
       ...getColumnSearchProps("accruedInterest"),
       render: (value: number) => formatPriceGHS(value),
     },
     {
-      title: "Management Fee",
+      title: "Service Fee (GHS)",
       dataIndex: "managementFee",
       key: "managementFee",
       ...getColumnSearchProps("managementFee"),
@@ -262,10 +262,10 @@ const CustomerAssets: React.FC = () => {
               <Descriptions.Item label="Asset Designation">
                 {selectedRecord.assetDesignation}
               </Descriptions.Item>
-              <Descriptions.Item label="Accrued Interest">
+              <Descriptions.Item label="Accrued Interest (GHS)">
                 {formatPriceGHS(selectedRecord.accruedInterest)}
               </Descriptions.Item>
-              <Descriptions.Item label="Management Fee">
+              <Descriptions.Item label="Service Fee (GHS)">
                 {formatPriceGHS(selectedRecord.managementFee)}
               </Descriptions.Item>
               <Descriptions.Item label="Quarter">
