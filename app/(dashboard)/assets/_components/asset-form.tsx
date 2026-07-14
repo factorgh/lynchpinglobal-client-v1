@@ -16,6 +16,7 @@ import {
   Row,
   Select,
   Upload,
+  UploadFile,
   UploadProps,
 } from "antd";
 import React, { useEffect, useState } from "react";
@@ -91,7 +92,9 @@ const AssetForm: React.FC = () => {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
   const getToken = () => {
     try {
-      return typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      return typeof window !== "undefined"
+        ? localStorage.getItem("token")
+        : null;
     } catch {
       return null;
     }
@@ -122,7 +125,10 @@ const AssetForm: React.FC = () => {
     }
   };
 
-  const uploadCategoryToCloudinary = async (categoryFiles: any[], category: string): Promise<string[]> => {
+  const uploadCategoryToCloudinary = async (
+    categoryFiles: any[],
+    category: string,
+  ): Promise<string[]> => {
     try {
       const formData = new FormData();
       formData.append("category", category);
@@ -137,7 +143,9 @@ const AssetForm: React.FC = () => {
       });
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
-      const urls: string[] = (data?.urls || []).map((u: any) => u.secure_url || u.url).filter(Boolean);
+      const urls: string[] = (data?.urls || [])
+        .map((u: any) => u.secure_url || u.url)
+        .filter(Boolean);
       return urls;
     } catch (error) {
       console.error("File upload error:", error);
@@ -177,10 +185,11 @@ const AssetForm: React.FC = () => {
 
     for (const category in fileCategories) {
       if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
-        uploadedFiles[category as keyof typeof fileCategories] = await uploadCategoryToCloudinary(
-          fileCategories[category as keyof typeof fileCategories],
-          category
-        );
+        uploadedFiles[category as keyof typeof fileCategories] =
+          await uploadCategoryToCloudinary(
+            fileCategories[category as keyof typeof fileCategories],
+            category,
+          );
       }
     }
 
@@ -285,7 +294,9 @@ const AssetForm: React.FC = () => {
                   placeholder="Select a user"
                   showSearch
                   filterOption={(input, option) =>
-                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
                   }
                   options={users?.map((user: any) => ({
                     value: user._id,
@@ -302,37 +313,52 @@ const AssetForm: React.FC = () => {
                   placeholder="Select co-owners"
                   showSearch
                   filterOption={(input, option) =>
-                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
                   }
                   options={users
                     ?.filter((u: any) => u._id !== form.getFieldValue("user"))
-                    .map((user: any) => ({ value: user._id, label: user.name }))}
+                    .map((user: any) => ({
+                      value: user._id,
+                      label: user.name,
+                    }))}
                 />
               </Form.Item>
             </Col>
           </Row>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="assetName"
-              label="Engagement Name"
-              rules={[{ required: true, message: "Please enter the asset name" }]}
-            >
-              <Input placeholder="Enter engagement name" style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          {/* User Selection */}
-          <Col span={12}>
-            <Form.Item
-              name="assetClass"
-              label="Asset Class"
-              rules={[{ required: true, message: "Please enter the principal" }]}
-            >
-              <Input placeholder="Enter asset class" style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="assetName"
+                label="Engagement Name"
+                rules={[
+                  { required: true, message: "Please enter the asset name" },
+                ]}
+              >
+                <Input
+                  placeholder="Enter engagement name"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            {/* User Selection */}
+            <Col span={12}>
+              <Form.Item
+                name="assetClass"
+                label="Asset Class"
+                rules={[
+                  { required: true, message: "Please enter the principal" },
+                ]}
+              >
+                <Input
+                  placeholder="Enter asset class"
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            </Col>
 
             {/* Principal */}
             <Col span={12}>
@@ -553,12 +579,12 @@ const AssetForm: React.FC = () => {
                     fileList={
                       fileCategories[category as keyof typeof fileCategories]
                     }
-                    onChange={({ fileList }) =>
+                    onChange={({ fileList }: { fileList: UploadFile[] }) =>
                       handleFileChange(category, fileList)
                     }
-                    beforeUpload={(file) => {
+                    beforeUpload={(file: UploadFile) => {
                       const isPdf = file.type === "application/pdf";
-                      const isImage = file.type.startsWith("image/");
+                      const isImage = file.type?.startsWith("image/");
                       if (!isPdf && !isImage) {
                         toast.error("Only PDF or image files are allowed.");
                         return Upload.LIST_IGNORE;

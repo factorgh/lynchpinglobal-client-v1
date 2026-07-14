@@ -96,9 +96,17 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
       if (result.isConfirmed) {
         try {
           await deleteAddOn(record._id).unwrap();
-          Swal.fire("Deleted!", "Additional Contribution has been deleted.", "success");
+          Swal.fire(
+            "Deleted!",
+            "Additional Contribution has been deleted.",
+            "success",
+          );
         } catch (error) {
-          Swal.fire("Error!", "Failed to delete Additional Contribution.", "error");
+          Swal.fire(
+            "Error!",
+            "Failed to delete Additional Contribution.",
+            "error",
+          );
         }
       }
     });
@@ -146,6 +154,19 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const deriveQuarterFromDate = (date?: string | Date | null) => {
+    if (!date) return "N/A";
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return "N/A";
+    return `Q${Math.ceil((parsed.getMonth() + 1) / 3)}`;
+  };
+
+  const displayedQuarter = investment
+    ? investment.quarter === deriveQuarterFromDate(investment.quarterEndDate)
+      ? investment.quarter
+      : deriveQuarterFromDate(investment.quarterEndDate)
+    : "N/A";
+
   // Detect user role for admin-only controls
   const [userRole, setUserRole] = useState<string | null>(null);
   useEffect(() => {
@@ -174,7 +195,11 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
                     className="w-full h-40 border rounded overflow-hidden bg-gray-50"
                     onClick={() => handlePreviewOut(url)}
                   >
-                    <embed src={url} type="application/pdf" className="w-full h-full" />
+                    <embed
+                      src={url}
+                      type="application/pdf"
+                      className="w-full h-full"
+                    />
                   </div>
                 ) : (
                   <AiOutlineFilePdf
@@ -306,17 +331,21 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
                 <Tag>Single</Tag>
               )}
             </Descriptions.Item>
-            {Array.isArray(investment?.owners) && investment?.owners.length > 0 && (
-              <Descriptions.Item label="Co-Owners">
-                <div className="space-y-1">
-                  {investment?.owners.map((o: any, idx: number) => (
-                    <div key={idx} className="text-sm">
-                      {o?.user?.displayName || o?.user?.name || o?.user?.email || o?.user?._id}
-                    </div>
-                  ))}
-                </div>
-              </Descriptions.Item>
-            )}
+            {Array.isArray(investment?.owners) &&
+              investment?.owners.length > 0 && (
+                <Descriptions.Item label="Co-Owners">
+                  <div className="space-y-1">
+                    {investment?.owners.map((o: any, idx: number) => (
+                      <div key={idx} className="text-sm">
+                        {o?.user?.displayName ||
+                          o?.user?.name ||
+                          o?.user?.email ||
+                          o?.user?._id}
+                      </div>
+                    ))}
+                  </div>
+                </Descriptions.Item>
+              )}
             <Descriptions.Item label="Start Date">
               {moment(investment?.startDate).format("YYYY-MM-DD")}
             </Descriptions.Item>
@@ -339,7 +368,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
               {moment(investment?.quarterEndDate).format("YYYY-MM-DD")}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter">
-              {investment?.quarter}
+              {displayedQuarter}
             </Descriptions.Item>
             <Descriptions.Item label="Service Fee Rate (%)">
               {investment?.managementFeeRate ?? "-"}%

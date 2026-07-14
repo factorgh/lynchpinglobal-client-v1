@@ -1,6 +1,17 @@
 "use client";
 import { DeleteOutlined } from "@ant-design/icons";
-import { Button, List, Upload, message, Typography, Card, Space, Empty, Popconfirm } from "antd";
+import {
+  Button,
+  List,
+  Upload,
+  UploadFile,
+  message,
+  Typography,
+  Card,
+  Space,
+  Empty,
+  Popconfirm,
+} from "antd";
 import { useEffect, useState } from "react";
 
 const ConditionsUploader = () => {
@@ -11,7 +22,9 @@ const ConditionsUploader = () => {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
   const getToken = () => {
     try {
-      return typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      return typeof window !== "undefined"
+        ? localStorage.getItem("token")
+        : null;
     } catch {
       return null;
     }
@@ -26,7 +39,9 @@ const ConditionsUploader = () => {
     setLoading(true);
     try {
       // DB-first fetch (authoritative)
-      const dbRes = await fetch(`${API_BASE}/uploads/db?category=conditions&provider=any`);
+      const dbRes = await fetch(
+        `${API_BASE}/uploads/db?category=conditions&provider=any`,
+      );
       if (!dbRes.ok) throw new Error("Failed to fetch terms");
       const dbData = await dbRes.json();
       let items = (dbData?.files || []).map((f: any) => ({
@@ -39,7 +54,9 @@ const ConditionsUploader = () => {
 
       // Fallback to direct R2 listing if DB returns empty
       if (items.length === 0) {
-        const r2Res = await fetch(`${API_BASE}/uploads/list?category=conditions&provider=r2`);
+        const r2Res = await fetch(
+          `${API_BASE}/uploads/list?category=conditions&provider=r2`,
+        );
         if (r2Res.ok) {
           const r2Data = await r2Res.json();
           items = (r2Data?.files || []).map((f: any) => ({
@@ -65,7 +82,7 @@ const ConditionsUploader = () => {
     if (!bytes && bytes !== 0) return "";
     if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB", "TB"]; 
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
   };
@@ -149,12 +166,14 @@ const ConditionsUploader = () => {
           <Upload.Dragger
             multiple={false}
             accept="application/pdf"
-            beforeUpload={(file) => {
+            beforeUpload={(file: UploadFile) => {
               const isPdf = file.type === "application/pdf";
               if (!isPdf) message.error("You can only upload PDF files.");
               return isPdf || Upload.LIST_IGNORE;
             }}
-            customRequest={({ file }) => handleUpload(file)}
+            customRequest={({ file }: { file: UploadFile }) =>
+              handleUpload(file)
+            }
             showUploadList={false}
             disabled={loading}
           >
@@ -203,7 +222,9 @@ const ConditionsUploader = () => {
                       description={`Delete “${file.name}”?`}
                       okText="Delete"
                       okButtonProps={{ danger: true }}
-                      onConfirm={() => handleDelete(file.public_id, file.resource_type)}
+                      onConfirm={() =>
+                        handleDelete(file.public_id, file.resource_type)
+                      }
                     >
                       <Button type="link" danger icon={<DeleteOutlined />}>
                         Delete
@@ -213,7 +234,11 @@ const ConditionsUploader = () => {
                 >
                   <List.Item.Meta
                     title={
-                      <a href={file.url} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         {file.name}
                       </a>
                     }

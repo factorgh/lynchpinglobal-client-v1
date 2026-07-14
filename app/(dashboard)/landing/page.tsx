@@ -97,7 +97,6 @@ const CustomerLanding = () => {
         totalPerformanceYield += investment.performanceYield || 0; // Assuming performanceYield is a field
         totalOperationalCost += investment.operationalCost || 0;
         guaranteedRate += investment.guaranteedRate || 0;
-        quarter = investment.quarter;
       });
 
       const totalCalculatedBalance =
