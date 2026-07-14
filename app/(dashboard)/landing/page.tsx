@@ -48,10 +48,10 @@ const CustomerLanding = () => {
     if (userInvestments?.data) {
       // Filter investments where archived is false
       const activeInvestments = userInvestments.data.filter(
-        (investment: any) => !investment.archived
+        (investment: any) => !investment.archived,
       );
       console.log(
-        "---------------------------Active Investment section--------------------------"
+        "---------------------------Active Investment section--------------------------",
       );
       console.log(activeInvestments);
       setActiveInves(activeInvestments);
@@ -74,7 +74,7 @@ const CustomerLanding = () => {
         totalAccruedInterest += investment.totalAccruedReturn;
         totalAddOns += investment.addOns.reduce(
           (sum: any, addOn: any) => sum + (addOn.amount || 0),
-          0
+          0,
         );
         const exchangeRateUSDToGHS = 11; // Replace this with the actual exchange rate
 
@@ -133,7 +133,7 @@ const CustomerLanding = () => {
       ...addOn,
       investmentQuarter: investment.quarter || "N/A",
       investmentId: investment._id,
-    }))
+    })),
   );
 
   const addOnColumns = [
@@ -159,7 +159,10 @@ const CustomerLanding = () => {
       title: "Accrued Interest",
       dataIndex: "accruedAddOnInterest",
       key: "accruedAddOnInterest",
-      render: (value: number, record: any) => formatPriceGHS(record.accruedAddOnInterest || record.accruedInterest || 0),
+      render: (value: number, record: any) =>
+        formatPriceGHS(
+          record.accruedAddOnInterest || record.accruedInterest || 0,
+        ),
     },
     {
       title: "Status",
@@ -167,7 +170,8 @@ const CustomerLanding = () => {
       key: "status",
       render: (status: string) => (
         <Tag color={status === "active" ? "green" : "volcano"}>
-          {(status || "inactive").charAt(0).toUpperCase() + (status || "inactive").slice(1)}
+          {(status || "inactive").charAt(0).toUpperCase() +
+            (status || "inactive").slice(1)}
         </Tag>
       ),
     },
@@ -176,7 +180,10 @@ const CustomerLanding = () => {
   return (
     <div className="">
       <Wrapper>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-5" data-tour="cta-primary">
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-5"
+          data-tour="cta-primary"
+        >
           {/* first card */}
           <Card className="p-5 flex flex-col gap-8 justify-start ">
             <div className="flex justify-between items-center ">
@@ -188,7 +195,10 @@ const CustomerLanding = () => {
             <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full "></div>
           </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2" data-tour="feature-cards">
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2"
+            data-tour="feature-cards"
+          >
             <LandingCard
               icon={<HandCoins />}
               title="MANDATE CONTRIBUTION"
@@ -231,7 +241,10 @@ const CustomerLanding = () => {
         </div>
         <Divider className="bg-white" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6" data-tour="yield-cards">
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6"
+            data-tour="yield-cards"
+          >
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="ONE-OFF DISBURSEMENT"
@@ -275,21 +288,33 @@ const CustomerLanding = () => {
           visible={isAddOnModalVisible}
           onCancel={() => setIsAddOnModalVisible(false)}
           footer={[
-            <Button key="close" type="primary" onClick={() => setIsAddOnModalVisible(false)}>
+            <Button
+              key="close"
+              type="primary"
+              onClick={() => setIsAddOnModalVisible(false)}
+            >
               Close
-            </Button>
+            </Button>,
           ]}
           width={750}
         >
           <div className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Contributions</p>
-                <p className="text-lg font-bold text-gray-800">{formatPriceGHS(addOns)}</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
+                  Total Contributions
+                </p>
+                <p className="text-lg font-bold text-gray-800">
+                  {formatPriceGHS(addOns)}
+                </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Accumulated Interest</p>
-                <p className="text-lg font-bold text-gray-800">{formatPriceGHS(addonAccruedReturn)}</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
+                  Total Accumulated Interest
+                </p>
+                <p className="text-lg font-bold text-gray-800">
+                  {formatPriceGHS(addonAccruedReturn)}
+                </p>
               </div>
             </div>
             <Table
