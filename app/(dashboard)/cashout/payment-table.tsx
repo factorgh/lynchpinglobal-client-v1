@@ -6,7 +6,7 @@ import {
   useGetPaymentsQuery,
   useUpdatePaymentMutation,
 } from "@/services/payments";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, FolderOpenOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -17,6 +17,7 @@ import {
   Space,
   Table,
   Tag,
+  Skeleton,
 } from "antd";
 import { ColumnsType } from "antd/es/table";
 import moment from "moment";
@@ -156,14 +157,32 @@ const PaymentTable = ({ onEdit }: any) => {
 
   return (
     <>
-      <div data-tour="payment-table">
-        <Table
-          loading={isFetching}
-          columns={columns}
-          dataSource={payments?.data?.data}
-          rowKey="id"
-        />
-      </div>
+        {isFetching ? (
+          <div className="border border-slate-200 rounded-md p-6 bg-white space-y-4 mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <Skeleton.Input active size="small" style={{ width: 150 }} />
+              <Skeleton.Input active size="small" style={{ width: 100 }} />
+            </div>
+            <Skeleton active paragraph={{ rows: 8 }} />
+          </div>
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={payments?.data?.data}
+            rowKey="id"
+            locale={{
+              emptyText: (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                  <FolderOpenOutlined className="text-4xl text-gray-300 mb-3" />
+                  <h3 className="text-base font-semibold text-gray-700 mb-1">No Disbursements</h3>
+                  <p className="text-sm text-gray-500 max-w-xs">
+                    There are no disbursement transactions registered yet.
+                  </p>
+                </div>
+              ),
+            }}
+          />
+        )}
       <Drawer
         title="Edit Payment"
         placement="right"

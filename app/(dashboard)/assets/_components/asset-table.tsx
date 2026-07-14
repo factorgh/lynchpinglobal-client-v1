@@ -16,6 +16,7 @@ import {
   EyeOutlined,
   SearchOutlined,
   SmileOutlined,
+  FolderOpenOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -30,6 +31,7 @@ import {
   Table,
   Upload,
   UploadFile,
+  Skeleton,
 } from "antd";
 import moment from "moment";
 import { useRef, useState } from "react";
@@ -372,27 +374,36 @@ const AssetTransactionTable = () => {
 
   return (
     <>
-      <Table
-        pagination={{
-          pageSize: 10,
-        }}
-        loading={investmentLoading}
-        columns={columns}
-        dataSource={assetsData?.data.data}
-        // scroll={{ x: 1000 }}
-        className="border border-slate-200 rounded-md"
-        rowKey="id"
-        locale={{
-          emptyText: (
-            <div style={{ textAlign: "center" }}>
-              <SmileOutlined style={{ fontSize: 35, color: "#1890ff" }} />
-              <p style={{ fontSize: 20, color: "#1890ff" }}>
-                No data available
-              </p>
-            </div>
-          ),
-        }}
-      />
+      {investmentLoading ? (
+        <div className="border border-slate-200 rounded-md p-6 bg-white space-y-4 mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <Skeleton.Input active size="small" style={{ width: 150 }} />
+            <Skeleton.Input active size="small" style={{ width: 100 }} />
+          </div>
+          <Skeleton active paragraph={{ rows: 8 }} />
+        </div>
+      ) : (
+        <Table
+          pagination={{
+            pageSize: 10,
+          }}
+          columns={columns}
+          dataSource={assetsData?.data.data}
+          className="border border-slate-200 rounded-md"
+          rowKey="id"
+          locale={{
+            emptyText: (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <FolderOpenOutlined className="text-4xl text-gray-300 mb-3" />
+                <h3 className="text-base font-semibold text-gray-700 mb-1">No Assets</h3>
+                <p className="text-sm text-gray-500 max-w-xs">
+                  There are no asset transactions registered yet.
+                </p>
+              </div>
+            ),
+          }}
+        />
+      )}
       <Drawer
         title="Edit Asset Transaction"
         placement="right"
