@@ -65,7 +65,8 @@ const CustomerLanding = () => {
       let totalOneOffs = 0;
       let totalOperationalCost = 0;
       let guaranteedRate = 0;
-      let quarter = "";
+
+      const currentQuarterLabel = `Q${Math.ceil((new Date().getMonth() + 1) / 3)}`;
 
       // Calculate the totals and gather additional fields
       activeInvestments.forEach((investment: any) => {
@@ -121,7 +122,7 @@ const CustomerLanding = () => {
       setPerformanceYield(totalPerformanceYield);
       setOperationalCost(totalOperationalCost);
       setGuaranteedRate(guaranteedRate);
-      setQuarter(quarter);
+      setQuarter(currentQuarterLabel);
       setOneOffs(totalOneOffs);
     }
   }, [userInvestments]);
