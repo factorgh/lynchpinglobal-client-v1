@@ -42,10 +42,23 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import FileUploadComponent from "./FileUpload";
 
-const WealthTable = () => {
+const WealthTable = ({ quarterFilter = "all", yearFilter = "all" }: { quarterFilter?: string; yearFilter?: string }) => {
   const searchInput = useRef(null);
   const { data: investmentData, isFetching: investmentLoading } =
     useGetAllInvestmentsQuery<any>(null);
+
+  const filteredData = investmentData?.data?.filter((inv: any) => {
+    if (quarterFilter !== "all" && inv.quarter !== quarterFilter) {
+      return false;
+    }
+    if (yearFilter !== "all") {
+      const invYear = dayjs(inv.startDate).format("YYYY");
+      if (invYear !== yearFilter) {
+        return false;
+      }
+    }
+    return true;
+  });
   console.log(
     "-------------------------InvestmentData-------------------------"
   );
@@ -471,7 +484,7 @@ const WealthTable = () => {
         }}
         loading={investmentLoading}
         columns={columns}
-        dataSource={investmentData?.data}
+        dataSource={filteredData}
         // scroll={{ x: 1000 }}
         className="border border-slate-200 rounded-md"
         rowKey="_id"

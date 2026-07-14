@@ -1,8 +1,16 @@
+"use client";
+
+import { useState } from "react";
+import { Select, DatePicker } from "antd";
+import dayjs from "dayjs";
 import Wrapper from "./_components/wapper";
 import WealthForm from "./_components/wealth-form";
 import WealthTable from "./_components/wealth-table";
 
 const Wealth = () => {
+  const [quarterFilter, setQuarterFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState("all");
+
   return (
     <Wrapper>
       <div
@@ -34,7 +42,28 @@ const Wealth = () => {
           >
             Mandate Management
           </h1>
-          <WealthForm />
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <Select
+              defaultValue="all"
+              style={{ width: 140 }}
+              onChange={(val) => setQuarterFilter(val)}
+              options={[
+                { value: "all", label: "All Quarters" },
+                { value: "Q1", label: "Q1" },
+                { value: "Q2", label: "Q2" },
+                { value: "Q3", label: "Q3" },
+                { value: "Q4", label: "Q4" },
+              ]}
+            />
+            <DatePicker
+              picker="year"
+              placeholder="All Years"
+              style={{ width: 120 }}
+              value={yearFilter !== "all" ? dayjs(yearFilter, "YYYY") : null}
+              onChange={(date) => setYearFilter(date ? date.format("YYYY") : "all")}
+            />
+            <WealthForm />
+          </div>
         </div>
         <p
           style={{
@@ -47,7 +76,7 @@ const Wealth = () => {
           Latest mandate transactions
         </p>
         <div data-tour="wealth-table">
-          <WealthTable />
+          <WealthTable quarterFilter={quarterFilter} yearFilter={yearFilter} />
         </div>
       </div>
     </Wrapper>
