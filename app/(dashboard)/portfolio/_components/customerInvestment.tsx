@@ -1,6 +1,6 @@
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useGetUserInvestmentsQuery } from "@/services/investment";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, FolderOpenOutlined } from "@ant-design/icons";
 import type { InputRef, TableColumnType } from "antd";
 import {
   Button,
@@ -13,6 +13,7 @@ import {
   Table,
   Tag,
   Typography,
+  Skeleton,
 } from "antd";
 import Title from "antd/es/typography/Title";
 import React, { useRef, useState } from "react";
@@ -256,11 +257,31 @@ const CustomerInvestment: React.FC = () => {
   return (
     <div>
       <div data-tour="positions-table">
-        <Table<DataType>
-          loading={isFetching}
-          columns={columns}
-          dataSource={investments?.data}
-        />
+        {isFetching ? (
+          <div className="border border-slate-200 rounded-md p-6 bg-white space-y-4">
+            <div className="flex justify-between items-center mb-2">
+              <Skeleton.Input active size="small" style={{ width: 150 }} />
+              <Skeleton.Input active size="small" style={{ width: 100 }} />
+            </div>
+            <Skeleton active paragraph={{ rows: 8 }} />
+          </div>
+        ) : (
+          <Table<DataType>
+            columns={columns}
+            dataSource={investments?.data}
+            locale={{
+              emptyText: (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                  <FolderOpenOutlined className="text-4xl text-gray-300 mb-3" />
+                  <h3 className="text-base font-semibold text-gray-700 mb-1">No Mandates</h3>
+                  <p className="text-sm text-gray-500 max-w-xs">
+                    You do not have any mandates registered yet.
+                  </p>
+                </div>
+              ),
+            }}
+          />
+        )}
       </div>
 
       {/* Drawer for displaying detailed information */}
