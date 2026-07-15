@@ -329,10 +329,10 @@ const LoanForm: React.FC = () => {
                     fileList={
                       fileCategories[category as keyof typeof fileCategories]
                     }
-                    onChange={({ fileList }) =>
+                    onChange={({ fileList }: any) =>
                       handleFileChange(category, fileList)
                     }
-                    beforeUpload={(file) => {
+                    beforeUpload={(file: any) => {
                       const isPdf = file.type === "application/pdf";
                       if (!isPdf) {
                         toast.error("You can only upload PDF files.");

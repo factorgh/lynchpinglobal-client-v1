@@ -243,7 +243,7 @@ const AssetForm: React.FC = () => {
     headers: {
       authorization: "authorization-text",
     },
-    beforeUpload: (file) => {
+    beforeUpload: (file: any) => {
       const allowed = file.type.startsWith("image/");
       if (!allowed) {
         message.error("Only image files are allowed for Asset Image.");

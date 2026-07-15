@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import Wrapper from "./_components/wapper";
 import WealthForm from "./_components/wealth-form";
 import WealthTable from "./_components/wealth-table";
+console.log("bug fix");
 
 const Wealth = () => {
   const [quarterFilter, setQuarterFilter] = useState("all");
