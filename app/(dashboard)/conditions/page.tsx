@@ -166,12 +166,12 @@ const ConditionsUploader = () => {
           <Upload.Dragger
             multiple={false}
             accept="application/pdf"
-            beforeUpload={(file: UploadFile) => {
+            beforeUpload={(file: any) => {
               const isPdf = file.type === "application/pdf";
               if (!isPdf) message.error("You can only upload PDF files.");
               return isPdf || Upload.LIST_IGNORE;
             }}
-            customRequest={({ file }: { file: UploadFile }) =>
+            customRequest={({ file }: any) =>
               handleUpload(file)
             }
             showUploadList={false}
