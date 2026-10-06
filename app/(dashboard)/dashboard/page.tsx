@@ -189,7 +189,7 @@ export default function DashboardPage() {
               <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
                 Recent Clients
               </h6>
-              <p className="text-slate-400 text-xs font-medium">
+              <p className="text-slate-500 text-xs font-medium">
                 Latest client activities
               </p>
             </div>

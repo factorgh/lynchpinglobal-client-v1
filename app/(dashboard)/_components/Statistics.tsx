@@ -56,12 +56,12 @@ export default function Statistics() {
   }
 
   return (
-    <Card className="relative flex flex-col min-w-0 break-words w-full shadow-[0_2px_10px_rgba(0,0,0,0.03)] rounded-2xl p-6 border border-slate-100/90 bg-white">
+    <Card className="relative flex flex-col min-w-0 break-words w-full shadow-[0_2px_12px_rgba(0,0,0,0.04)] rounded-2xl p-6 border border-slate-200/70 bg-white">
       <div className="mb-4">
         <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
           Statistics
         </h6>
-        <p className="text-slate-400 text-xs font-medium">
+        <p className="text-slate-600 text-xs font-medium">
           Investment metrics over the last year
         </p>
       </div>
@@ -79,21 +79,21 @@ export default function Statistics() {
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#f1f5f9"
+              stroke="#e2e8f0"
               vertical={false}
             />
             <XAxis
               dataKey="month"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 500 }}
+              tick={{ fill: "#475569", fontSize: 12, fontWeight: 600 }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
               ticks={[0, 25, 50, 75, 100]}
               domain={[0, 100]}
-              tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: 500 }}
+              tick={{ fill: "#475569", fontSize: 12, fontWeight: 600 }}
             />
             <Tooltip
               content={<CustomTooltip />}
@@ -117,17 +117,18 @@ export default function Statistics() {
         </ResponsiveContainer>
       </div>
       {/* Legend below the chart */}
-      <div className="flex items-center gap-4 mt-2 text-xs font-medium text-slate-500">
+      <div className="flex items-center gap-4 mt-3 text-xs font-semibold text-slate-700">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#15803d]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#15803d]"></span>
           <span>Current quarter</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#86efac]"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#86efac] border border-emerald-400"></span>
           <span>Last quarter</span>
         </div>
       </div>
     </Card>
+
   );
 }
 
