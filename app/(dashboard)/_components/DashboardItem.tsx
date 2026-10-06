@@ -17,7 +17,7 @@ export const DashboardCard = ({
   icon: Icon,
 }: DashboardCardProps) => {
   return (
-    <Card className="bg-white rounded-2xl p-5 border border-slate-200/70 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-md transition-all duration-200">
+    <Card className="bg-white/85 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all duration-200">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-slate-800 tracking-tight">
           {title}

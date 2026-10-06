@@ -56,7 +56,7 @@ export default function Statistics() {
   }
 
   return (
-    <Card className="relative flex flex-col min-w-0 break-words w-full shadow-[0_2px_12px_rgba(0,0,0,0.04)] rounded-2xl p-6 border border-slate-200/70 bg-white">
+    <Card className="relative flex flex-col min-w-0 break-words w-full shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-2xl p-6 border border-white/60 bg-white/85 backdrop-blur-md">
       <div className="mb-4">
         <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
           Statistics

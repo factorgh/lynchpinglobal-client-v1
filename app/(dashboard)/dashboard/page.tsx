@@ -184,7 +184,7 @@ export default function DashboardPage() {
 
         {/* Recent Clients List */}
         <div className="lg:col-span-5 xl:col-span-4">
-          <Card className="bg-white rounded-2xl p-6 border border-slate-100/90 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
+          <Card className="bg-white/85 backdrop-blur-md rounded-2xl p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
             <div className="mb-4">
               <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
                 Recent Clients

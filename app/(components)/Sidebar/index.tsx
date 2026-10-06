@@ -65,7 +65,7 @@ const Sidebar = () => {
   const { roles } = useAuth();
 
   return (
-    <aside className="flex flex-col h-screen fixed top-0 left-0 w-64 bg-white border-r border-slate-200/80 shadow-[0_0_15px_rgba(0,0,0,0.03)] z-30 py-5 select-none">
+    <aside className="flex flex-col h-screen fixed top-0 left-0 w-64 bg-white/90 backdrop-blur-xl border-r border-white/60 shadow-[0_0_20px_rgba(0,0,0,0.03)] z-30 py-5 select-none">
       {/* TOP LOGO */}
       <div className="px-6 pb-4 flex items-center gap-2.5">
         <img className="h-8 w-auto object-contain" src="/logo.png" alt="Lynchpin Global" />

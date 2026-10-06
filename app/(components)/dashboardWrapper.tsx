@@ -48,8 +48,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     <AuthProvider>
       <Provider store={store}>
         <div className="flex text-slate-900 w-full min-h-screen bg-[url('/p1.jpeg')] bg-cover bg-center bg-no-repeat bg-fixed relative">
-          {/* Bright frosted overlay so top section is crisp, legible, and not pitch dark */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-slate-50/90 to-white/85 backdrop-blur-[1px] pointer-events-none"></div>
+          {/* Subtle translucent overlay so the background image shows through vibrantly */}
+          <div className="absolute inset-0 bg-white/30 backdrop-blur-[0.5px] pointer-events-none"></div>
 
           {/* Main content area */}
           <div className="relative z-20 flex w-full min-h-screen">

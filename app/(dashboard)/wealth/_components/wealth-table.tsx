@@ -375,14 +375,14 @@ const WealthTable = ({
       </div>
 
       {/* Shadcn UI Table */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
+      <div className="rounded-2xl border border-slate-200/70 bg-white/80 backdrop-blur-md overflow-hidden shadow-xs">
         {investmentLoading ? (
           <div className="p-6 space-y-4">
             <Skeleton active paragraph={{ rows: 6 }} />
           </div>
         ) : (
           <Table>
-            <TableHeader className="bg-slate-50/70 border-b border-slate-200/80">
+            <TableHeader className="bg-slate-50/60 border-b border-slate-200/70">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-bold text-slate-700 text-xs py-3.5">
                   Customer
