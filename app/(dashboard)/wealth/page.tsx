@@ -6,7 +6,6 @@ import dayjs from "dayjs";
 import Wrapper from "./_components/wapper";
 import WealthForm from "./_components/wealth-form";
 import WealthTable from "./_components/wealth-table";
-console.log("bug fix");
 
 const Wealth = () => {
   const [quarterFilter, setQuarterFilter] = useState("all");
@@ -14,36 +13,22 @@ const Wealth = () => {
 
   return (
     <Wrapper>
-      <div
-        style={{
-          padding: "20px",
-          backgroundColor: "#f9fafb", // Light background color
-          borderRadius: "8px",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
-          marginBottom: "20px",
-          marginTop: "30px",
-        }}
-      >
+      <div className="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-[0_2px_12px_rgba(0,0,0,0.03)] my-6">
+        {/* Header and Filter Controls */}
         <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderBottom: "2px solid #e5e7eb", // Underline for separation
-            paddingBottom: "10px",
-          }}
+          className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-5"
           data-tour="wealth-header"
         >
-          <h1
-            style={{
-              fontSize: "24px",
-              fontWeight: "bold",
-              color: "#111827",
-            }}
-          >
-            Mandate Management
-          </h1>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Mandate Management
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Latest mandate transactions
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
             <Select
               defaultValue="all"
               style={{ width: 140 }}
@@ -55,27 +40,23 @@ const Wealth = () => {
                 { value: "Q3", label: "Q3" },
                 { value: "Q4", label: "Q4" },
               ]}
+              className="rounded-xl shadow-xs"
             />
             <DatePicker
               picker="year"
               placeholder="All Years"
               style={{ width: 120 }}
               value={yearFilter !== "all" ? dayjs(yearFilter, "YYYY") : null}
-              onChange={(date) => setYearFilter(date ? date.format("YYYY") : "all")}
+              onChange={(date) =>
+                setYearFilter(date ? date.format("YYYY") : "all")
+              }
+              className="rounded-xl shadow-xs"
             />
             <WealthForm />
           </div>
         </div>
-        <p
-          style={{
-            fontSize: "16px",
-            color: "#4b5563",
-            marginTop: "10px",
-            marginBottom: "20px",
-          }}
-        >
-          Latest mandate transactions
-        </p>
+
+        {/* Shadcn UI Table Component */}
         <div data-tour="wealth-table">
           <WealthTable quarterFilter={quarterFilter} yearFilter={yearFilter} />
         </div>
