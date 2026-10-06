@@ -131,13 +131,13 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Dashboard
           </h1>
-          <p className="text-xs text-slate-400 font-normal mt-0.5">
+          <p className="text-xs text-slate-500 font-normal mt-0.5">
             Portfolio overview for your clients
           </p>
         </div>
         <button
           onClick={() => setIsAddClientOpen(true)}
-          className="bg-[#52c41a] hover:bg-[#43a047] active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+          className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add Client</span>

@@ -58,7 +58,7 @@ const Navbar = () => {
         <input
           type="text"
           placeholder="Search anything"
-          className="w-full pl-10 pr-4 py-2 bg-[#f1f3f5]/80 hover:bg-[#ebedf0] focus:bg-white text-xs text-slate-800 placeholder-slate-400 rounded-xl border border-transparent focus:border-emerald-300 focus:outline-none transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]"
+          className="w-full pl-10 pr-4 py-2 bg-white/95 hover:bg-white focus:bg-white text-xs text-slate-800 placeholder-slate-400 rounded-xl border border-slate-200/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 focus:outline-none transition-all shadow-xs"
         />
       </div>
 

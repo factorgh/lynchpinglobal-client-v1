@@ -97,19 +97,19 @@ export default function Statistics() {
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: "#f8fafc", opacity: 0.6 }}
+              cursor={{ fill: "rgba(15, 23, 42, 0.03)" }}
             />
             <Bar
               dataKey="currentQuarter"
               name="Current quarter"
-              fill="#1e7e48"
+              fill="#15803d"
               radius={[4, 4, 0, 0]}
               barSize={12}
             />
             <Bar
               dataKey="lastQuarter"
               name="Last quarter"
-              fill="#a3e635"
+              fill="#86efac"
               radius={[4, 4, 0, 0]}
               barSize={12}
             />
@@ -119,15 +119,16 @@ export default function Statistics() {
       {/* Legend below the chart */}
       <div className="flex items-center gap-4 mt-2 text-xs font-medium text-slate-500">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#1e7e48]"></span>
+          <span className="w-2 h-2 rounded-full bg-[#15803d]"></span>
           <span>Current quarter</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#a3e635]"></span>
+          <span className="w-2 h-2 rounded-full bg-[#86efac]"></span>
           <span>Last quarter</span>
         </div>
       </div>
     </Card>
   );
 }
+
 
