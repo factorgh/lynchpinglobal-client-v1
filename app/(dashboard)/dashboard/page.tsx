@@ -128,10 +128,10 @@ export default function DashboardPage() {
       {/* Page Header matching screenshot */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
             Dashboard
           </h1>
-          <p className="text-xs text-slate-500 font-normal mt-0.5">
+          <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
             Portfolio overview for your clients
           </p>
         </div>
