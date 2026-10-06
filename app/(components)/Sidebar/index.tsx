@@ -3,23 +3,21 @@
 import { useAuth } from "@/context/authContext";
 import {
   Activity,
-  ChartNoAxesCombined,
-  CircleDollarSign,
-  Clipboard,
-  Combine,
-  Gauge,
-  Group,
+  ArrowLeftRight,
+  ArrowUpRight,
+  Banknote,
+  Compass,
+  FileUp,
   Handshake,
-  Layout,
+  LayoutDashboard,
   LucideIcon,
-  ReceiptText,
+  Users,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-// Dynamically import SignOutButton to disable SSR
 import dynamic from "next/dynamic";
+
 const SignOutButton = dynamic(() => import("../signOut"), { ssr: false });
 
 interface SidebarLinkProps {
@@ -42,18 +40,20 @@ const SidebarLink = ({
   return (
     <Link href={href}>
       <div
-        className={`cursor-pointer flex items-center ${
-          isCollapsed ? "justify-center py-4" : "justify-start px-8 py-4"
-        } hover:text-blue-500 hover:bg-blue-100 gap-3 transition-colors ${
-          isActive ? "bg-blue-200 text-white" : ""
+        className={`cursor-pointer flex items-center mx-3 my-0.5 ${
+          isCollapsed ? "justify-center p-2.5" : "justify-start px-3.5 py-2.5"
+        } gap-3 rounded-xl transition-all duration-200 text-xs font-medium ${
+          isActive
+            ? "bg-[#eaf4eb] text-[#1e7e48] font-semibold"
+            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50/80"
         }`}
       >
-        <Icon className="w-6 h-6 !text-gray-700" />
-        <span
-          className={`${
-            isCollapsed ? "hidden" : "block"
-          } font-medium text-gray-700`}
-        >
+        <Icon
+          className={`w-4 h-4 flex-shrink-0 ${
+            isActive ? "text-[#1e7e48]" : "text-slate-500"
+          }`}
+        />
+        <span className={`${isCollapsed ? "hidden" : "block"}`}>
           {label}
         </span>
       </div>
@@ -63,25 +63,27 @@ const SidebarLink = ({
 
 const Sidebar = () => {
   const { roles } = useAuth();
-  const sidebarClassNames = "flex flex-col h-full w-64 bg-gray-50";
 
   return (
-    <div className="flex flex-col h-screen fixed w-64 bg-gray-50 border-r border-gray-200 gap-5">
+    <aside className="flex flex-col h-screen fixed top-0 left-0 w-64 bg-white border-r border-slate-100/90 shadow-[0_0_15px_rgba(0,0,0,0.02)] z-30 py-5 select-none">
       {/* TOP LOGO */}
-      <div className="flex gap-3 justify-center  items-center pt-3 ">
-        <img className="w-40 h-10" src="/logo.png" alt="logo" />
+      <div className="px-6 pb-4 flex items-center gap-2.5">
+        <img className="h-8 w-auto object-contain" src="/logo.png" alt="Lynchpin Global" />
       </div>
 
       {/* LINKS */}
-      <div className="flex-grow mt-2" data-tour="sidebar-nav">
+      <div className="flex-1 overflow-y-auto mt-2" data-tour="sidebar-nav">
         {roles === "user" ? (
           <div data-tour="client-menu">
+            <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase px-6 mb-2">
+              Menu
+            </div>
             <SidebarLink
               href="/landing"
-              icon={ChartNoAxesCombined}
+              icon={LayoutDashboard}
               label="Dashboard"
             />
-            <SidebarLink href="/portfolio" icon={Gauge} label="My Mandates" />
+            <SidebarLink href="/portfolio" icon={Compass} label="My Mandates" />
             <SidebarLink href="/withdrawal" icon={Wallet} label="Disbursements" />
             <SidebarLink
               href="/terms"
@@ -91,20 +93,23 @@ const Sidebar = () => {
           </div>
         ) : (
           <div data-tour="admin-menu">
-            <SidebarLink href="/dashboard" icon={Layout} label="Dashboard" />
+            <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase px-6 mb-2">
+              Menu
+            </div>
+            <SidebarLink href="/dashboard" icon={LayoutDashboard} label="Dashboard" />
             <SidebarLink
               href="/wealth"
-              icon={CircleDollarSign}
+              icon={Compass}
               label="Mandates"
             />
-            <SidebarLink href="/assets" icon={Wallet} label="Asset Transactions" />
+            <SidebarLink href="/assets" icon={ArrowLeftRight} label="Asset Transactions" />
             <SidebarLink
               href="/rentals"
-              icon={Clipboard}
+              icon={Banknote}
               label="Loans & Rentals"
             />
-            <SidebarLink href="/cashout" icon={Combine} label="Disbursements" />
-            <SidebarLink href="/users" icon={Group} label="User Mgt." />
+            <SidebarLink href="/cashout" icon={ArrowUpRight} label="Disbursements" />
+            <SidebarLink href="/users" icon={Users} label="User Mgt." />
             <SidebarLink
               href="/activity"
               icon={Activity}
@@ -112,21 +117,23 @@ const Sidebar = () => {
             />
             <SidebarLink
               href="/conditions"
-              icon={ReceiptText}
+              icon={FileUp}
               label="Terms Uploader"
             />
           </div>
         )}
-        {/* Dynamically imported SignOutButton */}
-        <SignOutButton />
       </div>
 
-      {/* FOOTER */}
-      {/* <div className="mb-10 text-center h-full flex-col justify-end">
-        <p className="text-xs text-gray-500">&copy; 2024 Factorgh</p>
-      </div> */}
-    </div>
+      {/* FOOTER / ACCOUNT */}
+      <div className="pt-3 border-t border-slate-100">
+        <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase px-6 mb-1.5">
+          Account
+        </div>
+        <SignOutButton />
+      </div>
+    </aside>
   );
 };
 
 export default Sidebar;
+

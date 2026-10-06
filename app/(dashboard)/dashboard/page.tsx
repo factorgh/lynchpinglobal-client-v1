@@ -1,126 +1,46 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { formatPriceGHS } from "@/lib/helper";
 import { useGetAllAssetssQuery } from "@/services/assets";
 import { useGetUsersQuery } from "@/services/auth";
 import { useGetAllInvestmentsQuery } from "@/services/investment";
 import { useGetLoansQuery } from "@/services/loan";
-import { AlertCircle, Users, Wallet, Wallet2 } from "lucide-react";
+import { useCreateUserMutation } from "@/services/users";
+import {
+  CreditCard,
+  FileText,
+  Percent,
+  Plus,
+  Users as UsersIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
+import { Drawer, Form, Input, Button } from "antd";
+import { toast } from "react-toastify";
 import { ClientRow } from "../_components/ClientRow";
 import { DashboardCard } from "../_components/DashboardItem";
 import Statistics from "../_components/Statistics";
 
-// Types
-interface DashboardData {
-  totalLoans: number;
-  activeClients: string;
-  totalVehicles: string;
-  outstandingPayments: number;
-  trends: {
-    loans: number;
-    clients: number;
-    vehicles: number;
-    payments: number;
-  };
-}
-
-interface Client {
-  name: string;
-  email: string;
-  status: string;
-  loanAmount: number;
-  vehicle: string;
-}
-
-interface Vehicle {
-  make: string;
-  model: string;
-  year: number;
-  vin: string;
-  mileage: number;
-  status: string;
-}
-
 export default function DashboardPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const { data: activeClients } = useGetUsersQuery(null);
+  const { data: activeClients, refetch: refetchUsers } = useGetUsersQuery(null);
   const { data: userInvestments } = useGetAllInvestmentsQuery(null);
   const { data: assets } = useGetAllAssetssQuery(null);
-  console.log(assets?.data.data);
   const { data: loans } = useGetLoansQuery(null);
+  const [createUser, { isLoading: isCreatingClient }] = useCreateUserMutation();
+
   const [loansTotals, setLoansTotals] = useState(0);
   const [assetsUnderMgt, setAssetsUnderMgt] = useState(0);
   const [outstandingPayments, setOutstandingPayments] = useState(0);
-  console.log(loans?.data.data);
+  const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+  const [form] = Form.useForm();
 
-  console.log(
-    activeClients?.allUsers?.length ? activeClients?.allUsers?.length : 0
-  );
-
-  // Sample data
-  const dashboardData: DashboardData = {
-    totalLoans: 2567890,
-    activeClients: "87",
-    totalVehicles: "92",
-    outstandingPayments: 456789,
-    trends: {
-      loans: 12.5,
-      clients: 8.3,
-      vehicles: -2.1,
-      payments: 15.7,
-    },
-  };
-
-  const sampleClients: Client[] = [
-    {
-      name: "John Anderson",
-      email: "john.a@example.com",
-      status: "Active",
-      loanAmount: 35000,
-      vehicle: "Tesla Model 3",
-    },
-    {
-      name: "Sarah Williams",
-      email: "sarah.w@example.com",
-      status: "Active",
-      loanAmount: 28500,
-      vehicle: "BMW X5",
-    },
-  ];
-
-  const sampleVehicles: Vehicle[] = [
-    {
-      make: "Tesla",
-      model: "Model 3",
-      year: 2023,
-      vin: "1HGCM82633A123456",
-      mileage: 12500,
-      status: "Active",
-    },
-    {
-      make: "BMW",
-      model: "X5",
-      year: 2022,
-      vin: "5UXCR6C55KLL86553",
-      mileage: 28900,
-      status: "Active",
-    },
-  ];
   useEffect(() => {
     if (userInvestments?.data) {
       // Filter investments where archived is false
       const activeInvestments = userInvestments.data.filter(
         (investment: any) => !investment.archived
       );
-      if (loans?.data.data) {
+      if (loans?.data?.data) {
         // Calculate the total loans
         const loansData = loans.data.data;
         const activeLoans = loansData.filter((loan: any) => !loan.Inactive);
@@ -143,39 +63,34 @@ export default function DashboardPage() {
       let totalPerformanceYield = 0;
 
       // Calculate total assets and outstanding payments
-      assets?.data.data.forEach((asset: any) => {
-        totalAssets += asset.assetValue;
+      assets?.data?.data?.forEach((asset: any) => {
+        totalAssets += asset.assetValue || 0;
       });
 
       // Loop through all the data and add those needed
       activeInvestments.forEach((investment: any) => {
-        totalPrincipal += investment.principal;
-        totalAccruedInterest += investment.totalAccruedReturn;
-        totalAddOns += investment.addOns.reduce(
+        totalPrincipal += investment.principal || 0;
+        totalAccruedInterest += investment.totalAccruedReturn || 0;
+        totalAddOns += (investment.addOns || []).reduce(
           (sum: any, addOn: any) => sum + (addOn.amount || 0),
           0
         );
-        const exchangeRateUSDToGHS = 11; // Replace this with the actual exchange rate
+        const exchangeRateUSDToGHS = 11;
 
         // Calculate the total for one-off investments
-        totalOneOff += investment.oneOffs.reduce((sum: any, oneOff: any) => {
-          // Check the currency of the one-off investment
+        totalOneOff += (investment.oneOffs || []).reduce((sum: any, oneOff: any) => {
           if (oneOff.currency === "USD") {
-            // Convert to GHS and add to the sum
             return sum + (oneOff.yield || 0) * exchangeRateUSDToGHS;
           } else if (oneOff.currency === "GHS") {
-            // Add directly to the sum
             return sum + (oneOff.yield || 0);
           } else {
-            console.warn(`Unhandled currency: ${oneOff.currency}`);
-            return sum; // Ignore unhandled currencies
+            return sum;
           }
         }, 0);
 
-        totalAddOnIneterest += investment.addOnAccruedReturn;
-        totalPerformanceYield += investment.performanceYield;
-
-        totalAddonAccruedReturn += investment.addOnAccruedReturn;
+        totalAddOnIneterest += investment.addOnAccruedReturn || 0;
+        totalPerformanceYield += investment.performanceYield || 0;
+        totalAddonAccruedReturn += investment.addOnAccruedReturn || 0;
 
         totalAssetsUnderManagement = totalPrincipal + totalAddOns + totalAssets;
 
@@ -185,68 +100,91 @@ export default function DashboardPage() {
           totalOneOff +
           totalPerformanceYield;
 
-        // Update state with the new values
         setAssetsUnderMgt(totalAssetsUnderManagement);
         setOutstandingPayments(totalOutstandingPayments);
       });
     }
   }, [userInvestments, loans, assets]);
 
-  return (
-    <div className="min-h-screen bg-[url('/p1.jpeg')] pt-7">
-      {/* Main Content */}
-      <div className="ml-64 px-8 ">
-        {/* Header */}
+  const handleAddClientSubmit = async (values: any) => {
+    try {
+      await createUser({
+        ...values,
+        role: "user",
+      }).unwrap();
+      toast.success("Client added successfully");
+      setIsAddClientOpen(false);
+      form.resetFields();
+      if (refetchUsers) refetchUsers();
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to add client");
+    }
+  };
 
-        {/* Stats Overview */}
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
-          data-tour="portfolio-summary"
+  const clientList = activeClients?.allUsers || [];
+
+  return (
+    <div className="px-8 py-5 w-full mx-auto select-none">
+      {/* Page Header matching screenshot */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Dashboard
+          </h1>
+          <p className="text-xs text-slate-400 font-normal mt-0.5">
+            Portfolio overview for your clients
+          </p>
+        </div>
+        <button
+          onClick={() => setIsAddClientOpen(true)}
+          className="bg-[#52c41a] hover:bg-[#43a047] active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
         >
-          <DashboardCard
-            title="Assets & Wealth"
-            value={formatPriceGHS(Number(assetsUnderMgt))}
-            subtitle="Total assets"
-            icon={Wallet}
-            trend={dashboardData.trends.loans}
-            color="blue"
-          />
-          <DashboardCard
-            title="Active Clients"
-            value={
-              activeClients?.allUsers?.length
-                ? activeClients?.allUsers?.length
-                : 0
-            }
-            subtitle="Total active clients"
-            icon={Users}
-            trend={dashboardData.trends.clients}
-            color="green"
-          />
-          <DashboardCard
-            title="Payments"
-            value={formatPriceGHS(Number(outstandingPayments))}
-            subtitle="Total Outstanding Payments"
-            icon={Wallet2}
-            trend={dashboardData.trends.vehicles}
-            color="purple"
-          />
-          <DashboardCard
-            title="Total Loans"
-            value={formatPriceGHS(Number(loansTotals))}
-            subtitle="Total Outstanding Loans"
-            icon={AlertCircle}
-            trend={dashboardData.trends.payments}
-            color="red"
-          />
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add Client</span>
+        </button>
+      </div>
+
+      {/* Stats Overview: 4 KPI Cards in a row */}
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6"
+        data-tour="portfolio-summary"
+      >
+        <DashboardCard
+          title="Assets & Wealth"
+          value={formatPriceGHS(Number(assetsUnderMgt))}
+          subtitle="Total assets"
+          icon={FileText}
+        />
+        <DashboardCard
+          title="Active Clients"
+          value={clientList.length}
+          subtitle="Total active clients"
+          icon={UsersIcon}
+        />
+        <DashboardCard
+          title="Payments"
+          value={formatPriceGHS(Number(outstandingPayments))}
+          subtitle="Total outstanding payments"
+          icon={CreditCard}
+        />
+        <DashboardCard
+          title="Total Loans"
+          value={formatPriceGHS(Number(loansTotals))}
+          subtitle="Total outstanding loans"
+          icon={Percent}
+        />
+      </div>
+
+      {/* 2-Column Section: Statistics (Left) & Recent Clients (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Statistics Chart */}
+        <div className="lg:col-span-7 xl:col-span-8" data-tour="statistics">
+          <Statistics />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div data-tour="statistics">
-            <Statistics />
-          </div>
-
-          <Card className="shadow-md rounded-2xl p-6 border-0 bg-white">
+        {/* Recent Clients List */}
+        <div className="lg:col-span-5 xl:col-span-4">
+          <Card className="bg-white rounded-2xl p-6 border border-slate-100/90 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
             <div className="mb-4">
               <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
                 Recent Clients
@@ -255,16 +193,80 @@ export default function DashboardPage() {
                 Latest client activities
               </p>
             </div>
-            <div className="space-y-3 mt-4">
-              {activeClients?.allUsers
-                .slice(0, 5)
-                .map((client: any, index: any) => (
-                  <ClientRow key={index} client={client} />
-                ))}
+            <div className="space-y-1">
+              {clientList.length > 0 ? (
+                clientList
+                  .slice(0, 5)
+                  .map((client: any, index: number) => (
+                    <ClientRow
+                      key={client._id || index}
+                      client={client}
+                      index={index}
+                    />
+                  ))
+              ) : (
+                <div className="text-center py-8 text-slate-400 text-xs font-medium">
+                  No recent clients found
+                </div>
+              )}
             </div>
           </Card>
         </div>
       </div>
+
+      {/* Add Client Drawer */}
+      <Drawer
+        title="Add New Client"
+        open={isAddClientOpen}
+        onClose={() => setIsAddClientOpen(false)}
+        width={400}
+      >
+        <Form form={form} layout="vertical" onFinish={handleAddClientSubmit}>
+          <Form.Item
+            name="name"
+            label="Full Name"
+            rules={[{ required: true, message: "Please enter client name" }]}
+          >
+            <Input placeholder="e.g. John Doe" />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email Address"
+            rules={[
+              { required: true, message: "Please enter email" },
+              { type: "email", message: "Please enter a valid email" },
+            ]}
+          >
+            <Input placeholder="e.g. john@example.com" />
+          </Form.Item>
+          <Form.Item
+            name="license"
+            label="Client ID / Code"
+            rules={[{ required: true, message: "Please enter client code" }]}
+          >
+            <Input placeholder="e.g. 2024015" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Temporary Password"
+            rules={[{ required: true, message: "Please enter password" }]}
+          >
+            <Input.Password placeholder="Enter password" />
+          </Form.Item>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button onClick={() => setIsAddClientOpen(false)}>Cancel</Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isCreatingClient}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              Add Client
+            </Button>
+          </div>
+        </Form>
+      </Drawer>
     </div>
   );
 }
+

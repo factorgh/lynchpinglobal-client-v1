@@ -1,52 +1,48 @@
-import { Avatar } from "@/components/ui/avatar";
-
 interface ClientRowProps {
   client: {
-    name: string;
-    email: string;
-    status: string;
-    loanAmount: number;
-    license: string;
+    name?: string;
+    email?: string;
+    status?: string;
+    loanAmount?: number;
+    license?: string;
+    _id?: string;
   };
+  index?: number;
 }
 
-const getGradientByName = (name: string) => {
-  const cleanName = (name || "Client").trim();
-  const charCode = cleanName.charCodeAt(0) || 0;
-  const gradients = [
-    "from-sky-400 to-blue-500",
-    "from-purple-400 to-pink-500",
-    "from-emerald-400 to-teal-500",
-    "from-amber-400 to-orange-500",
-    "from-rose-400 to-red-500",
-    "from-indigo-400 to-violet-500",
-  ];
-  return gradients[charCode % gradients.length];
-};
-
-export const ClientRow = ({ client }: ClientRowProps) => {
-  const displayName = client.name || "Unknown";
-  const initial = displayName.trim().charAt(0).toUpperCase();
-  const gradientClass = getGradientByName(displayName);
+export const ClientRow = ({ client, index = 0 }: ClientRowProps) => {
+  const displayName = client?.name || "Client";
+  const initial = displayName.trim().charAt(0).toUpperCase() || "C";
+  
+  // Format code e.g. CL-2024015
+  const clientCode =
+    client?.license && client.license.startsWith("CL-")
+      ? client.license
+      : client?.license
+      ? `CL-${client.license}`
+      : `CL-202401${index + 5}`;
 
   return (
-    <div className="flex items-center justify-between p-3.5 bg-white hover:bg-slate-50/70 border border-slate-100 rounded-xl transition-all duration-300 hover:shadow-sm">
-      <div className="flex items-center space-x-3.5">
-        <Avatar className="w-10 h-10 ring-2 ring-slate-100/50">
-          <div className={`w-full h-full bg-gradient-to-tr ${gradientClass} flex items-center justify-center text-white font-bold text-sm shadow-inner`}>
-            {initial}
-          </div>
-        </Avatar>
+    <div className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 px-2 rounded-xl transition-all duration-200">
+      <div className="flex items-center space-x-3">
+        <div className="w-8 h-8 rounded-full bg-[#1e7e48] flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-sm">
+          {initial}
+        </div>
         <div>
-          <h3 className="font-semibold text-slate-800 text-sm tracking-tight">{displayName}</h3>
-          <p className="text-xs text-slate-400 font-medium">{client.email || "No email"}</p>
+          <h4 className="font-bold text-slate-800 text-xs tracking-tight leading-tight">
+            {displayName}
+          </h4>
+          <p className="text-[11px] text-slate-400 font-normal leading-tight mt-0.5">
+            {client?.email || "No email"}
+          </p>
         </div>
       </div>
       <div className="flex items-center">
-        <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-slate-50 text-slate-500 border border-slate-200/60 shadow-sm">
-          {client.license || "Client"}
+        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider bg-[#eaf4eb] text-[#1e7e48] border border-[#d2edd6]">
+          {clientCode}
         </span>
       </div>
     </div>
   );
 };
+

@@ -47,15 +47,15 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthProvider>
       <Provider store={store}>
-        <div className="flex text-gray-900 w-full min-h-screen">
-          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div className="flex text-slate-900 w-full min-h-screen bg-[url('/p1.jpeg')] bg-cover bg-center bg-no-repeat bg-fixed relative">
+          <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
 
           {/* Main content area */}
-          <div className="relative z-20 flex w-full ">
+          <div className="relative z-20 flex w-full min-h-screen">
             <Sidebar />
-            <main className="flex flex-col w-full h-full flex-1 bg-gray-50 overflow-auto ">
+            <main className="flex flex-col w-full min-h-screen flex-1 ml-64 bg-transparent overflow-x-hidden">
               <Navbar />
-              <div className="overflow-y-auto ">{children}</div>
+              <div className="flex-1 overflow-y-auto">{children}</div>
               {user && (
                 <AppTour 
                   persona={user.role === "admin" || user.role === "superadmin" ? "admin" : "client"} 
@@ -71,3 +71,4 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default DashboardLayout;
+

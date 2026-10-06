@@ -12,11 +12,13 @@ declare module "lucide-react" {
   export const LucideCreditCard: LucideIcon;
   export const AlertCircle: LucideIcon;
   export const Users: LucideIcon;
+  export const User: LucideIcon;
   export const Wallet: LucideIcon;
   export const Wallet2: LucideIcon;
   export const CarFront: LucideIcon;
   export const FileText: LucideIcon;
   export const File: LucideIcon;
+  export const FileUp: LucideIcon;
   export const FileVideo: LucideIcon;
   export const LogOut: LucideIcon;
   export const Activity: LucideIcon;
@@ -28,5 +30,16 @@ declare module "lucide-react" {
   export const Group: LucideIcon;
   export const Handshake: LucideIcon;
   export const Layout: LucideIcon;
+  export const LayoutDashboard: LucideIcon;
   export const ReceiptText: LucideIcon;
+  export const Search: LucideIcon;
+  export const ArrowLeftRight: LucideIcon;
+  export const ArrowUpRight: LucideIcon;
+  export const Banknote: LucideIcon;
+  export const Compass: LucideIcon;
+  export const CreditCard: LucideIcon;
+  export const Percent: LucideIcon;
+  export const Plus: LucideIcon;
 }
+
+

@@ -1,9 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import React from "react";
 
 interface DashboardCardProps {
   title: string;
-  value: string;
+  value: string | number;
   subtitle: string;
   icon: React.ElementType;
   trend?: number;
@@ -15,63 +15,24 @@ export const DashboardCard = ({
   value,
   subtitle,
   icon: Icon,
-  trend,
-  color = "blue",
 }: DashboardCardProps) => {
-  const colorClasses = {
-    blue: "bg-blue-100",
-    green: "bg-green-100",
-    purple: "bg-purple-100",
-    red: "bg-red-100",
-  };
-
-  const iconColorClasses = {
-    blue: "text-blue-600",
-    green: "text-green-600",
-    purple: "text-purple-600",
-    red: "text-red-600",
-  };
-
-  const bgColorClasses = {
-    blue: "bg-blue-500",
-    green: "bg-green-500",
-    purple: "bg-purple-500",
-    red: "bg-red-500",
-  };
-
   return (
-    <Card className="relative overflow-hidden">
-      <div
-        className={`absolute top-0 right-0 w-32 h-32 transform translate-x-8 translate-y-[-50%] rounded-full ${bgColorClasses[color]} opacity-10`}
-      />
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <Card className="bg-white rounded-2xl p-5 border border-slate-100/90 shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-md transition-all duration-200">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-slate-700 tracking-tight">
           {title}
-        </CardTitle>
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
-          <Icon className={`h-5 w-5 ${iconColorClasses[color]}`} />
+        </span>
+        <div className="w-7 h-7 rounded-lg border border-slate-200/70 bg-slate-50/60 flex items-center justify-center text-slate-400">
+          <Icon className="w-3.5 h-3.5" />
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-xl font-bold">{value}</div>
-        <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-        {/* {trend && (
-          <div className="flex items-center mt-2">
-            <ChevronUp
-              className={`h-4 w-4 ${
-                trend >= 0 ? "text-green-500" : "text-red-500"
-              }`}
-            />
-            <span
-              className={`text-sm ${
-                trend >= 0 ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              {Math.abs(trend)}% from last month
-            </span>
-          </div>
-        )} */}
-      </CardContent>
+      </div>
+      <div className="text-xl lg:text-2xl font-bold text-slate-900 mt-3 tracking-tight">
+        {value}
+      </div>
+      <p className="text-[11px] text-slate-400 mt-1 font-medium">
+        {subtitle}
+      </p>
     </Card>
   );
 };
+
