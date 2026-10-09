@@ -1,80 +1,114 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, Progress, Tag, Button, Tooltip } from "antd";
+import { Card, Button, Progress, Tag } from "antd";
 import {
   FileTextOutlined,
-  DownloadOutlined,
+  ClockCircleOutlined,
   EyeOutlined,
+  DownloadOutlined,
   LockOutlined,
   CheckCircleFilled,
-  ClockCircleOutlined,
-  CalendarOutlined,
 } from "@ant-design/icons";
-import { formatPriceGHS } from "@/lib/helper";
 import { QuarterlyDocumentModal } from "./QuarterlyDocumentModal";
 
 interface QuarterlyStatementCardProps {
   quarter: string;
-  year?: number;
   totalBalance: number;
   principal: number;
   accruedInterest: number;
-  addOns?: number;
-  addonAccruedReturn?: number;
-  oneOffs?: number;
-  performanceYield?: number;
-  managementFee?: number;
-  operationalCost?: number;
-  guaranteedRate?: number;
-  activeInvestmentsCount?: number;
+  addOns: number;
+  addonAccruedReturn: number;
+  oneOffs: number;
+  performanceYield: number;
+  managementFee: number;
+  operationalCost: number;
+  guaranteedRate: number;
+  activeInvestmentsCount: number;
 }
 
 export const QuarterlyMandateStatementCard: React.FC<
   QuarterlyStatementCardProps
 > = ({
-  quarter,
-  year = new Date().getFullYear(),
+  quarter = "Q4",
   totalBalance,
   principal,
   accruedInterest,
-  addOns = 0,
-  addonAccruedReturn = 0,
-  oneOffs = 0,
-  performanceYield = 0,
-  managementFee = 0,
-  operationalCost = 0,
-  guaranteedRate = 0,
-  activeInvestmentsCount = 1,
+  addOns,
+  addonAccruedReturn,
+  oneOffs,
+  performanceYield,
+  managementFee,
+  operationalCost,
+  guaranteedRate,
+  activeInvestmentsCount,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const today = new Date();
+  const year = today.getFullYear();
 
-  // Quarter Calculation
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const quarterIndex = Math.floor(currentMonth / 3);
-  const quarterStartMonth = quarterIndex * 3;
-  const quarterStartDate = new Date(year, quarterStartMonth, 1);
-  const nextQuarterStart = new Date(year, quarterStartMonth + 3, 1);
-  const quarterEndDate = new Date(nextQuarterStart.getTime() - 1);
+  // Determine current quarter end date
+  const quarterEndDates: Record<string, { month: number; day: number }> = {
+    Q1: { month: 2, day: 31 }, // Mar 31
+    Q2: { month: 5, day: 30 }, // Jun 30
+    Q3: { month: 8, day: 30 }, // Sep 30
+    Q4: { month: 11, day: 31 }, // Dec 31
+  };
 
-  const msPerDay = 1000 * 60 * 60 * 24;
+  const quarterStartDates: Record<string, { month: number; day: number }> = {
+    Q1: { month: 0, day: 1 },
+    Q2: { month: 3, day: 1 },
+    Q3: { month: 6, day: 1 },
+    Q4: { month: 9, day: 1 },
+  };
+
+  const endConfig = quarterEndDates[quarter] || { month: 11, day: 31 };
+  const startConfig = quarterStartDates[quarter] || { month: 9, day: 1 };
+
+  const quarterEndDate = new Date(
+    year,
+    endConfig.month,
+    endConfig.day,
+    23,
+    59,
+    59
+  );
+  const quarterStartDate = new Date(
+    year,
+    startConfig.month,
+    startConfig.day,
+    0,
+    0,
+    0
+  );
+
   const totalQuarterDays = Math.max(
     1,
-    Math.round((nextQuarterStart.getTime() - quarterStartDate.getTime()) / msPerDay)
+    Math.round(
+      (quarterEndDate.getTime() - quarterStartDate.getTime()) /
+        (1000 * 60 * 60 * 24)
+    )
   );
-  const msRemaining = quarterEndDate.getTime() - now.getTime();
-  const daysRemaining = Math.max(0, Math.ceil(msRemaining / msPerDay));
+
+  const diffMs = quarterEndDate.getTime() - today.getTime();
+  const daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
   const daysElapsed = Math.min(
     totalQuarterDays,
-    Math.max(1, totalQuarterDays - daysRemaining + 1)
+    Math.max(
+      0,
+      Math.floor(
+        (today.getTime() - quarterStartDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
+    )
   );
+
   const progressPercent = Math.min(
     100,
     Math.max(0, Math.round((daysElapsed / totalQuarterDays) * 100))
   );
 
   const isClosed = daysRemaining === 0;
+
   const formattedQuarterEnd = quarterEndDate.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -84,7 +118,7 @@ export const QuarterlyMandateStatementCard: React.FC<
   return (
     <>
       <Card
-        className="h-full rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col justify-between overflow-hidden bg-white"
+        className="h-full rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 border border-slate-200/90 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-white via-slate-50/40 to-blue-50/30"
         bodyStyle={{
           padding: "24px",
           display: "flex",
@@ -93,11 +127,11 @@ export const QuarterlyMandateStatementCard: React.FC<
           height: "100%",
         }}
       >
-        <div>
+        <div className="flex flex-col h-full justify-between">
           {/* Card Header */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-500/20">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-500/25 shrink-0">
                 <FileTextOutlined />
               </div>
               <div>
@@ -111,7 +145,10 @@ export const QuarterlyMandateStatementCard: React.FC<
             </div>
 
             {isClosed ? (
-              <Tag color="success" className="px-2.5 py-0.5 rounded-full text-xs font-semibold">
+              <Tag
+                color="success"
+                className="px-2.5 py-0.5 rounded-full text-xs font-semibold m-0"
+              >
                 <CheckCircleFilled className="mr-1" /> Ready
               </Tag>
             ) : (
@@ -122,37 +159,35 @@ export const QuarterlyMandateStatementCard: React.FC<
             )}
           </div>
 
-          {/* Daily Count Hero Box */}
-          <div className="mt-5 p-4 rounded-xl bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30 border border-blue-100/60 relative overflow-hidden">
-            <div className="flex items-baseline justify-between">
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold tracking-tight text-blue-900">
-                    {daysRemaining}
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-700">
-                    Days Remaining
-                  </span>
-                </div>
-                <p className="text-[11px] text-gray-500 mt-0.5 flex items-center gap-1">
-                  <ClockCircleOutlined className="text-blue-500" />
-                  Until {quarter} closing on {formattedQuarterEnd}
-                </p>
-              </div>
+          {/* Centralized Count Hero Box */}
+          <div className="my-6 p-6 rounded-2xl bg-gradient-to-b from-white to-blue-50/60 border border-blue-100 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
+            {/* Top status indicator inside box */}
+            <span className="text-[11px] font-semibold text-blue-600 tracking-wider uppercase mb-2">
+              Official Statement Countdown
+            </span>
 
-              <div className="text-right">
-                <span className="text-xs font-semibold text-gray-700">
-                  Day {daysElapsed}
-                </span>
-                <span className="text-[11px] text-gray-400"> / {totalQuarterDays}</span>
-                <p className="text-[10px] text-blue-600 font-medium">
-                  {progressPercent}% Elapsed
-                </p>
-              </div>
+            {/* Centralized Big Number */}
+            <div className="flex items-baseline justify-center gap-2 mb-1">
+              <span className="text-5xl sm:text-6xl font-black tracking-tight text-blue-900 leading-none">
+                {daysRemaining}
+              </span>
             </div>
 
+            <span className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">
+              Days Remaining
+            </span>
+
+            {/* Subtext info */}
+            <p className="text-xs text-slate-500 flex items-center justify-center gap-1.5 mb-4">
+              <ClockCircleOutlined className="text-blue-500" />
+              Until {quarter} closing on{" "}
+              <span className="font-semibold text-slate-700">
+                {formattedQuarterEnd}
+              </span>
+            </p>
+
             {/* Quarter Timeline Progress Bar */}
-            <div className="mt-3">
+            <div className="w-full max-w-xs">
               <Progress
                 percent={progressPercent}
                 showInfo={false}
@@ -163,42 +198,48 @@ export const QuarterlyMandateStatementCard: React.FC<
                 trailColor="#e2e8f0"
                 size={["100%", 7]}
               />
+              <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium mt-2">
+                <span>Day {daysElapsed} of {totalQuarterDays}</span>
+                <span className="text-blue-600 font-semibold">
+                  {progressPercent}% Elapsed
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer Actions - Preview only visible on the quarter */}
-        <div className="mt-5 pt-3 border-t border-gray-100">
-          {isClosed ? (
-            <div className="flex items-center gap-2">
-              <Button
-                type="primary"
-                icon={<EyeOutlined />}
-                onClick={() => setIsModalOpen(true)}
-                className="flex-1 font-semibold rounded-xl text-xs h-9 bg-blue-600 hover:bg-blue-700"
-              >
-                View Full Statement
-              </Button>
-              <Button
-                type="primary"
-                icon={<DownloadOutlined />}
-                onClick={() => setIsModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl text-xs h-9"
-              >
-                Download PDF
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-500">
-              <span className="flex items-center gap-1.5 font-medium text-slate-600">
-                <LockOutlined className="text-slate-400" />
-                Preview available on quarter close
-              </span>
-              <span className="text-[11px] font-semibold text-blue-700">
-                {formattedQuarterEnd}
-              </span>
-            </div>
-          )}
+          {/* Footer Actions - Preview only visible on the quarter */}
+          <div className="pt-2">
+            {isClosed ? (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="primary"
+                  icon={<EyeOutlined />}
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex-1 font-semibold rounded-xl text-xs h-9 bg-blue-600 hover:bg-blue-700"
+                >
+                  View Full Statement
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<DownloadOutlined />}
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl text-xs h-9"
+                >
+                  Download PDF
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between px-4 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs shadow-sm">
+                <span className="flex items-center gap-2 font-medium text-slate-600">
+                  <LockOutlined className="text-slate-400" />
+                  Preview available on quarter close
+                </span>
+                <span className="text-xs font-semibold text-blue-700">
+                  {formattedQuarterEnd}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </Card>
 
