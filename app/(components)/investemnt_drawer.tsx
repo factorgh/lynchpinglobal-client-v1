@@ -403,7 +403,7 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
         </Card>
 
         <Card title="Mandate Documentation" bordered={false}>
-          {renderDocSection("Certificates", investment?.certificate)}
+          {renderDocSection("Ledger", investment?.certificate)}
           {renderDocSection("Partner Forms", investment?.partnerForm)}
           {renderDocSection("Checklists", investment?.checklist)}
           {renderDocSection("Mandates", investment?.mandate)}

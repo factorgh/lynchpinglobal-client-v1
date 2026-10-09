@@ -450,7 +450,7 @@ const CustomerInvestment: React.FC = () => {
                 selectedInvestment.certificate.length > 0 && (
                   <div className="mb-3">
                     <h4 className="font-semibold text-xs text-slate-700 mb-1">
-                      Certificates
+                      Ledger
                     </h4>
                     <Row gutter={16}>
                       {selectedInvestment.certificate.map((fileUrl, index) => (

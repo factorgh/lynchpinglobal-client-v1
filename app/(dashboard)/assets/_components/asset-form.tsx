@@ -571,7 +571,11 @@ const AssetForm: React.FC = () => {
               <Col key={category} span={6}>
                 <Form.Item
                   label={`Upload ${
-                    category.charAt(0).toUpperCase() + category.slice(1)
+                    category === "certificate"
+                      ? "Ledger"
+                      : category === "partnerForm"
+                      ? "Partner Form"
+                      : category.charAt(0).toUpperCase() + category.slice(1)
                   }`}
                 >
                   <Upload

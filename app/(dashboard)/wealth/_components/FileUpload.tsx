@@ -30,6 +30,14 @@ const FILE_CATEGORIES = [
   "others",
 ] as const;
 
+const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  certificate: "Ledger",
+  partnerForm: "Partner Form",
+  checklist: "Checklist",
+  mandate: "Mandate",
+  others: "Others",
+};
+
 const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   onFileUpload,
   initialFiles,
@@ -268,7 +276,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       {FILE_CATEGORIES.map((category) => (
         <Col key={category} span={6}>
           <Form.Item
-            label={`Upload ${category[0].toUpperCase()}${category.slice(1)}`}
+            label={`Upload ${CATEGORY_DISPLAY_NAMES[category] || category}`}
           >
             <input
               type="file"

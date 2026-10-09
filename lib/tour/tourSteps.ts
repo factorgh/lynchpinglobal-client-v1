@@ -181,7 +181,7 @@ export const adminWealthSteps: DriveStep[] = [
   ),
   welcome(
     "💡 Pro Tips",
-    "• Daily cron jobs automatically calculate accrued disbursements<br>• You can add co owners for joint mandates<br>• Upload certificates, mandates, and other documents"
+    "• Daily cron jobs automatically calculate accrued disbursements<br>• You can add co owners for joint mandates<br>• Upload ledger reports, mandates, and other documents"
   ),
 ];
 
