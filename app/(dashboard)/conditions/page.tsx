@@ -19,7 +19,7 @@ const ConditionsUploader = () => {
   const [loading, setLoading] = useState(false);
   console.log(files);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+  const API_BASE = "/api/v1";
   const getToken = () => {
     try {
       return typeof window !== "undefined"

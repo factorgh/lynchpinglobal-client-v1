@@ -10,7 +10,7 @@ const TermsPage = () => {
   const [selectedPdf, setSelectedPdf] = useState(null);
   const [numPages, setNumPages] = useState(null);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+  const API_BASE = "/api/v1";
   const getToken = () => {
     try {
       return typeof window !== "undefined"

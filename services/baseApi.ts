@@ -10,8 +10,7 @@ const getToken = () => {
     return null;
   }
 };
-// // process.env.NEXT_PUBLIC_API_BASE_URL ||
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
+const BASE_URL = "/api/v1";
 
 // Define a service using a base URL and expected endpoints
 export const baseApi = createApi({
