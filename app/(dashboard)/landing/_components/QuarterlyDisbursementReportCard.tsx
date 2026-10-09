@@ -10,6 +10,7 @@ import {
   LockOutlined,
   CheckCircleFilled,
 } from "@ant-design/icons";
+import { formatPriceGHS } from "@/lib/helper";
 import { QuarterlyDocumentModal } from "./QuarterlyDocumentModal";
 
 interface QuarterlyDisbursementReportCardProps {
@@ -115,6 +116,9 @@ export const QuarterlyDisbursementReportCard: React.FC<
     year: "numeric",
   });
 
+  const totalAccruedDisbursements =
+    accruedInterest + addonAccruedReturn + oneOffs + performanceYield;
+
   return (
     <>
       <Card
@@ -159,49 +163,48 @@ export const QuarterlyDisbursementReportCard: React.FC<
             )}
           </div>
 
-          {/* Centralized Count Hero Box */}
-          <div className="my-6 p-6 rounded-2xl bg-gradient-to-b from-white to-emerald-50/60 border border-emerald-100 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
+          {/* Ledger Overview Hero Box (No duplicate countdown counter) */}
+          <div className="my-6 p-6 rounded-2xl bg-gradient-to-b from-white to-emerald-50/60 border border-emerald-100 shadow-sm flex flex-col justify-between text-center relative overflow-hidden">
             {/* Top status indicator inside box */}
-            <span className="text-[11px] font-semibold text-emerald-700 tracking-wider uppercase mb-2">
-              Yield Settlement Countdown
-            </span>
-
-            {/* Centralized Big Number */}
-            <div className="flex items-baseline justify-center gap-2 mb-1">
-              <span className="text-5xl sm:text-6xl font-black tracking-tight text-emerald-950 leading-none">
-                {daysRemaining}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold text-emerald-700 tracking-wider uppercase">
+                Reconciled Ledger Hub
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                <CheckCircleFilled className="text-[10px]" />
+                Audited
               </span>
             </div>
 
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-700 mb-3">
-              Days to Payout
-            </span>
-
-            {/* Subtext info */}
-            <p className="text-xs text-slate-500 flex items-center justify-center gap-1.5 mb-4">
-              <ClockCircleOutlined className="text-emerald-500" />
-              Quarterly settlement on{" "}
-              <span className="font-semibold text-slate-700">
-                {formattedQuarterEnd}
+            {/* Centralized Valuation/Disbursement Highlight */}
+            <div className="py-2.5">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">
+                Total Accrued Disbursements & Yield
               </span>
-            </p>
+              <div className="text-4xl sm:text-5xl font-black tracking-tight text-emerald-950 leading-none">
+                {formatPriceGHS(totalAccruedDisbursements)}
+              </div>
+              <p className="text-xs text-emerald-700 font-medium mt-2">
+                Cumulative yield for {quarter} {year}
+              </p>
+            </div>
 
-            {/* Quarter Timeline Progress Bar */}
-            <div className="w-full max-w-xs">
-              <Progress
-                percent={progressPercent}
-                showInfo={false}
-                strokeColor={{
-                  "0%": "#10b981",
-                  "100%": "#0f766e",
-                }}
-                trailColor="#e2e8f0"
-                size={["100%", 7]}
-              />
-              <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium mt-2">
-                <span>Day {daysElapsed} of {totalQuarterDays}</span>
-                <span className="text-emerald-700 font-semibold">
-                  {progressPercent}% Elapsed
+            {/* Ledger Metric Pill Tiles */}
+            <div className="grid grid-cols-2 gap-2.5 mt-3 pt-3 border-t border-emerald-100">
+              <div className="bg-white/90 rounded-xl p-2.5 border border-emerald-100 text-left">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                  Mandate Portfolios
+                </span>
+                <span className="text-sm font-bold text-slate-800">
+                  {activeInvestmentsCount} {activeInvestmentsCount === 1 ? "Mandate" : "Mandates"}
+                </span>
+              </div>
+              <div className="bg-white/90 rounded-xl p-2.5 border border-emerald-100 text-left">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                  Quarter Closing
+                </span>
+                <span className="text-xs font-bold text-emerald-800 truncate block">
+                  {formattedQuarterEnd}
                 </span>
               </div>
             </div>

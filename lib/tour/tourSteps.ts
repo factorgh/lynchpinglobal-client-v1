@@ -68,7 +68,7 @@ export const clientLandingSteps: DriveStep[] = [
   step(
     '[data-tour="payments-list"]',
     "📊 Ledger Report: Disbursement & Yield",
-    "Track the live daily countdown to quarter-end closing and review your reconciled disbursement and yield ledger.",
+    "Review your reconciled disbursement and yield ledger overview, portfolio summary, and complete financial audit.",
     "top"
   ),
   welcome(
