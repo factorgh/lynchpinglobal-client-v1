@@ -1,0 +1,291 @@
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import mongoose from "mongoose";
+import Counter from "./counter.model.js";
+
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Please provide your name"],
+      unique: true,
+    },
+    displayName: {
+      type: String,
+      unique: true,
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      trim: true,
+      lowercase: true,
+      unique: true,
+      validate: {
+        validator: function (value) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        },
+        message: (props) => `${props.value} is not a valid email!`,
+      },
+    },
+    phone: {
+      type: String,
+      // required: [true, "Phone number is required"],
+      validate: {
+        validator: function (value) {
+          return /^[0-9]{10,15}$/.test(value);
+        },
+        message: (props) => `${props.value} is not a valid phone number!`,
+      },
+    },
+    photo: String,
+    role: {
+      type: String,
+      enum: ["user", "admin", "superadmin"],
+      default: "user",
+    },
+    license: {
+      type: String,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: [true, "Please provide a password"],
+      minlength: 8,
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, "Please confirm your password"],
+      validate: {
+        // Use a regular function here to access `this`
+        validator: function (el) {
+          return el === this.password;
+        },
+        message: "Passwords do not match",
+      },
+    },
+    passwordChangedAt: Date,
+    passwordResetExpiresIn: Date,
+    passwordResetToken: String,
+    passwordHistory: [
+      {
+        hash: String,
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    failedLoginAttempts: {
+      count: {
+        type: Number,
+        default: 0,
+      },
+      lastAttempt: Date,
+      lockUntil: Date,
+    },
+    passwordLastChanged: {
+      type: Date,
+      default: Date.now,
+    },
+    mustChangePassword: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    twoFactorSecret: String,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
+  },
+  { timestamps: true },
+);
+// Generate license key before saving new user (thread-safe sequential generator)
+userSchema.pre("save", async function () {
+  if (this.isNew && !this.license) {
+    const year = new Date().getFullYear();
+    const counter = await Counter.findOneAndUpdate(
+      { id: "userLicense" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    this.license = `CL-${year}${String(counter.seq).padStart(3, "0")}`;
+  }
+});
+
+// Hash password before saving
+userSchema.pre("save", async function () {
+  // Only hash password if it has been modified
+  if (!this.isModified("password")) return;
+
+  // Store current password hash in history before changing
+  if (!this.isNew && this.password) {
+    // Check if password is already hashed (starts with $2a$)
+    const isHashed = this.password.startsWith("$2a$");
+
+    if (isHashed) {
+      // Password is already hashed, store it in history
+      this.passwordHistory.push({
+        hash: this.password,
+        createdAt: new Date(),
+      });
+    } else {
+      // Password is plaintext, hash it first then store in history
+      const hashedPassword = await bcrypt.hash(this.password, 12);
+      this.passwordHistory.push({
+        hash: hashedPassword,
+        createdAt: new Date(),
+      });
+    }
+
+    // Keep only last 12 passwords
+    if (this.passwordHistory.length > 12) {
+      this.passwordHistory = this.passwordHistory.slice(-12);
+    }
+  }
+
+  // Hash password with cost of 12 (only if not already hashed)
+  if (!this.password.startsWith("$2a$")) {
+    this.password = await bcrypt.hash(this.password, 12);
+  }
+
+  // Update password last changed timestamp
+  this.passwordLastChanged = new Date();
+
+  // Delete passwordConfirm field (it's only needed for validation)
+  this.passwordConfirm = undefined;
+});
+
+// Handling token change
+userSchema.pre("save", async function () {
+  // Only hash password if it has been modified
+  if (!this.isModified("password") || this.isNew) return;
+
+  this.passwordChangedAt = new Date(Date.now() - 1000);
+});
+
+// Compare password instance method
+userSchema.methods.comparePassword = async function (
+  candidatePassword,
+  userPassword = this.password,
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+// Check if password was changed after the JWT was issued
+userSchema.methods.passwordChangedAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTime = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+    return JWTTimestamp < changedTime;
+  }
+  return false; // False means not changed
+};
+
+// create password reset token
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  // Set the hashed token on the user object
+  this.set(
+    "passwordResetToken",
+    crypto.createHash("sha256").update(resetToken).digest("hex"),
+  );
+
+  // Set the expiration time on the user object
+  this.set("passwordResetExpiresIn", Date.now() + 10 * 60 * 1000);
+
+  console.log({ resetToken }, this.passwordResetToken);
+  console.log("Token expires at:", this.passwordResetExpiresIn);
+  console.log("Current time:", Date.now());
+  console.log(
+    "Expires in (minutes):",
+    (this.passwordResetExpiresIn - Date.now()) / (1000 * 60),
+  );
+
+  return resetToken;
+};
+
+// Check if password exists in user's history
+userSchema.methods.isPasswordInHistory = async function (newPassword) {
+  for (const historicalPassword of this.passwordHistory) {
+    const isMatch = await bcrypt.compare(newPassword, historicalPassword.hash);
+    if (isMatch) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// Check if account is locked
+userSchema.methods.isLocked = function () {
+  return !!(
+    this.failedLoginAttempts?.lockUntil &&
+    this.failedLoginAttempts.lockUntil > Date.now()
+  );
+};
+
+// Increment failed login attempts
+userSchema.methods.incFailedLoginAttempts = function () {
+  // If we have a previous lock that has expired, restart at 1
+  if (
+    this.failedLoginAttempts?.lockUntil &&
+    this.failedLoginAttempts.lockUntil < Date.now()
+  ) {
+    return this.updateOne({
+      $unset: { "failedLoginAttempts.lockUntil": 1 },
+      $set: {
+        "failedLoginAttempts.count": 1,
+        "failedLoginAttempts.lastAttempt": new Date(),
+      },
+    });
+  }
+
+  const updates = {
+    $inc: { "failedLoginAttempts.count": 1 },
+    $set: { "failedLoginAttempts.lastAttempt": new Date() },
+  };
+
+  // Lock account after 5 failed attempts for 2 hours
+  const currentCount = this.failedLoginAttempts?.count || 0;
+  if (currentCount + 1 >= 5 && !this.isLocked()) {
+    updates.$set = {
+      ...updates.$set,
+      "failedLoginAttempts.lockUntil": Date.now() + 2 * 60 * 60 * 1000, // 2 hours
+    };
+  }
+
+  return this.updateOne(updates);
+};
+
+// Reset failed login attempts on successful login
+userSchema.methods.resetFailedLoginAttempts = function () {
+  return this.updateOne({
+    $unset: {
+      "failedLoginAttempts.count": 1,
+      "failedLoginAttempts.lastAttempt": 1,
+      "failedLoginAttempts.lockUntil": 1,
+    },
+  });
+};
+
+// Query Middleware
+userSchema.pre(/^find/, function () {
+  // this points to the current query
+  this.find({ active: { $ne: false } });
+});
+
+userSchema.index({ passwordResetToken: 1 });
+
+userSchema.index({ passwordResetExpiresIn: 1 });
+
+if (process.env.NODE_ENV === "development" && mongoose.models.User) {
+  delete mongoose.models.User;
+}
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+
+export default User;
