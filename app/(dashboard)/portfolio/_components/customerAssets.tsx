@@ -356,13 +356,13 @@ const CustomerAssets: React.FC = () => {
             <Card title="Assets Documents" bordered={false}>
               {selectedRecord.certificate?.length > 0 && (
                 <div>
-                  <Title level={4}>Certificates</Title>
+                  <Title level={4}>Ledger</Title>
                   <Row gutter={16}>
                     {selectedRecord.certificate.map(
                       (fileUrl: string, index: number) => (
                         <Col span={8} key={index}>
                           <Card hoverable>
-                            <Text>{`Certificate ${index + 1}`}</Text>
+                            <Text>{`Ledger ${index + 1}`}</Text>
                           </Card>
                         </Col>
                       )
