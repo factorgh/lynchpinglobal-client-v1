@@ -11,42 +11,53 @@ import WithdrawalTable from "./withdrawal-table";
 const CashOutPage: React.FC = () => {
   return (
     <Wrapper>
-      <Tabs
-        defaultValue="payments"
-        className="w-[100%] mt-6"
-        data-tour="cashout-tabs"
-      >
-        <TabsList data-tour="cashout-tab-list">
-          <TabsTrigger value="payments">Payment</TabsTrigger>
-          <TabsTrigger value="withdrawals">Mandate Disbursement</TabsTrigger>
-        </TabsList>
+      <div className="mt-7 text-white mb-5">
+        <h1 className="text-2xl font-bold mb-1 text-white">Disbursements</h1>
+        <p className="text-xs text-slate-300">
+          Process payments and review client mandate disbursement requests
+        </p>
+      </div>
 
-        {/* Payments Tab Content */}
-        <TabsContent value="payments">
-          <div
-            className="flex items-center justify-end mb-3"
-            data-tour="cashout-new-payment"
-          >
-            <PaymentForm />
+      <div className="p-4 sm:p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-8">
+        <Tabs
+          defaultValue="payments"
+          className="w-full"
+          data-tour="cashout-tabs"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-slate-100 pb-3">
+            <TabsList data-tour="cashout-tab-list">
+              <TabsTrigger value="payments">Payments</TabsTrigger>
+              <TabsTrigger value="withdrawals">Mandate Disbursements</TabsTrigger>
+            </TabsList>
           </div>
-          <div data-tour="payment-table">
-            <PaymentTable /> {/* Render the Payment Table component */}
-          </div>
-        </TabsContent>
 
-        {/* Withdrawals Tab Content */}
-        <TabsContent value="withdrawals">
-          <div
-            className="flex items-center justify-end mb-3"
-            data-tour="withdrawal-form"
-          >
-            <WithdrawalForm />
-          </div>
-          <div data-tour="admin-withdrawal-table">
-            <WithdrawalTable /> {/* Render the Withdrawal Table component */}
-          </div>
-        </TabsContent>
-      </Tabs>
+          {/* Payments Tab Content */}
+          <TabsContent value="payments">
+            <div
+              className="flex items-center justify-end mb-4"
+              data-tour="cashout-new-payment"
+            >
+              <PaymentForm />
+            </div>
+            <div data-tour="payment-table">
+              <PaymentTable />
+            </div>
+          </TabsContent>
+
+          {/* Withdrawals Tab Content */}
+          <TabsContent value="withdrawals">
+            <div
+              className="flex items-center justify-end mb-4"
+              data-tour="withdrawal-form"
+            >
+              <WithdrawalForm />
+            </div>
+            <div data-tour="admin-withdrawal-table">
+              <WithdrawalTable />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </Wrapper>
   );
 };

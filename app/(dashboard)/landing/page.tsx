@@ -197,7 +197,7 @@ const CustomerLanding = () => {
           </Card>
 
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-1 sm:col-span-2 lg:col-span-2"
             data-tour="feature-cards"
           >
             <LandingCard
@@ -236,7 +236,7 @@ const CustomerLanding = () => {
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
             <CustomSlider />
           </div>
         </div>

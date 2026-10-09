@@ -40,6 +40,10 @@ declare module "lucide-react" {
   export const CreditCard: LucideIcon;
   export const Percent: LucideIcon;
   export const Plus: LucideIcon;
+  export const Menu: LucideIcon;
+  export const X: LucideIcon;
+  export const ArrowRight: LucideIcon;
+  export const Command: LucideIcon;
 }
 
 

@@ -124,7 +124,7 @@ export default function DashboardPage() {
   const clientList = activeClients?.allUsers || [];
 
   return (
-    <div className="px-8 py-5 w-full mx-auto select-none">
+    <div className="px-3 sm:px-6 lg:px-8 py-5 w-full mx-auto select-none">
       {/* Page Header matching screenshot */}
       <div className="flex items-center justify-between mb-6">
         <div>

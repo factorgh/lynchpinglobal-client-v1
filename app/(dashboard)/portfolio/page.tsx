@@ -39,54 +39,62 @@ const sampleData = [
 const PortfolioPage = () => {
   return (
     <Wrapper>
-      <div className="mt-7 text-white">
-        <h1 className="text-2xl font-bold mb-4 text-white">Mandates</h1>
-        <Tabs defaultValue="investment" data-tour="portfolio-tabs">
+      <div className="mt-7 text-white mb-5">
+        <h1 className="text-2xl font-bold mb-1 text-white">My Portfolio & Mandates</h1>
+        <p className="text-xs text-slate-300">
+          View all your mandate participations, lending transactions, and portfolio records
+        </p>
+      </div>
+
+      <div className="p-4 sm:p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-8">
+        <Tabs defaultValue="investment" className="w-full" data-tour="portfolio-tabs">
           {/* Tab List */}
-          <TabsList className="mb-6" data-tour="portfolio-tab-list">
-            <TabsTrigger value="investment">Mandates</TabsTrigger>
-            <TabsTrigger value="loans">Loans</TabsTrigger>
-            <TabsTrigger value="assets">Asset Transactions</TabsTrigger>
-            <TabsTrigger value="rentals">Rentals</TabsTrigger>
-          </TabsList>
+          <div className="border-b border-slate-100 pb-3 mb-5">
+            <TabsList data-tour="portfolio-tab-list">
+              <TabsTrigger value="investment">Mandates</TabsTrigger>
+              <TabsTrigger value="loans">Loans</TabsTrigger>
+              <TabsTrigger value="assets">Asset Transactions</TabsTrigger>
+              <TabsTrigger value="rentals">Rentals</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Tab Content */}
           <TabsContent value="investment">
-            <h2 className="text-lg font-semibold mb-2">Mandates</h2>
             <div data-tour="positions-table">
               <CustomerInvestment />
             </div>
           </TabsContent>
 
           <TabsContent value="assets">
-            <h2 className="text-lg font-semibold mb-2">Asset Transactions</h2>
-            <div className="flex items-center justify-center py-10">
+            <div className="flex flex-col items-center justify-center py-16 text-center">
               <img
                 src="/fallback.png"
                 alt="Coming soon"
-                className="max-w-full h-[40%] w-[40%]"
+                className="max-w-[180px] h-auto mb-3 opacity-75"
               />
+              <p className="text-xs text-slate-500 font-medium">
+                Asset documentation is currently being compiled.
+              </p>
             </div>
-            {/* <CustomerAssets /> */}
           </TabsContent>
 
           <TabsContent value="loans">
-            <h2 className="text-lg font-semibold mb-2">Loans</h2>
             <div data-tour="customer-loans">
               <CustomerLoan />
             </div>
           </TabsContent>
 
           <TabsContent value="rentals">
-            <h2 className="text-lg font-semibold mb-2">Rentals</h2>
-            <div className="flex items-center justify-center py-10 ">
+            <div className="flex flex-col items-center justify-center py-16 text-center">
               <img
                 src="/fallback.png"
                 alt="Coming soon"
-                className="max-w-full h-[40%] w-[40%]"
+                className="max-w-[180px] h-auto mb-3 opacity-75"
               />
+              <p className="text-xs text-slate-500 font-medium">
+                No active rental agreements found for this period.
+              </p>
             </div>
-            {/* <CustomerRentalsOnly /> */}
           </TabsContent>
         </Tabs>
       </div>

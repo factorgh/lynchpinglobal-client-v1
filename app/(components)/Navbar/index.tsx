@@ -5,13 +5,18 @@ import {
   useReadAllNotificationsMutation,
 } from "@/services/notifications";
 import { BellAlertIcon } from "@heroicons/react/24/outline";
-import { Avatar, Badge } from "antd";
-import { Inbox, Search, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Badge } from "antd";
+import { Inbox, Menu, User } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import InboxForm from "./_components/inboxForm";
 import NotificationModal from "./_components/notificationModal";
+import GlobalSearch from "./_components/GlobalSearch";
 
-const Navbar = () => {
+interface NavbarProps {
+  onToggleMobileSidebar?: () => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
   const [showInboxForm, setShowInboxForm] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [user, setUser] = useState<any>({});
@@ -45,29 +50,39 @@ const Navbar = () => {
     }
   };
 
-  const displayName = user?.displayName || user?.name || "Test - ac";
+  const displayName = user?.displayName || user?.name || "Member";
 
   return (
-    <div
-      className="flex items-center justify-between w-full px-8 py-3.5 bg-transparent select-none"
+    <header
+      className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8 py-3.5 bg-transparent select-none gap-3"
       data-tour="navbar"
     >
-      {/* LEFT SIDE: Search Bar */}
-      <div className="relative flex items-center w-72 max-w-sm">
-        <Search className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
-        <input
-          type="text"
-          placeholder="Search anything"
-          className="w-full pl-10 pr-4 py-2 bg-white/95 hover:bg-white focus:bg-white text-xs text-slate-800 placeholder-slate-400 rounded-xl border border-slate-200/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 focus:outline-none transition-all shadow-xs"
-        />
+      {/* LEFT SIDE: Mobile Menu Toggle + Global Search */}
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-lg">
+        {/* Mobile Hamburger Menu Button */}
+        <button
+          type="button"
+          onClick={onToggleMobileSidebar}
+          aria-label="Open Navigation Menu"
+          className="lg:hidden p-2 rounded-xl bg-white/90 border border-slate-200/90 text-slate-700 hover:text-slate-900 hover:bg-white active:scale-95 transition-all shadow-xs shrink-0 cursor-pointer"
+        >
+          <Menu className="w-4 h-4 text-slate-700" />
+        </button>
+
+        {/* Global Search Feature */}
+        <div className="flex-1 min-w-0">
+          <GlobalSearch />
+        </div>
       </div>
 
       {/* RIGHT SIDE: Status Badge & Notifications & Profile */}
-      <div className="flex items-center gap-3.5">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Status Pill Badge */}
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/90 border border-slate-200/80 rounded-full shadow-xs text-xs font-semibold text-slate-700">
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-white/90 border border-slate-200/80 rounded-full shadow-xs text-xs font-semibold text-slate-700">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="tracking-tight">{displayName}</span>
+          <span className="tracking-tight truncate max-w-[120px] lg:max-w-none">
+            {displayName}
+          </span>
         </div>
 
         {/* Notifications */}
@@ -117,9 +132,8 @@ const Navbar = () => {
           />
         )}
       </div>
-    </div>
+    </header>
   );
 };
 
 export default Navbar;
-

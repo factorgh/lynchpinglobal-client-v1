@@ -19,6 +19,7 @@ const AuthProvider = dynamic(
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<{ role?: string } | null>(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Fetch user from localStorage on the client
   useEffect(() => {
@@ -53,9 +54,16 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
           {/* Main content area */}
           <div className="relative z-20 flex w-full min-h-screen">
-            <Sidebar />
-            <main className="flex flex-col w-full min-h-screen flex-1 ml-64 bg-transparent overflow-x-hidden">
-              <Navbar />
+            <Sidebar
+              isOpenMobile={isMobileSidebarOpen}
+              onCloseMobile={() => setIsMobileSidebarOpen(false)}
+            />
+            <main className="flex flex-col w-full min-h-screen flex-1 ml-0 lg:ml-64 bg-transparent overflow-x-hidden">
+              <Navbar
+                onToggleMobileSidebar={() =>
+                  setIsMobileSidebarOpen((prev) => !prev)
+                }
+              />
               <div className="flex-1 overflow-y-auto">{children}</div>
               {user && (
                 <AppTour 
