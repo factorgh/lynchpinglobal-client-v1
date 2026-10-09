@@ -1,4 +1,14 @@
 "use client";
+
+import React, { useMemo, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import {
@@ -10,7 +20,6 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  SearchOutlined,
   FolderOpenOutlined,
 } from "@ant-design/icons";
 import {
@@ -23,450 +32,443 @@ import {
   InputNumber,
   Row,
   Select,
-  Table,
   Skeleton,
 } from "antd";
 import moment from "moment";
-import { useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import RentalDrawer from "./rental-drawer";
 
-/*************  ✨ Codeium Command ⭐  *************/
-/**
- * WealthTable component renders a table of general investment expenses with functionalities
- * to add, edit, and delete entries. It includes a search feature for filtering data and a drawer
- * form for editing entries. The component uses Ant Design for UI elements and integrates with
- * a backend API to fetch and mutate investment data.
- */
-/******  9086d653-a04c-4e0b-bac6-b7052991ffc2  *******/ const RentalTable =
-  () => {
-    const searchInput = useRef(null);
-    const { data: investmentData, isFetching: investmentLoading } =
-      useGetRentalsQuery<any>(null);
-    console.log(
-      "-------------------------InvestmentData-------------------------"
-    );
-    console.log(investmentData);
+const RentalTable: React.FC = () => {
+  const { data: investmentData, isFetching: investmentLoading } =
+    useGetRentalsQuery<any>(null);
 
-    const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-    const [editRentalId, setEditRentalId] = useState(null);
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [users, setUsers] = useState([]);
-    const [form] = Form.useForm();
-    const [createActivity] = useCreateActivityLogMutation();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-    const [updateInvestment, { isLoading }] = useUpdateRentalMutation();
-    const [deleteRental] = useDeleteRentalMutation();
-    const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
-    const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
-    console.log(selectedFiles);
+  const [selectedRental, setSelectedRental] = useState<any>(null);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [editRentalId, setEditRentalId] = useState<any>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [rentalDrawerVisible, setRentalDrawerVisible] = useState(false);
 
-    const [rentalDrawerVisible, setRentalDrawerVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [createActivity] = useCreateActivityLogMutation();
+  const [updateRental] = useUpdateRentalMutation();
+  const [deleteRental] = useDeleteRentalMutation();
 
-    const [selectedRental, setSelectedRental] = useState(null);
+  const loggedInUser = useMemo(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
 
-    const handleFileListChange = (fileList: any[]) => {
-      setSelectedFiles(fileList);
-    };
+  const rawList: any[] = useMemo(() => {
+    return investmentData?.data?.data || investmentData?.data || [];
+  }, [investmentData]);
 
-    const closeRentalsDetailsDrawer = () => {
-      setSelectedRental(null);
-      setRentalDrawerVisible(false);
-    };
-    const showRentalDetailsDrawer = (asset: any) => {
-      setSelectedRental(asset);
-      setRentalDrawerVisible(true);
-    };
-    const handleCloseDrawer = () => {
-      setIsDrawerVisible(false);
-      form.resetFields();
-      setEditRentalId(null);
-      setIsEditMode(false);
-    };
-    const showEditDrawer = (investment: any) => {
-      setIsEditMode(true);
-      setEditRentalId(investment._id);
+  const filteredData = useMemo(() => {
+    return rawList.filter((item: any) => {
+      const customerName = (item.user?.name || item.user?.displayName || "").toLowerCase();
+      const assetClass = (item.assetClass || "").toLowerCase();
+      const designation = (item.assetDesignation || "").toLowerCase();
+      const search = searchTerm.toLowerCase().trim();
 
-      form.setFieldsValue({
-        assetClass: investment.assetClass,
-        assetDesignation: investment.assetDesignation,
-        overdueRate: toTwoDecimalPlaces(investment.overdueFee),
-        returnDate: moment(investment.returnDate),
-        overdueDate: moment(investment.overdueDate),
-        quater: investment.quater,
-        amountDue: toTwoDecimalPlaces(investment.amountDue),
-        status: investment.status,
-      });
+      return (
+        !search ||
+        customerName.includes(search) ||
+        assetClass.includes(search) ||
+        designation.includes(search)
+      );
+    });
+  }, [rawList, searchTerm]);
 
-      setIsDrawerVisible(true);
-    };
-    const handleFormSubmit = async (values: any) => {
-      try {
-        const formattedValues = {
-          ...values,
-          managementFee: toTwoDecimalPlaces(values.managementFee),
-          performanceYield: toTwoDecimalPlaces(values.performanceYield),
-          principal: toTwoDecimalPlaces(values.principal),
-        };
+  const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredData.slice(startIndex, startIndex + pageSize);
+  }, [filteredData, currentPage, pageSize]);
 
-        if (isEditMode) {
-          await updateInvestment({
-            id: editRentalId,
-            data: formattedValues,
-          }).unwrap();
+  const handleCloseDrawer = () => {
+    setIsDrawerVisible(false);
+    form.resetFields();
+    setEditRentalId(null);
+    setIsEditMode(false);
+  };
+
+  const showEditDrawer = (investment: any) => {
+    if (!investment) return;
+    setIsEditMode(true);
+    setEditRentalId(investment._id);
+
+    form.setFieldsValue({
+      assetClass: investment.assetClass,
+      assetDesignation: investment.assetDesignation,
+      overdueRate: toTwoDecimalPlaces(investment.overdueFee),
+      returnDate: investment.returnDate ? moment(investment.returnDate) : null,
+      overdueDate: investment.overdueDate ? moment(investment.overdueDate) : null,
+      quater: investment.quater,
+      amountDue: toTwoDecimalPlaces(investment.amountDue),
+      status: investment.status,
+    });
+
+    setIsDrawerVisible(true);
+  };
+
+  const showRentalDetailsDrawer = (asset: any) => {
+    setSelectedRental(asset);
+    setRentalDrawerVisible(true);
+  };
+
+  const closeRentalsDetailsDrawer = () => {
+    setSelectedRental(null);
+    setRentalDrawerVisible(false);
+  };
+
+  const handleFormSubmit = async (values: any) => {
+    try {
+      const formattedValues = {
+        ...values,
+        managementFee: toTwoDecimalPlaces(values.managementFee),
+        performanceYield: toTwoDecimalPlaces(values.performanceYield),
+        principal: toTwoDecimalPlaces(values.principal),
+      };
+
+      if (isEditMode) {
+        await updateRental({
+          id: editRentalId,
+          data: formattedValues,
+        }).unwrap();
+        if (loggedInUser._id) {
           await createActivity({
             activity: "Rental Updated",
             description: "A rental entry was updated successfully",
             user: loggedInUser._id,
           }).unwrap();
-          toast.success("Asset Rental updated successfully");
-        } else {
-          toast.success("New Rental added successfully");
         }
-
-        setIsDrawerVisible(false);
-        form.resetFields();
-      } catch (error: any) {
-        toast.error("Failed to save investment entry: " + error?.data?.message);
+        toast.success("Asset Rental updated successfully");
       }
-    };
 
-    const handleDelete = async (id: any) => {
-      try {
-        const result = await Swal.fire({
-          title: "Are you sure?",
-          text: "Do you want to delete this entry?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Yes, delete it!",
-          cancelButtonText: "Cancel",
-        });
+      setIsDrawerVisible(false);
+      form.resetFields();
+    } catch (error: any) {
+      toast.error("Failed to save rental: " + (error?.data?.message || error?.message || "Unknown error"));
+    }
+  };
 
-        if (result.isConfirmed) {
-          await deleteRental(id).unwrap();
+  const handleDelete = async (id: any) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to delete this rental entry?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        confirmButtonText: "Yes, delete it",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        await deleteRental(id).unwrap();
+        if (loggedInUser._id) {
           await createActivity({
             activity: "Rental Deleted",
             description: "A rental entry was deleted successfully",
             user: loggedInUser._id,
           }).unwrap();
-          toast.success("Entry deleted successfully");
         }
-      } catch (error: any) {
-        toast.error("Failed to delete entry: " + error?.message);
+        toast.success("Rental deleted successfully");
       }
-    };
+    } catch (error: any) {
+      toast.error("Failed to delete rental: " + error?.message);
+    }
+  };
 
-    const getColumnSearchProps = (dataIndex: any) => ({
-      filterDropdown: ({ setSelectedKeys, selectedKeys }: any) => (
-        <div style={{ padding: 8 }}>
-          <Input
-            ref={searchInput}
-            placeholder={`Search ${dataIndex}`}
-            value={selectedKeys[0]}
-            onChange={(e) =>
-              setSelectedKeys(e.target.value ? [e.target.value] : [])
-            }
-            style={{ marginBottom: 8, display: "block" }}
+  return (
+    <div className="space-y-4">
+      {/* Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by customer, asset class, designation..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
           />
         </div>
-      ),
-      filterIcon: (filtered: any) => (
-        <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
-      ),
-      onFilter: (value: any, record: any) =>
-        record[dataIndex]
-          ? record[dataIndex]
-              .toString()
-              .toLowerCase()
-              .includes(value.toLowerCase())
-          : "",
-    });
 
-    const columns = [
-      {
-        title: "Customer",
-        dataIndex: "user",
-        key: "user",
-        ...getColumnSearchProps("user"),
-        render: (value: any) => value?.name,
-      },
-      {
-        title: "Asset Class",
-        dataIndex: "assetClass",
-        key: "assetClass",
-        ...getColumnSearchProps("assetClass"),
-      },
-      {
-        title: "Asset Designation",
-        dataIndex: "assetDesignation",
-        key: "assetDesignation",
-        ...getColumnSearchProps("assetDesignation"),
-        // Format principal
-      },
-      {
-        title: "Amount Due",
-        dataIndex: "amountDue",
-        key: "amountDue",
-        ...getColumnSearchProps("amountDue"),
-        render: (value: any) => formatPriceGHS(value),
-      },
-      {
-        title: "Due Date",
-        dataIndex: "dueDate",
-        key: "dueDate",
-        ...getColumnSearchProps("dueDate"),
-        render: (value: any) => moment(value).format("YYYY-MM-DD"),
-      },
+        <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md self-start sm:self-auto">
+          {filteredData.length} Total Rentals
+        </span>
+      </div>
 
-      {
-        title: "Action",
-        key: "action",
-        render: (text: any, record: any) => (
-          <div className="flex gap-3">
-            <EyeOutlined
-              className="text-emerald-500"
-              onClick={() => showRentalDetailsDrawer(record)}
-            />
-            <EditOutlined
-              className="text-blue-500"
-              onClick={() => showEditDrawer(record)}
-            />
-            <DeleteOutlined
-              onClick={() => handleDelete(record._id)}
-              className="text-red-500"
-              style={{ marginLeft: "10px" }}
-            />
-          </div>
-        ),
-      },
-    ];
-
-    return (
-      <>
+      {/* Main Table Container using shadcn Table */}
+      <div className="rounded-xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
         {investmentLoading ? (
-          <div className="border border-slate-200 rounded-md p-6 bg-white space-y-4 mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <Skeleton.Input active size="small" style={{ width: 150 }} />
-              <Skeleton.Input active size="small" style={{ width: 100 }} />
-            </div>
-            <Skeleton active paragraph={{ rows: 8 }} />
+          <div className="p-6 space-y-4">
+            <Skeleton active paragraph={{ rows: 7 }} />
           </div>
         ) : (
-          <Table
-            pagination={{
-              pageSize: 10,
-            }}
-            columns={columns}
-            dataSource={investmentData?.data?.data}
-            className="border border-slate-200 rounded-md"
-            rowKey="id"
-            locale={{
-              emptyText: (
-                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                  <FolderOpenOutlined className="text-4xl text-gray-300 mb-3" />
-                  <h3 className="text-base font-semibold text-gray-700 mb-1">No Rentals</h3>
-                  <p className="text-sm text-gray-500 max-w-xs">
-                    There are no rental transactions registered yet.
-                  </p>
-                </div>
-              ),
-            }}
-          />
+          <Table>
+            <TableHeader className="bg-slate-50/70 border-b border-slate-200/80">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Customer
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Asset Class
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Asset Designation
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-right">
+                  Amount Due
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Due Date
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-center">
+                  Action
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((record: any, idx: number) => {
+                  const customerName =
+                    record.user?.name ||
+                    record.user?.displayName ||
+                    "Unknown Customer";
+                  const customerInitial = customerName.charAt(0).toUpperCase();
+
+                  return (
+                    <TableRow
+                      key={record._id || idx}
+                      className="hover:bg-slate-50/60 transition-colors border-b border-slate-100"
+                    >
+                      {/* Customer */}
+                      <TableCell className="py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                            {customerInitial}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900 text-xs leading-none">
+                              {customerName}
+                            </p>
+                            {record.user?.email && (
+                              <p className="text-[11px] text-slate-400 mt-0.5">
+                                {record.user.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* Asset Class */}
+                      <TableCell className="py-3.5">
+                        <span className="font-medium text-slate-800 text-xs">
+                          {record.assetClass || "—"}
+                        </span>
+                      </TableCell>
+
+                      {/* Asset Designation */}
+                      <TableCell className="py-3.5">
+                        <span className="text-slate-600 text-xs font-mono">
+                          {record.assetDesignation || "—"}
+                        </span>
+                      </TableCell>
+
+                      {/* Amount Due */}
+                      <TableCell className="py-3.5 text-right font-bold text-slate-900 text-xs">
+                        {formatPriceGHS(record.amountDue || 0)}
+                      </TableCell>
+
+                      {/* Due Date */}
+                      <TableCell className="py-3.5 text-xs text-slate-600 font-medium">
+                        {record.dueDate
+                          ? moment(record.dueDate).format("YYYY-MM-DD")
+                          : "—"}
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell className="py-3.5 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            title="View Rental Details"
+                            onClick={() => showRentalDetailsDrawer(record)}
+                            className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                          >
+                            <EyeOutlined className="text-sm" />
+                          </button>
+                          <button
+                            title="Edit Rental"
+                            onClick={() => showEditDrawer(record)}
+                            className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                          >
+                            <EditOutlined className="text-sm" />
+                          </button>
+                          <button
+                            title="Delete Rental"
+                            onClick={() => handleDelete(record._id)}
+                            className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                          >
+                            <DeleteOutlined className="text-sm" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="py-14 text-center text-slate-500"
+                  >
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-100 shadow-inner">
+                        <FolderOpenOutlined className="text-2xl text-slate-400" />
+                      </div>
+                      <h4 className="font-bold text-slate-800 text-sm">
+                        No Rental Transactions Found
+                      </h4>
+                      <p className="text-xs text-slate-400 max-w-xs">
+                        There are no rental transactions registered yet.
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         )}
-        <Drawer
-          title="Edit Asset Details"
-          placement="right"
-          width="50%" // Adjust to center the drawer
-          onClose={handleCloseDrawer}
-          open={isDrawerVisible}
+      </div>
+
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+            <span>Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="px-3 py-1 text-xs font-semibold text-slate-700">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Drawer */}
+      <Drawer
+        title="Edit Rental Details"
+        placement="right"
+        width="50%"
+        onClose={handleCloseDrawer}
+        open={isDrawerVisible}
+      >
+        <Form
+          form={form}
+          onFinish={handleFormSubmit}
+          layout="vertical"
+          hideRequiredMark
         >
-          <Form
-            form={form}
-            onFinish={handleFormSubmit}
-            layout="vertical"
-            hideRequiredMark
-          >
-            <Row gutter={16}>
-              {/* User Selection */}
-              <Col span={12}>
-                <Form.Item
-                  name="assetClass"
-                  label="Asset Class"
-                  rules={[
-                    { required: true, message: "Please enter the principal" },
-                  ]}
-                >
-                  <Input
-                    placeholder="Enter asset class"
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              </Col>
-
-              {/* Principal */}
-              <Col span={12}>
-                <Form.Item
-                  name="assetDesignation"
-                  label="Asset Designation"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter the asset designation",
-                    },
-                  ]}
-                >
-                  <Input
-                    placeholder="Enter asset designation"
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              {/* Performance Yield */}
-              <Col span={12}>
-                <Form.Item
-                  name="overdueFee"
-                  label="Overdue Fee (GHS)"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter overdue fee",
-                    },
-                  ]}
-                >
-                  <InputNumber
-                    placeholder="Enter overdue fee"
-                    style={{ width: "100%" }}
-                    min={1}
-                    max={100}
-                  />
-                </Form.Item>
-              </Col>
-
-              {/* Guaranteed Rate */}
-              <Col span={12}>
-                <Form.Item
-                  name="returnDate"
-                  label="Return Date"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select a maturity date",
-                    },
-                  ]}
-                >
-                  <DatePicker style={{ width: "100%" }} />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              {/* Management Fee */}
-              <Col span={12}>
-                <Form.Item
-                  name="overdueDate"
-                  label="Overdue Date"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select an overdue date",
-                    },
-                  ]}
-                >
-                  <DatePicker style={{ width: "100%" }} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="quater"
-                  label="Quater"
-                  rules={[
-                    { required: true, message: "Please select a quater" },
-                  ]}
-                >
-                  <Select
-                    placeholder="Select a quater"
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.label ?? "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={["Q1", "Q2", "Q3", "Q4"].map((quater) => ({
-                      value: quater,
-                      label: quater,
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="amountDue"
-                  label="Amount Due (GHS)"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter the  amount due",
-                    },
-                  ]}
-                >
-                  <InputNumber
-                    placeholder="Enter amount due"
-                    style={{ width: "100%" }}
-                    min={1}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="status"
-                  label="Status"
-                  rules={[
-                    { required: true, message: "Please select a status" },
-                  ]}
-                >
-                  <Select
-                    placeholder="Select a status"
-                    showSearch
-                    filterOption={(input, option) =>
-                      (option?.label ?? "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={["Active", "InActive"].map((quater) => ({
-                      value: quater,
-                      label: quater,
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item>
-              <Button
-                className="w-full mt-6"
-                type="primary"
-                htmlType="submit"
-                loading={isLoading}
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="assetClass"
+                label="Asset Class"
+                rules={[{ required: true, message: "Please enter asset class" }]}
               >
-                Submit
-              </Button>
-            </Form.Item>
-          </Form>
-        </Drawer>
-        <RentalDrawer
-          rental={selectedRental}
-          visible={rentalDrawerVisible}
-          onClose={closeRentalsDetailsDrawer}
-        />
-      </>
-    );
-  };
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="assetDesignation"
+                label="Asset Designation"
+                rules={[{ required: true, message: "Please enter asset designation" }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="amountDue"
+                label="Amount Due"
+                rules={[{ required: true, message: "Please enter amount due" }]}
+              >
+                <InputNumber className="w-full" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="dueDate"
+                label="Due Date"
+                rules={[{ required: true, message: "Please select due date" }]}
+              >
+                <DatePicker className="w-full" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <Button onClick={handleCloseDrawer}>Cancel</Button>
+            <Button type="primary" htmlType="submit" className="bg-emerald-600 hover:bg-emerald-700">
+              Save Changes
+            </Button>
+          </div>
+        </Form>
+      </Drawer>
+
+      {/* Rental Details Drawer */}
+      <RentalDrawer
+        rental={selectedRental}
+        visible={rentalDrawerVisible}
+        onClose={closeRentalsDetailsDrawer}
+      />
+    </div>
+  );
+};
 
 export default RentalTable;

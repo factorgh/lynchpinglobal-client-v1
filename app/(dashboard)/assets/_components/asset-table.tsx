@@ -1,8 +1,14 @@
 "use client";
 
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../../../firebase/firebaseConfig"; // Import Firebase configuration
-
+import React, { useMemo, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import {
@@ -14,8 +20,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  SearchOutlined,
-  SmileOutlined,
+  FilterOutlined,
   FolderOpenOutlined,
 } from "@ant-design/icons";
 import {
@@ -28,163 +33,137 @@ import {
   InputNumber,
   Row,
   Select,
-  Table,
-  Upload,
-  UploadFile,
   Skeleton,
 } from "antd";
 import moment from "moment";
-import { useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import AssetsDrawer from "./assets-drawer";
 
-/*************  ✨ Codeium Command ⭐  *************/
-/**
- * AssetTransactionTable component renders a table of mandate-related engagements with functionalities
- * to add, edit, and delete entries. It includes a search feature for filtering data and a drawer
- * form for editing entries. The component uses Ant Design for UI elements and integrates with
- * a backend API to fetch and mutate asset data.
- */
-const AssetTransactionTable = () => {
-  const searchInput = useRef(null);
+const AssetTransactionTable: React.FC = () => {
   const { data: assetsData, isFetching: investmentLoading } =
     useGetAllAssetssQuery<any>(null);
-  console.log("-------------------------assetsData-------------------------");
-  console.log(assetsData?.data);
-  const [selectedAsset, setSelectedAsset] = useState(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [quarterFilter, setQuarterFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const [selectedAsset, setSelectedAsset] = useState<any>(null);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-  const [editRentalId, setEditRentalId] = useState(null);
+  const [editRentalId, setEditRentalId] = useState<any>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [form] = Form.useForm();
-  const [createActivity] = useCreateActivityLogMutation();
-  const [updateAssets, { isLoading }] = useUpdateAssetsMutation();
-  const [deleteAsset] = useDeleteAssetsMutation();
-  const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
-  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
   const [assetsDetailsDrawerVisible, setAssetDetailsDrawerVisible] =
     useState(false);
-  const [fileCategories, setFileCategories] = useState({
-    others: [],
-  });
 
-  const [uploading, setUploading] = useState({
-    others: false,
-  });
+  const [form] = Form.useForm();
+  const [createActivity] = useCreateActivityLogMutation();
+  const [updateAssets] = useUpdateAssetsMutation();
+  const [deleteAsset] = useDeleteAssetsMutation();
 
-  const handleUploadToFirebase = async (
-    categoryFiles: any[],
-  ): Promise<string[]> => {
+  const loggedInUser = useMemo(() => {
+    if (typeof window === "undefined") return {};
     try {
-      const uploadPromises = categoryFiles.map(async (file) => {
-        if (file.url) {
-          return file.url;
-        }
-        const storageRef = ref(storage, `uploads/${file.name}-${Date.now()}`);
-        const snapshot = await uploadBytes(storageRef, file.originFileObj);
-        return await getDownloadURL(snapshot.ref); // Get the file's download URL
-      });
-
-      const uploadResults = await Promise.all(uploadPromises);
-      return uploadResults; // Array of download URLs
-    } catch (error) {
-      console.error("File upload error:", error);
-      return [];
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
     }
-  };
+  }, []);
 
-  console.log(selectedFiles);
+  const rawList: any[] = useMemo(() => {
+    return assetsData?.data?.data || assetsData?.data || [];
+  }, [assetsData]);
 
-  const handleFileListChange = (fileList: any[]) => {
-    setSelectedFiles(fileList);
-  };
+  // Filtered and paginated data
+  const filteredData = useMemo(() => {
+    return rawList.filter((item: any) => {
+      const customerName = (
+        item.user?.displayName ||
+        item.user?.name ||
+        item.user?.email ||
+        ""
+      ).toLowerCase();
+      const assetClass = (item.assetClass || "").toLowerCase();
+      const designation = (item.assetDesignation || "").toLowerCase();
+      const quarter = (item.quater || item.quarter || "").toLowerCase();
+      const search = searchTerm.toLowerCase().trim();
 
-  const handleFileChange = (category: string, fileList: any[]) => {
-    setFileCategories((prev) => ({
-      ...prev,
-      [category]: fileList,
-    }));
-  };
+      const matchesSearch =
+        !search ||
+        customerName.includes(search) ||
+        assetClass.includes(search) ||
+        designation.includes(search) ||
+        quarter.includes(search);
 
+      const matchesQuarter =
+        quarterFilter === "all" ||
+        (item.quater || item.quarter || "").toUpperCase() ===
+          quarterFilter.toUpperCase();
+
+      const matchesType =
+        typeFilter === "all" ||
+        (typeFilter === "joint" && Boolean(item.isJoint)) ||
+        (typeFilter === "single" && !item.isJoint);
+
+      return matchesSearch && matchesQuarter && matchesType;
+    });
+  }, [rawList, searchTerm, quarterFilter, typeFilter]);
+
+  const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredData.slice(startIndex, startIndex + pageSize);
+  }, [filteredData, currentPage, pageSize]);
+
+  // Drawer handlers
   const handleCloseDrawer = () => {
     setIsDrawerVisible(false);
     form.resetFields();
     setEditRentalId(null);
     setIsEditMode(false);
-    setFileCategories({
-      others: [],
-    });
   };
+
   const showEditDrawer = (investment: any) => {
-    if (!investment) return; // Guard against null or undefined investment
-
-    console.log("Editing investment:", investment); // Debugging
-
+    if (!investment) return;
     setIsEditMode(true);
     setEditRentalId(investment._id);
 
-    const existingOthers = (investment.others || []).map(
-      (url: string, index: number) => ({
-        uid: `existing-${index}`,
-        name: url.split("/").pop() || `File-${index}`,
-        status: "done",
-        url: url,
-      }),
-    );
-
-    setFileCategories({
-      others: existingOthers,
-    });
-
-    // Set form values based on the data of the investment
     form.setFieldsValue({
       assetClass: investment.assetClass,
       assetDesignation: investment.assetDesignation,
       accruedInterest: investment.accruedInterest,
-      maturityDate: moment(investment.maturityDate), // Ensure this is a moment object
+      maturityDate: investment.maturityDate ? moment(investment.maturityDate) : null,
       managementFee: investment.managementFee,
       timeCourse: investment.timeCourse,
-      quater: investment.quater,
+      quater: investment.quater || investment.quarter,
       deduction: investment.deduction,
     });
 
     setIsDrawerVisible(true);
   };
 
-  const closeAssetsDetailsDrawer = () => {
-    setSelectedAsset(null);
-    setAssetDetailsDrawerVisible(false);
-  };
-  // Menu section
   const showAssetsDetailsDrawer = (asset: any) => {
     setSelectedAsset(asset);
     setAssetDetailsDrawerVisible(true);
   };
+
+  const closeAssetsDetailsDrawer = () => {
+    setSelectedAsset(null);
+    setAssetDetailsDrawerVisible(false);
+  };
+
   const handleFormSubmit = async (values: any) => {
-    const uploadedFiles: Record<string, string[]> = {};
-
-    for (const category in fileCategories) {
-      if (Object.prototype.hasOwnProperty.call(fileCategories, category)) {
-        uploadedFiles[category as keyof typeof fileCategories] =
-          await handleUploadToFirebase(
-            fileCategories[category as keyof typeof fileCategories],
-          );
-      }
-    }
-
     try {
-      const { others } = uploadedFiles;
       const formattedValues = {
         ...values,
         managementFee: toTwoDecimalPlaces(values.managementFee),
         assetDesignation: toTwoDecimalPlaces(values.assetDesignation),
         accruedInterest: toTwoDecimalPlaces(values.accruedInterest),
-        maturityDate: values.maturityDate.toISOString(),
+        maturityDate: values.maturityDate?.toISOString(),
         timeCourse: values.timeCourse,
         quater: values.quater,
-        others,
       };
 
       if (isEditMode) {
@@ -192,23 +171,20 @@ const AssetTransactionTable = () => {
           id: editRentalId,
           data: formattedValues,
         }).unwrap();
-        toast.success("Assets updated successfully");
-        await createActivity({
-          activity: "Asset Transaction Updated",
-          description: "An asset transaction entry was updated successfully",
-          user: loggedInUser._id,
-        }).unwrap();
-      } else {
-        toast.success("Asset Transaction added successfully");
+        toast.success("Asset transaction updated successfully");
+        if (loggedInUser._id) {
+          await createActivity({
+            activity: "Asset Transaction Updated",
+            description: "An asset transaction entry was updated successfully",
+            user: loggedInUser._id,
+          }).unwrap();
+        }
       }
 
       setIsDrawerVisible(false);
       form.resetFields();
-      setFileCategories({
-        others: [],
-      });
     } catch (error: any) {
-      toast.error("Failed to save update entry: " + error?.data?.message);
+      toast.error("Failed to update asset: " + (error?.data?.message || error?.message || "Unknown error"));
     }
   };
 
@@ -216,20 +192,23 @@ const AssetTransactionTable = () => {
     try {
       const result = await Swal.fire({
         title: "Are you sure?",
-        text: "Do you want to delete this entry?",
+        text: "Do you want to delete this asset transaction entry?",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
+        confirmButtonColor: "#dc2626",
+        confirmButtonText: "Yes, delete it",
         cancelButtonText: "Cancel",
       });
 
       if (result.isConfirmed) {
         await deleteAsset(id).unwrap();
-        await createActivity({
-          activity: "Asset Transaction Deleted",
-          description: "An asset transaction entry was deleted successfully",
-          user: loggedInUser._id,
-        }).unwrap();
+        if (loggedInUser._id) {
+          await createActivity({
+            activity: "Asset Transaction Deleted",
+            description: "An asset transaction entry was deleted successfully",
+            user: loggedInUser._id,
+          }).unwrap();
+        }
         toast.success("Entry deleted successfully");
       }
     } catch (error: any) {
@@ -237,177 +216,312 @@ const AssetTransactionTable = () => {
     }
   };
 
-  const getColumnSearchProps = (dataIndex: any) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys }: any) => (
-      <div style={{ padding: 8 }}>
-        <Input
-          ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) =>
-            setSelectedKeys(e.target.value ? [e.target.value] : [])
-          }
-          style={{ marginBottom: 8, display: "block" }}
-        />
-      </div>
-    ),
-    filterIcon: (filtered: any) => (
-      <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
-    ),
-    onFilter: (value: any, record: any) =>
-      record[dataIndex]
-        ? record[dataIndex]
-            .toString()
-            .toLowerCase()
-            .includes(value.toLowerCase())
-        : "",
-  });
-
-  const columns = [
-    {
-      title: "Customer",
-      dataIndex: "user", // This contains the user object
-      key: "user",
-      render: (user: any) => user?.displayName || "Unknown User", // Access displayName directly
-    },
-    {
-      title: "Type",
-      dataIndex: "isJoint",
-      key: "isJoint",
-      render: (isJoint: boolean) =>
-        isJoint ? (
-          <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-xs">
-            Joint
-          </span>
-        ) : (
-          <span className="px-2 py-0.5 rounded bg-gray-50 text-gray-600 text-xs">
-            Single
-          </span>
-        ),
-    },
-    {
-      title: "Owners",
-      dataIndex: "owners",
-      key: "owners",
-      render: (owners: any[]) =>
-        Array.isArray(owners) && owners.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {owners.map((o, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs"
-              >
-                {o?.user?.displayName ||
-                  o?.user?.name ||
-                  o?.user?.email ||
-                  o?.user?._id}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <span>—</span>
-        ),
-    },
-    {
-      title: "Asset Class",
-      dataIndex: "assetClass",
-      key: "assetClass",
-      ...getColumnSearchProps("assetClass"),
-    },
-    {
-      title: "Asset Designation",
-      dataIndex: "assetDesignation",
-      key: "assetDesignation",
-      ...getColumnSearchProps("assetDesignation"),
-    },
-
-    {
-      title: "Accrued Disbursements (GHS)",
-      dataIndex: "accruedInterest",
-      key: "accruedInterest",
-      ...getColumnSearchProps("accruedInterest"),
-      render: (value: any) => formatPriceGHS(value), // Format accrued disbursements
-    },
-    {
-      title: "Service Fee (GHS)",
-      dataIndex: "managementFee",
-      key: "managementFee",
-      ...getColumnSearchProps("managementFee"),
-      render: (value: any) => formatPriceGHS(value),
-    },
-    {
-      title: "Quarter",
-      dataIndex: "quater",
-      key: "quater",
-      ...getColumnSearchProps("quater"),
-    },
-    {
-      title: "Maturity Date",
-      dataIndex: "maturityDate",
-      key: "maturityDate",
-      ...getColumnSearchProps("maturityDate"),
-      render: (value: any) => moment(value).format("YYYY-MM-DD"), // Format the value correctly
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (text: any, record: any) => (
-        <div className="flex gap-3">
-          <EyeOutlined
-            className="text-emerald-500"
-            onClick={() => showAssetsDetailsDrawer(record)}
-          />
-
-          <EditOutlined
-            className="text-blue-500"
-            onClick={() => showEditDrawer(record)}
-          />
-          <DeleteOutlined
-            onClick={() => handleDelete(record._id)}
-            className="text-red-500"
-            style={{ marginLeft: "10px" }}
-          />
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <>
-      {investmentLoading ? (
-        <div className="border border-slate-200 rounded-md p-6 bg-white space-y-4 mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <Skeleton.Input active size="small" style={{ width: 150 }} />
-            <Skeleton.Input active size="small" style={{ width: 100 }} />
-          </div>
-          <Skeleton active paragraph={{ rows: 8 }} />
+    <div className="space-y-4">
+      {/* Search and Filters Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by customer, asset class, designation..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+          />
         </div>
-      ) : (
-        <Table
-          pagination={{
-            pageSize: 10,
-          }}
-          columns={columns}
-          dataSource={assetsData?.data.data}
-          className="border border-slate-200 rounded-md"
-          rowKey="id"
-          locale={{
-            emptyText: (
-              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <FolderOpenOutlined className="text-4xl text-gray-300 mb-3" />
-                <h3 className="text-base font-semibold text-gray-700 mb-1">No Assets</h3>
-                <p className="text-sm text-gray-500 max-w-xs">
-                  There are no asset transactions registered yet.
-                </p>
-              </div>
-            ),
-          }}
-        />
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Quarter Filter */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <FilterOutlined className="text-slate-400 text-xs" />
+            <select
+              value={quarterFilter}
+              onChange={(e) => {
+                setQuarterFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 focus:outline-none focus:border-emerald-500"
+            >
+              <option value="all">All Quarters</option>
+              <option value="Q1">Quarter 1 (Q1)</option>
+              <option value="Q2">Quarter 2 (Q2)</option>
+              <option value="Q3">Quarter 3 (Q3)</option>
+              <option value="Q4">Quarter 4 (Q4)</option>
+            </select>
+          </div>
+
+          {/* Type Filter */}
+          <select
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 focus:outline-none focus:border-emerald-500"
+          >
+            <option value="all">All Types</option>
+            <option value="single">Single Owner</option>
+            <option value="joint">Joint Ownership</option>
+          </select>
+
+          <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">
+            {filteredData.length} Total
+          </span>
+        </div>
+      </div>
+
+      {/* Main Table Container using shadcn Table */}
+      <div className="rounded-xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+        {investmentLoading ? (
+          <div className="p-6 space-y-4">
+            <Skeleton active paragraph={{ rows: 7 }} />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader className="bg-slate-50/70 border-b border-slate-200/80">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Customer
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Type
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Owners
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Asset Class
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Designation
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-right">
+                  Accrued Disbursements
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-right">
+                  Service Fee
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-center">
+                  Quarter
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5">
+                  Maturity Date
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-center">
+                  Action
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((record: any, idx: number) => {
+                  const customerName =
+                    record.user?.displayName ||
+                    record.user?.name ||
+                    record.user?.email ||
+                    "Unknown Customer";
+                  const customerInitial = customerName.charAt(0).toUpperCase();
+
+                  return (
+                    <TableRow
+                      key={record._id || idx}
+                      className="hover:bg-slate-50/60 transition-colors border-b border-slate-100"
+                    >
+                      {/* Customer */}
+                      <TableCell className="py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                            {customerInitial}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-slate-900 text-xs leading-none">
+                              {customerName}
+                            </p>
+                            {record.user?.email && (
+                              <p className="text-[11px] text-slate-400 mt-0.5">
+                                {record.user.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* Type */}
+                      <TableCell className="py-3.5">
+                        {record.isJoint ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            Joint
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                            Single
+                          </span>
+                        )}
+                      </TableCell>
+
+                      {/* Owners */}
+                      <TableCell className="py-3.5">
+                        {Array.isArray(record.owners) && record.owners.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 max-w-xs">
+                            {record.owners.map((o: any, oIdx: number) => (
+                              <span
+                                key={oIdx}
+                                className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-medium border border-blue-100"
+                              >
+                                {o?.user?.displayName ||
+                                  o?.user?.name ||
+                                  o?.user?.email ||
+                                  `Owner ${oIdx + 1}`}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-slate-300 text-xs">—</span>
+                        )}
+                      </TableCell>
+
+                      {/* Asset Class */}
+                      <TableCell className="py-3.5">
+                        <span className="font-medium text-slate-800 text-xs">
+                          {record.assetClass || "—"}
+                        </span>
+                      </TableCell>
+
+                      {/* Asset Designation */}
+                      <TableCell className="py-3.5">
+                        <span className="text-slate-600 text-xs font-mono">
+                          {record.assetDesignation || "—"}
+                        </span>
+                      </TableCell>
+
+                      {/* Accrued Disbursements */}
+                      <TableCell className="py-3.5 text-right font-bold text-emerald-700 text-xs">
+                        +{formatPriceGHS(record.accruedInterest || 0)}
+                      </TableCell>
+
+                      {/* Service Fee */}
+                      <TableCell className="py-3.5 text-right font-medium text-slate-700 text-xs">
+                        {formatPriceGHS(record.managementFee || 0)}
+                      </TableCell>
+
+                      {/* Quarter */}
+                      <TableCell className="py-3.5 text-center">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          {record.quater || record.quarter || "Q4"}
+                        </span>
+                      </TableCell>
+
+                      {/* Maturity Date */}
+                      <TableCell className="py-3.5 text-xs text-slate-600 font-medium">
+                        {record.maturityDate
+                          ? moment(record.maturityDate).format("YYYY-MM-DD")
+                          : "—"}
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell className="py-3.5 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            title="View Asset Details"
+                            onClick={() => showAssetsDetailsDrawer(record)}
+                            className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                          >
+                            <EyeOutlined className="text-sm" />
+                          </button>
+                          <button
+                            title="Edit Asset"
+                            onClick={() => showEditDrawer(record)}
+                            className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                          >
+                            <EditOutlined className="text-sm" />
+                          </button>
+                          <button
+                            title="Delete Asset"
+                            onClick={() => handleDelete(record._id)}
+                            className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                          >
+                            <DeleteOutlined className="text-sm" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={10}
+                    className="py-14 text-center text-slate-500"
+                  >
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-100 shadow-inner">
+                        <FolderOpenOutlined className="text-2xl text-slate-400" />
+                      </div>
+                      <h4 className="font-bold text-slate-800 text-sm">
+                        No Asset Transactions Found
+                      </h4>
+                      <p className="text-xs text-slate-400 max-w-xs">
+                        There are no asset transactions registered matching your current filters.
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+            <span>Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2 py-1 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="px-3 py-1 text-xs font-semibold text-slate-700">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       )}
+
+      {/* Edit Drawer */}
       <Drawer
         title="Edit Asset Transaction"
         placement="right"
-        width="50%" // Adjust to center the drawer
+        width="50%"
         onClose={handleCloseDrawer}
         open={isDrawerVisible}
       >
@@ -418,45 +532,29 @@ const AssetTransactionTable = () => {
           hideRequiredMark
         >
           <Row gutter={16}>
-            {/* User Selection */}
             <Col span={12}>
               <Form.Item
                 name="assetClass"
                 label="Asset Class"
-                rules={[
-                  { required: true, message: "Please enter the principal" },
-                ]}
+                rules={[{ required: true, message: "Please enter asset class" }]}
               >
-                <Input
-                  placeholder="Enter asset class"
-                  style={{ width: "100%" }}
-                />
+                <Input placeholder="Enter Asset Class" />
               </Form.Item>
             </Col>
-
-            {/* Principal */}
             <Col span={12}>
               <Form.Item
                 name="assetDesignation"
                 label="Asset Designation"
                 rules={[
-                  {
-                    required: true,
-                    message: "Please enter the asset designation",
-                  },
+                  { required: true, message: "Please enter asset designation" },
                 ]}
               >
-                <InputNumber
-                  placeholder="Enter asset designation"
-                  style={{ width: "100%" }}
-                  min={1}
-                />
+                <Input placeholder="Enter Asset Designation" />
               </Form.Item>
             </Col>
           </Row>
 
           <Row gutter={16}>
-            {/* Performance Yield */}
             <Col span={12}>
               <Form.Item
                 name="accruedInterest"
@@ -464,191 +562,83 @@ const AssetTransactionTable = () => {
                 rules={[
                   {
                     required: true,
-                    message: "Please enter the accrued disbursements",
+                    message: "Please enter accrued disbursements",
                   },
                 ]}
               >
                 <InputNumber
-                  placeholder="Enter accrued disbursements"
-                  style={{ width: "100%" }}
+                  className="w-full"
+                  placeholder="Accrued Disbursements"
                 />
               </Form.Item>
             </Col>
-
-            {/* Guaranteed Rate */}
-
             <Col span={12}>
               <Form.Item
                 name="maturityDate"
                 label="Maturity Date"
                 rules={[
-                  {
-                    required: true,
-                    message: "Please select a maturity date",
-                  },
+                  { required: true, message: "Please select maturity date" },
                 ]}
               >
-                <DatePicker style={{ width: "100%" }} />
+                <DatePicker className="w-full" />
               </Form.Item>
             </Col>
           </Row>
 
           <Row gutter={16}>
-            {/* Management Fee */}
             <Col span={12}>
               <Form.Item
                 name="managementFee"
-                label="Service Fee (GHS)"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select a service fee",
-                  },
-                ]}
+                label="Service Fee"
+                rules={[{ required: true, message: "Please enter service fee" }]}
               >
-                <InputNumber
-                  placeholder="Enter service fee"
-                  style={{ width: "100%" }}
-                />
+                <InputNumber className="w-full" placeholder="Service Fee" />
               </Form.Item>
             </Col>
+            <Col span={12}>
+              <Form.Item
+                name="timeCourse"
+                label="Time Course"
+                rules={[{ required: true, message: "Please enter time course" }]}
+              >
+                <Input placeholder="e.g. 1 Year" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 name="quater"
                 label="Quarter"
-                rules={[{ required: true, message: "Please select a quarter" }]}
+                rules={[{ required: true, message: "Please select quarter" }]}
               >
-                <Select
-                  placeholder="Select quarter"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={["Q1", "Q2", "Q3", "Q4"].map((quater) => ({
-                    value: quater,
-                    label: quater,
-                  }))}
-                />
+                <Select placeholder="Select Quarter">
+                  <Select.Option value="Q1">Q1</Select.Option>
+                  <Select.Option value="Q2">Q2</Select.Option>
+                  <Select.Option value="Q3">Q3</Select.Option>
+                  <Select.Option value="Q4">Q4</Select.Option>
+                </Select>
               </Form.Item>
             </Col>
           </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="timeCourse"
-                label="Time course"
-                rules={[
-                  { required: true, message: "Please select a time course" },
-                ]}
-              >
-                <Select
-                  placeholder="Select a time course"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={[
-                    "Weekly",
-                    "Monthly",
-                    "Quarterly",
-                    "Biannually",
-                    "Annually",
-                  ].map((quater) => ({
-                    value: quater,
-                    label: quater,
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="status"
-                label="Status"
-                rules={[{ required: true, message: "Please select a status" }]}
-              >
-                <Select
-                  placeholder="Select a status"
-                  showSearch
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  options={["Active", "Inactive"].map((quater) => ({
-                    value: quater,
-                    label: quater,
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item name="deduction" label="Outstanding Deduction">
-                <InputNumber
-                  placeholder="Enter outstanding deduction"
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            {["others"].map((category) => (
-              <Col key={category} span={6}>
-                <Form.Item
-                  label={`Upload ${
-                    category.charAt(0).toUpperCase() + category.slice(1)
-                  }`}
-                >
-                  <Upload
-                    listType="text" // Use text for non-image files like PDFs
-                    fileList={
-                      fileCategories[category as keyof typeof fileCategories]
-                    }
-                    onChange={({ fileList }: { fileList: UploadFile[] }) =>
-                      handleFileChange(category, fileList)
-                    }
-                    beforeUpload={(file: UploadFile) => {
-                      const isPdf = file.type === "application/pdf";
-                      if (!isPdf) {
-                        toast.error("You can only upload PDF files.");
-                      }
-                      return isPdf || Upload.LIST_IGNORE; // Prevent upload if not PDF
-                    }}
-                  >
-                    <Button type="dashed">Upload PDF</Button>
-                  </Upload>
-                </Form.Item>
-              </Col>
-            ))}
-          </Row>
-
-          <Form.Item>
-            <Button
-              className="w-full mt-6"
-              type="primary"
-              htmlType="submit"
-              loading={isLoading || Object.values(uploading).includes(true)}
-              disabled={Object.values(uploading).includes(true)}
-            >
-              Submit
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+            <Button onClick={handleCloseDrawer}>Cancel</Button>
+            <Button type="primary" htmlType="submit" className="bg-emerald-600 hover:bg-emerald-700">
+              Save Changes
             </Button>
-          </Form.Item>
+          </div>
         </Form>
       </Drawer>
-      {/* Investment Details Drawer */}
+
+      {/* Asset Details Drawer */}
       <AssetsDrawer
-        assets={selectedAsset}
+        asset={selectedAsset}
         visible={assetsDetailsDrawerVisible}
         onClose={closeAssetsDetailsDrawer}
       />
-    </>
+    </div>
   );
 };
 

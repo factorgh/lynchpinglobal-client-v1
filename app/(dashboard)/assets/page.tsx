@@ -5,49 +5,23 @@ import AssetTable from "./_components/asset-table";
 const Assets = () => {
   return (
     <Wrapper>
-      <div
-        style={{
-          padding: "20px",
-          backgroundColor: "#f9fafb", // Light background color
-          borderRadius: "8px",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
-          marginBottom: "20px",
-          marginTop: "30px",
-        }}
-      >
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)] my-6">
         <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            borderBottom: "2px solid #e5e7eb", // Underline for separation
-            paddingBottom: "10px",
-          }}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-5"
           data-tour="asset-header"
         >
-          <h1
-            style={{
-              fontSize: "24px",
-              fontWeight: "bold",
-              color: "#111827",
-            }}
-          >
-            Asset Management
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Asset Management
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Latest asset transactions
+            </p>
+          </div>
           <span data-tour="asset-form">
             <AssetForm />
           </span>
         </div>
-        <p
-          style={{
-            fontSize: "16px",
-            color: "#4b5563",
-            marginTop: "10px",
-            marginBottom: "20px",
-          }}
-        >
-          Latest asset transactions
-        </p>
         <div data-tour="asset-table">
           <AssetTable />
         </div>

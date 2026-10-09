@@ -25,11 +25,16 @@ const Rentals = () => {
 
           {/* Tab Content */}
           <TabsContent value="loan">
-            <div className="p-5 bg-gray-50 rounded-lg shadow-md mb-5">
-              <div className="flex justify-between items-center border-b-2 pb-3 mb-3">
-                <h1 className="text-2xl font-bold text-gray-800">
-                  Loan Management
-                </h1>
+            <div className="p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-5">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                <div>
+                  <h1 className="text-xl font-bold text-slate-800">
+                    Loan Management
+                  </h1>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Manage loan facilities for registered clients and external borrowers
+                  </p>
+                </div>
               </div>
               <Tabs defaultValue="existing" className="mt-2">
                 <TabsList className="mb-4">
@@ -38,32 +43,36 @@ const Rentals = () => {
                 </TabsList>
 
                 <TabsContent value="existing">
-                  <div className="flex justify-between items-center border-b pb-3 mb-3" data-tour="loan-header">
-                    <h2 className="text-lg font-semibold text-gray-800">
-                      Existing Clients
-                    </h2>
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3" data-tour="loan-header">
+                    <div>
+                      <h2 className="text-sm font-semibold text-slate-800">
+                        Existing Clients
+                      </h2>
+                      <p className="text-slate-500 text-xs">
+                        Loans for registered clients
+                      </p>
+                    </div>
                     <span data-tour="loan-form">
                       <LoanForm />
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm mb-5">
-                    Loans for registered clients
-                  </p>
                   <div data-tour="loan-list">
                     <LoanTable external={false} />
                   </div>
                 </TabsContent>
 
                 <TabsContent value="external">
-                  <div className="flex justify-between items-center border-b pb-3 mb-3">
-                    <h2 className="text-lg font-semibold text-gray-800">
-                      No Clients
-                    </h2>
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
+                    <div>
+                      <h2 className="text-sm font-semibold text-slate-800">
+                        Non Clients
+                      </h2>
+                      <p className="text-slate-500 text-xs">
+                        Quick capture for non-registered clients
+                      </p>
+                    </div>
                     <NonClientLoanForm />
                   </div>
-                  <p className="text-gray-600 text-sm mb-5">
-                    Quick capture for non-registered clients
-                  </p>
                   <NonClientLoanTable />
                 </TabsContent>
               </Tabs>
@@ -71,18 +80,20 @@ const Rentals = () => {
           </TabsContent>
 
           <TabsContent value="rentals">
-            <div className="p-5 bg-gray-50 rounded-lg shadow-md mb-5">
-              <div className="flex justify-between items-center border-b-2 pb-3 mb-3" data-tour="rental-header">
-                <h1 className="text-2xl font-bold text-gray-800">
-                  Rentals Management
-                </h1>
+            <div className="p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-5">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4" data-tour="rental-header">
+                <div>
+                  <h1 className="text-xl font-bold text-slate-800">
+                    Rentals Management
+                  </h1>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Latest rental transactions and agreements
+                  </p>
+                </div>
                 <span data-tour="rental-form">
                   <RentalForm />
                 </span>
               </div>
-              <p className="text-gray-600 text-sm mb-5">
-                Latest rental transactions
-              </p>
               <div data-tour="rental-list">
                 <RentalTable />
               </div>
