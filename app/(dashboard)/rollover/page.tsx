@@ -39,6 +39,7 @@ import {
   useGetRolloverCandidatesQuery,
   useExecuteSingleRolloverMutation,
   useExecuteBatchRolloverMutation,
+  useCalculateDailyAccrualsMutation,
 } from "@/services/investment";
 import RolloverEditModal from "./_components/RolloverEditModal";
 import RolloverBatchModal from "./_components/RolloverBatchModal";
@@ -84,6 +85,22 @@ export default function RolloverPage() {
     useExecuteSingleRolloverMutation();
   const [executeBatchRollover, { isLoading: isBatchLoading }] =
     useExecuteBatchRolloverMutation();
+  const [calculateDailyAccruals, { isLoading: isAccrualsLoading }] =
+    useCalculateDailyAccrualsMutation();
+
+  const handleCalculateAccruals = async () => {
+    try {
+      const res: any = await calculateDailyAccruals({}).unwrap();
+      message.success(
+        res?.message || "Daily accruals successfully updated for all active mandates!"
+      );
+      refetch();
+    } catch (err: any) {
+      message.error(
+        err?.data?.message || err?.message || "Failed to calculate daily accruals"
+      );
+    }
+  };
 
   const candidatesData = candidatesResponse?.data?.candidates || [];
   const summary = candidatesResponse?.data?.summary || {
@@ -479,6 +496,15 @@ export default function RolloverPage() {
                   className="font-bold text-emerald-700"
                 />
               </div>
+
+              <Button
+                icon={<TrendingUp className="w-4 h-4 text-emerald-600" />}
+                onClick={handleCalculateAccruals}
+                loading={isAccrualsLoading}
+                className="rounded-xl border-slate-200 text-slate-700 hover:text-emerald-700 font-semibold h-10 px-3.5 flex items-center gap-1.5 shadow-xs"
+              >
+                Run Daily Accruals
+              </Button>
 
               <Tooltip title="Refresh candidates">
                 <Button

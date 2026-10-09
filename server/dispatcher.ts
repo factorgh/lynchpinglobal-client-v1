@@ -39,6 +39,7 @@ import {
   getRolloverCandidates,
   executeSingleRollover,
   executeBatchRollover,
+  calculateDailyAccruals,
 } from "./features/investment/controller/investment.controller.js";
 import {
   addAddOnToInvestment,
@@ -261,6 +262,9 @@ export async function dispatchApiRequest(
         },
       ]);
     }
+    if (segs[1] === "accruals") {
+      return runHandlerChain(webReq, params, [calculateDailyAccruals]);
+    }
     if (segs[1] === "rollover") {
       if (segs[2] === "candidates" && method === "GET") {
         return runHandlerChain(webReq, params, [verifyToken, getRolloverCandidates]);
@@ -441,6 +445,13 @@ export async function dispatchApiRequest(
     }
     if (segs[1] === "list" && method === "GET") {
       return runHandlerChain(webReq, params, [listUploadsFromProvider]);
+    }
+  }
+
+  // 14. CRON AUTOMATION ROUTES
+  if (prefix === "cron") {
+    if (segs[1] === "daily-accruals" || segs[1] === "accruals") {
+      return runHandlerChain(webReq, params, [calculateDailyAccruals]);
     }
   }
 

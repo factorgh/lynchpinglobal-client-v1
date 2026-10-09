@@ -76,6 +76,13 @@ export const InvestmentApi = baseApi.injectEndpoints({
         }),
         invalidatesTags: ["Investment"],
       }),
+      calculateDailyAccruals: builder.mutation({
+        query: () => ({
+          url: "/investments/accruals/calculate",
+          method: "POST",
+        }),
+        invalidatesTags: ["Investment"],
+      }),
     };
   },
 });
@@ -91,4 +98,5 @@ export const {
   useExecuteSingleRolloverMutation,
   useExecuteBatchRolloverMutation,
   useExecuteAutoRolloverMutation,
+  useCalculateDailyAccrualsMutation,
 } = InvestmentApi;
