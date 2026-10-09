@@ -11,6 +11,7 @@ import {
   Handshake,
   LayoutDashboard,
   LucideIcon,
+  RefreshCw,
   Users,
   Wallet,
   X,
@@ -152,6 +153,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
                 href="/wealth"
                 icon={Compass}
                 label="Mandates"
+                onClick={onCloseMobile}
+              />
+              <SidebarLink
+                href="/rollover"
+                icon={RefreshCw}
+                label="Quarterly Rollover"
                 onClick={onCloseMobile}
               />
               <SidebarLink

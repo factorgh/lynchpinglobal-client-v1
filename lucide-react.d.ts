@@ -44,6 +44,20 @@ declare module "lucide-react" {
   export const X: LucideIcon;
   export const ArrowRight: LucideIcon;
   export const Command: LucideIcon;
+  export const RefreshCw: LucideIcon;
+  export const CheckCircle2: LucideIcon;
+  export const AlertTriangle: LucideIcon;
+  export const Layers: LucideIcon;
+  export const Calculator: LucideIcon;
+  export const TrendingUp: LucideIcon;
+  export const Calendar: LucideIcon;
+  export const Clock: LucideIcon;
+  export const Settings: LucideIcon;
+  export const ShieldCheck: LucideIcon;
+  export const UserCheck: LucideIcon;
+  export const Sparkles: LucideIcon;
+  export const SlidersHorizontal: LucideIcon;
+  export const RotateCcw: LucideIcon;
 }
 
 

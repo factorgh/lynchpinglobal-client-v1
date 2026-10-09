@@ -36,6 +36,9 @@ import {
   updateInvestment,
   archiveTransactions,
   rolloverInvestments,
+  getRolloverCandidates,
+  executeSingleRollover,
+  executeBatchRollover,
 } from "./features/investment/controller/investment.controller.js";
 import {
   addAddOnToInvestment,
@@ -258,14 +261,25 @@ export async function dispatchApiRequest(
         },
       ]);
     }
-    if (segs[1] === "rollover" && method === "POST") {
-      return runHandlerChain(webReq, params, [
-        verifyToken,
-        async (_req, res) => {
-          await rolloverInvestments();
-          res.status(200).json({ status: "success", message: "Investments rolled over successfully" });
-        },
-      ]);
+    if (segs[1] === "rollover") {
+      if (segs[2] === "candidates" && method === "GET") {
+        return runHandlerChain(webReq, params, [verifyToken, getRolloverCandidates]);
+      }
+      if (segs[2] === "execute-single" && method === "POST") {
+        return runHandlerChain(webReq, params, [verifyToken, executeSingleRollover]);
+      }
+      if (segs[2] === "execute-batch" && method === "POST") {
+        return runHandlerChain(webReq, params, [verifyToken, executeBatchRollover]);
+      }
+      if (method === "POST") {
+        return runHandlerChain(webReq, params, [
+          verifyToken,
+          async (_req, res) => {
+            await rolloverInvestments();
+            res.status(200).json({ status: "success", message: "Investments rolled over successfully" });
+          },
+        ]);
+      }
     }
     if (segs[1] === "single" && segs[2]) {
       params.id = segs[2];

@@ -34,6 +34,48 @@ export const InvestmentApi = baseApi.injectEndpoints({
         query: (id) => investmentCrud.getSingle(id),
         providesTags: ["Investment"],
       }),
+      getRolloverCandidates: builder.query({
+        query: ({
+          sourceQuarter,
+          targetQuarter,
+        }: {
+          sourceQuarter?: string;
+          targetQuarter?: string;
+        } = {}) => {
+          const params = new URLSearchParams();
+          if (sourceQuarter) params.append("sourceQuarter", sourceQuarter);
+          if (targetQuarter) params.append("targetQuarter", targetQuarter);
+          const queryString = params.toString();
+          return {
+            url: `/investments/rollover/candidates${queryString ? `?${queryString}` : ""}`,
+            method: "GET",
+          };
+        },
+        providesTags: ["Investment"],
+      }),
+      executeSingleRollover: builder.mutation({
+        query: (data) => ({
+          url: "/investments/rollover/execute-single",
+          method: "POST",
+          body: data,
+        }),
+        invalidatesTags: ["Investment"],
+      }),
+      executeBatchRollover: builder.mutation({
+        query: (data) => ({
+          url: "/investments/rollover/execute-batch",
+          method: "POST",
+          body: data,
+        }),
+        invalidatesTags: ["Investment"],
+      }),
+      executeAutoRollover: builder.mutation({
+        query: () => ({
+          url: "/investments/rollover",
+          method: "POST",
+        }),
+        invalidatesTags: ["Investment"],
+      }),
     };
   },
 });
@@ -45,4 +87,8 @@ export const {
   useGetUserInvestmentsQuery,
   useGetSingleInvestmentQuery,
   useUpdateInvestmentMutation,
+  useGetRolloverCandidatesQuery,
+  useExecuteSingleRolloverMutation,
+  useExecuteBatchRolloverMutation,
+  useExecuteAutoRolloverMutation,
 } = InvestmentApi;
