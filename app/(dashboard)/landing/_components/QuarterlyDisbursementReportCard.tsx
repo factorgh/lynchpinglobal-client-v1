@@ -136,10 +136,10 @@ export const QuarterlyDisbursementReportCard: React.FC<
               </div>
               <div>
                 <h3 className="text-base font-bold text-gray-900 leading-tight">
-                  End-Of-Quarter Report
+                  Ledger Report
                 </h3>
                 <p className="text-xs text-emerald-700 font-medium mt-0.5">
-                  Disbursement & Yield Report ({quarter} {year})
+                  Disbursement & Yield Ledger ({quarter} {year})
                 </p>
               </div>
             </div>
@@ -217,7 +217,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
                   onClick={() => setIsModalOpen(true)}
                   className="flex-1 font-semibold rounded-xl text-xs h-9 bg-emerald-600 hover:bg-emerald-700"
                 >
-                  View Full Report
+                  View Ledger Report
                 </Button>
                 <Button
                   type="primary"
@@ -232,7 +232,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
               <div className="flex items-center justify-between px-4 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs shadow-sm">
                 <span className="flex items-center gap-2 font-medium text-slate-600">
                   <LockOutlined className="text-slate-400" />
-                  Preview available on quarter settlement
+                  Preview available on quarter ledger close
                 </span>
                 <span className="text-xs font-semibold text-emerald-700">
                   {formattedQuarterEnd}

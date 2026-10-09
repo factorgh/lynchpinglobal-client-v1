@@ -54,7 +54,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
   const isStatement = documentType === "mandate-statement";
   const docTitle = isStatement
     ? `Quarterly Mandate Statement (${quarter} ${year})`
-    : `Quarterly Disbursement & Yield Report (${quarter} ${year})`;
+    : `Quarterly Ledger Report (${quarter} ${year})`;
 
   return (
     <Modal
