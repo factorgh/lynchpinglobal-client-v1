@@ -20,8 +20,7 @@ import CustomCard from "./_components/customCard";
 import CustomList from "./_components/customList";
 import CustomSlider from "./_components/customSlider";
 import LandingCard from "./_components/landingCard";
-import QuarterlyMandateStatementCard from "./_components/QuarterlyMandateStatementCard";
-import QuarterlyDisbursementReportCard from "./_components/QuarterlyDisbursementReportCard";
+import EndOfQuarterReportsCard from "./_components/EndOfQuarterReportsCard";
 
 const CustomerLanding = () => {
   const { data: userInvestments } = useGetUserInvestmentsQuery(null);
@@ -241,9 +240,9 @@ const CustomerLanding = () => {
           </div>
         </div>
         <Divider className="bg-white" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6 mb-10">
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-2"
             data-tour="yield-cards"
           >
             <CustomCard
@@ -271,24 +270,8 @@ const CustomerLanding = () => {
               color="bg-red-400"
             />
           </div>
-          <div data-tour="assets-under" className="h-full">
-            <QuarterlyMandateStatementCard
-              quarter={quarter || "Q4"}
-              totalBalance={totalBalance}
-              principal={principal}
-              accruedInterest={accruedInterest}
-              addOns={addOns}
-              addonAccruedReturn={addonAccruedReturn}
-              oneOffs={oneOffs}
-              performanceYield={performanceYield}
-              managementFee={managementFee}
-              operationalCost={operationalCost}
-              guaranteedRate={guaranteedRate}
-              activeInvestmentsCount={activeInves?.length || 1}
-            />
-          </div>
-          <div data-tour="payments-list" className="h-full">
-            <QuarterlyDisbursementReportCard
+          <div data-tour="assets-under" className="col-span-2 h-full">
+            <EndOfQuarterReportsCard
               quarter={quarter || "Q4"}
               totalBalance={totalBalance}
               principal={principal}

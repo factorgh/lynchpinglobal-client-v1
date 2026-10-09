@@ -61,14 +61,8 @@ export const clientLandingSteps: DriveStep[] = [
   ),
   step(
     '[data-tour="assets-under"]',
-    "📄 Quarterly Mandate Statement",
-    "Track the live countdown to quarter-end closing and preview your official quarterly mandate statement.",
-    "top"
-  ),
-  step(
-    '[data-tour="payments-list"]',
-    "📊 Disbursement & Yield Report",
-    "Monitor daily return accruals and access the reconciled quarterly yield report upon quarter settlement.",
+    "📁 End-Of-Quarter Reports",
+    "Track the live daily countdown to quarter-end closing, preview your Quarterly Mandate Statement, and review your Disbursement & Yield Schedule.",
     "top"
   ),
   welcome(
