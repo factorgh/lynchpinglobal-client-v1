@@ -20,6 +20,8 @@ import CustomCard from "./_components/customCard";
 import CustomList from "./_components/customList";
 import CustomSlider from "./_components/customSlider";
 import LandingCard from "./_components/landingCard";
+import QuarterlyMandateStatementCard from "./_components/QuarterlyMandateStatementCard";
+import QuarterlyDisbursementReportCard from "./_components/QuarterlyDisbursementReportCard";
 
 const CustomerLanding = () => {
   const { data: userInvestments } = useGetUserInvestmentsQuery(null);
@@ -269,18 +271,38 @@ const CustomerLanding = () => {
               color="bg-red-400"
             />
           </div>
-          <Card className="p-3" data-tour="assets-under">
-            <AssetsUnder
-              loading={isFetching}
-              dataSource={assetsData?.data.data}
+          <div data-tour="assets-under" className="h-full">
+            <QuarterlyMandateStatementCard
+              quarter={quarter || "Q4"}
+              totalBalance={totalBalance}
+              principal={principal}
+              accruedInterest={accruedInterest}
+              addOns={addOns}
+              addonAccruedReturn={addonAccruedReturn}
+              oneOffs={oneOffs}
+              performanceYield={performanceYield}
+              managementFee={managementFee}
+              operationalCost={operationalCost}
+              guaranteedRate={guaranteedRate}
+              activeInvestmentsCount={activeInves?.length || 1}
             />
-          </Card>
-          <Card className="p-3" data-tour="payments-list">
-            <CustomList
-              dataSource={userPayments?.data.data}
-              loading={isFetchingPayment}
+          </div>
+          <div data-tour="payments-list" className="h-full">
+            <QuarterlyDisbursementReportCard
+              quarter={quarter || "Q4"}
+              totalBalance={totalBalance}
+              principal={principal}
+              accruedInterest={accruedInterest}
+              addOns={addOns}
+              addonAccruedReturn={addonAccruedReturn}
+              oneOffs={oneOffs}
+              performanceYield={performanceYield}
+              managementFee={managementFee}
+              operationalCost={operationalCost}
+              guaranteedRate={guaranteedRate}
+              activeInvestmentsCount={activeInves?.length || 1}
             />
-          </Card>
+          </div>
         </div>
         <Modal
           title="Additional Contributions Details"

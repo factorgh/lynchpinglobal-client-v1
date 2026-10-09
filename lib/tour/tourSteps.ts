@@ -61,14 +61,14 @@ export const clientLandingSteps: DriveStep[] = [
   ),
   step(
     '[data-tour="assets-under"]',
-    "🏢 Active Mandates",
-    "View all active mandates and associated transactions with their current status.",
+    "📄 Quarterly Mandate Statement",
+    "Track the live countdown to quarter-end closing and preview your official quarterly mandate statement.",
     "top"
   ),
   step(
     '[data-tour="payments-list"]',
-    "💸 Disbursement History",
-    "Your recent mandate contributions and disbursements are displayed here for easy tracking.",
+    "📊 Disbursement & Yield Report",
+    "Monitor daily return accruals and access the reconciled quarterly yield report upon quarter settlement.",
     "top"
   ),
   welcome(
