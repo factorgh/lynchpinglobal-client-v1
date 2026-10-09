@@ -10,9 +10,6 @@ import {
   Popconfirm,
   message,
   Tooltip,
-  Badge,
-  Spin,
-  Empty,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -25,13 +22,8 @@ import {
   CheckCircle2,
   Clock,
   Settings,
-  ChevronRight,
-  ShieldCheck,
-  Percent,
-  FileText,
-  UserCheck,
-  AlertCircle,
   Sparkles,
+  FileText,
 } from "lucide-react";
 import { formatPriceGHS } from "@/lib/helper";
 import Wrapper from "../wealth/_components/wapper";
@@ -87,20 +79,6 @@ export default function RolloverPage() {
     useExecuteBatchRolloverMutation();
   const [calculateDailyAccruals, { isLoading: isAccrualsLoading }] =
     useCalculateDailyAccrualsMutation();
-
-  const handleCalculateAccruals = async () => {
-    try {
-      const res: any = await calculateDailyAccruals({}).unwrap();
-      message.success(
-        res?.message || "Daily accruals successfully updated for all active mandates!"
-      );
-      refetch();
-    } catch (err: any) {
-      message.error(
-        err?.data?.message || err?.message || "Failed to calculate daily accruals"
-      );
-    }
-  };
 
   const candidatesData = candidatesResponse?.data?.candidates || [];
   const summary = candidatesResponse?.data?.summary || {
@@ -220,24 +198,41 @@ export default function RolloverPage() {
     }
   };
 
+  // Handle run daily accruals
+  const handleCalculateAccruals = async () => {
+    try {
+      const res: any = await calculateDailyAccruals({}).unwrap();
+      message.success(
+        res?.message || "Daily accruals successfully updated for all active mandates!"
+      );
+      refetch();
+    } catch (err: any) {
+      message.error(
+        err?.data?.message || err?.message || "Failed to calculate daily accruals"
+      );
+    }
+  };
+
   const columns: ColumnsType<any> = [
     {
       title: "Client & License",
       key: "client",
-      width: 260,
+      width: 280,
       render: (_, record) => {
         const clientName = record.user?.name || record.user?.displayName || "Unnamed Client";
         const email = record.user?.email || "No email";
         const license = record.user?.license;
+        const initial = clientName.trim().charAt(0).toUpperCase() || "C";
 
         return (
-          <div className="flex items-center gap-3 py-1">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-slate-800 to-slate-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm border border-slate-600">
-              {clientName.substring(0, 2).toUpperCase()}
+          <div className="flex items-center space-x-3 py-1">
+            {/* Emerald avatar matching Recent Clients */}
+            <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0 shadow-xs">
+              {initial}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-slate-900 text-sm truncate">
+                <span className="font-bold text-slate-900 text-xs tracking-tight leading-tight truncate">
                   {clientName}
                 </span>
                 {record.isJoint && (
@@ -246,10 +241,13 @@ export default function RolloverPage() {
                   </Tag>
                 )}
               </div>
-              <p className="text-xs text-slate-500 truncate">{email}</p>
+              <p className="text-xs text-slate-500 font-medium leading-tight mt-0.5 truncate">
+                {email}
+              </p>
               {license ? (
-                <div className="mt-0.5">
-                  <span className="inline-block font-mono text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                <div className="mt-1">
+                  {/* License pill tag matching dashboard screenshot */}
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
                     {license}
                   </span>
                 </div>
@@ -385,7 +383,7 @@ export default function RolloverPage() {
       title: "Actions",
       key: "actions",
       align: "right",
-      width: 190,
+      width: 200,
       render: (_, record) => {
         if (record.isRolledOver) {
           return (
@@ -399,18 +397,17 @@ export default function RolloverPage() {
 
         return (
           <div className="flex items-center justify-end gap-2">
-            <Button
-              type="primary"
-              size="small"
+            {/* Configure button matching Add Client emerald button */}
+            <button
               onClick={() => {
                 setSelectedCandidate(record);
                 setIsEditModalOpen(true);
               }}
-              icon={<Settings className="w-3.5 h-3.5" />}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs flex items-center gap-1 shadow-xs"
+              className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-2xs flex items-center gap-1 transition-all cursor-pointer"
             >
-              Configure
-            </Button>
+              <Settings className="w-3.5 h-3.5" />
+              <span>Configure</span>
+            </button>
 
             <Popconfirm
               title="Execute 100% Full Rollover?"
@@ -422,12 +419,12 @@ export default function RolloverPage() {
               okButtonProps={{ className: "bg-emerald-600 text-white font-bold" }}
               onConfirm={() => handleQuickRollover(record)}
             >
-              <Button
-                size="small"
-                className="rounded-lg text-xs font-medium text-slate-700 hover:text-emerald-700 hover:border-emerald-300"
+              <button
+                type="button"
+                className="border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 bg-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-2xs transition-all cursor-pointer"
               >
                 100% Quick
-              </Button>
+              </button>
             </Popconfirm>
           </div>
         );
@@ -437,199 +434,186 @@ export default function RolloverPage() {
 
   return (
     <Wrapper>
-      <div className="my-6">
-        {/* Page Header */}
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
-                  <RefreshCw className="w-4 h-4 text-emerald-600" />
-                </div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                  Quarterly Rollover Management
-                </h1>
-                <Tag color="cyan" className="font-semibold text-xs ml-1">
-                  Admin Control
-                </Tag>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                Review client ending balances at quarter close, manually adjust rollover
-                principal, rates & fees, or advance records into the new quarter.
-              </p>
-            </div>
-
-            {/* Quarter Controls & Actions */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                <span className="text-[11px] font-bold text-slate-400 uppercase">
-                  Source:
-                </span>
-                <Select
-                  value={sourceQuarter}
-                  onChange={(val) => setSourceQuarter(val)}
-                  style={{ width: 85 }}
-                  options={[
-                    { value: "Q1", label: "Q1" },
-                    { value: "Q2", label: "Q2" },
-                    { value: "Q3", label: "Q3" },
-                    { value: "Q4", label: "Q4" },
-                  ]}
-                  bordered={false}
-                  className="font-bold text-slate-800"
-                />
-                <ArrowRight className="w-4 h-4 text-slate-400" />
-                <span className="text-[11px] font-bold text-slate-400 uppercase">
-                  Target:
-                </span>
-                <Select
-                  value={targetQuarter}
-                  onChange={(val) => setTargetQuarter(val)}
-                  style={{ width: 85 }}
-                  options={[
-                    { value: "Q1", label: "Q1" },
-                    { value: "Q2", label: "Q2" },
-                    { value: "Q3", label: "Q3" },
-                    { value: "Q4", label: "Q4" },
-                  ]}
-                  bordered={false}
-                  className="font-bold text-emerald-700"
-                />
-              </div>
-
-              <Button
-                icon={<TrendingUp className="w-4 h-4 text-emerald-600" />}
-                onClick={handleCalculateAccruals}
-                loading={isAccrualsLoading}
-                className="rounded-xl border-slate-200 text-slate-700 hover:text-emerald-700 font-semibold h-10 px-3.5 flex items-center gap-1.5 shadow-xs"
-              >
-                Run Daily Accruals
-              </Button>
-
-              <Tooltip title="Refresh candidates">
-                <Button
-                  icon={<RefreshCw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />}
-                  onClick={() => refetch()}
-                  loading={isFetching}
-                  className="rounded-xl border-slate-200 text-slate-600 h-10 w-10 flex items-center justify-center p-0"
-                />
-              </Tooltip>
-
-              <Button
-                type="primary"
-                icon={<Layers className="w-4 h-4" />}
-                onClick={() => setIsBatchModalOpen(true)}
-                disabled={summary.pendingCount === 0 || isLoading}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold h-10 px-4 shadow-md shadow-emerald-600/20 flex items-center gap-2"
-              >
-                Batch Rollover All ({summary.pendingCount})
-              </Button>
-            </div>
+      <div className="py-5 select-none">
+        {/* Page Header matching Dashboard Screenshot Layout */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm flex items-center gap-2">
+              <span>Quarterly Rollover</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white px-2 py-0.5 rounded-full backdrop-blur-xs">
+                Admin Control
+              </span>
+            </h1>
+            <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
+              Review ending quarter balances, adjust rollover terms individually, or batch advance mandates
+            </p>
           </div>
 
-          {/* KPI Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-5">
-            {/* Card 1: Ending Principal */}
-            <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/70 hover:border-slate-300 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-500">
-                  Ending Base Principal
-                </span>
-                <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
-                  <Wallet className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div className="text-xl font-black text-slate-900">
-                {formatPriceGHS(summary.totalEndingPrincipal)}
-              </div>
-              <span className="text-[11px] text-slate-400 font-medium">
-                From {sourceQuarter} active mandates
+          {/* Header Controls & Actions */}
+          <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+            {/* Quarter Selector widget */}
+            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/60 shadow-xs">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Ending:
               </span>
+              <Select
+                value={sourceQuarter}
+                onChange={(val) => setSourceQuarter(val)}
+                style={{ width: 85 }}
+                options={[
+                  { value: "Q1", label: "Q1" },
+                  { value: "Q2", label: "Q2" },
+                  { value: "Q3", label: "Q3" },
+                  { value: "Q4", label: "Q4" },
+                ]}
+                bordered={false}
+                className="font-bold text-slate-800"
+              />
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                New:
+              </span>
+              <Select
+                value={targetQuarter}
+                onChange={(val) => setTargetQuarter(val)}
+                style={{ width: 85 }}
+                options={[
+                  { value: "Q1", label: "Q1" },
+                  { value: "Q2", label: "Q2" },
+                  { value: "Q3", label: "Q3" },
+                  { value: "Q4", label: "Q4" },
+                ]}
+                bordered={false}
+                className="font-bold text-emerald-700"
+              />
             </div>
 
-            {/* Card 2: Accrued Returns */}
-            <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-100 hover:border-emerald-200 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-emerald-700">
-                  Total Accrued Profit
-                </span>
-                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                  <TrendingUp className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div className="text-xl font-black text-emerald-800">
-                +{formatPriceGHS(summary.totalAccruedReturn)}
-              </div>
-              <span className="text-[11px] text-emerald-600 font-medium">
-                Client returns to capitalize
-              </span>
-            </div>
+            {/* Run Daily Accruals Button (matching Add Client styling) */}
+            <button
+              onClick={handleCalculateAccruals}
+              disabled={isAccrualsLoading}
+              className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>{isAccrualsLoading ? "Calculating..." : "Run Daily Accruals"}</span>
+            </button>
 
-            {/* Card 3: Projected Rollover Capital */}
-            <div className="bg-purple-50/60 p-4 rounded-xl border border-purple-100 hover:border-purple-200 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-purple-700">
-                  Projected Rollover Total
-                </span>
-                <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div className="text-xl font-black text-purple-900">
-                {formatPriceGHS(summary.totalProjectedRollover)}
-              </div>
-              <span className="text-[11px] text-purple-600 font-medium">
-                Projected {targetQuarter} starting sum
-              </span>
-            </div>
+            {/* Batch Rollover Button (matching Add Client styling) */}
+            <button
+              onClick={() => setIsBatchModalOpen(true)}
+              disabled={summary.pendingCount === 0 || isLoading}
+              className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Batch Rollover ({summary.pendingCount})</span>
+            </button>
 
-            {/* Card 4: Rollover Progress */}
-            <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-100 hover:border-amber-200 transition-colors">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-amber-700">
-                  Rollover Progress
-                </span>
-                <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div className="text-xl font-black text-amber-900">
-                {summary.alreadyRolledOverCount} / {summary.totalCandidates}
-              </div>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="flex-1 bg-amber-200/60 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-amber-600 h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${
-                        summary.totalCandidates > 0
-                          ? Math.round(
-                              (summary.alreadyRolledOverCount / summary.totalCandidates) *
-                                100
-                            )
-                          : 0
-                      }%`,
-                    }}
-                  />
-                </div>
-                <span className="text-[10px] font-bold text-amber-800">
-                  {summary.pendingCount} pending
-                </span>
-              </div>
-            </div>
+            {/* Refresh Button */}
+            <Tooltip title="Refresh candidates">
+              <button
+                onClick={() => refetch()}
+                disabled={isFetching}
+                className="w-9 h-9 rounded-xl bg-white/90 backdrop-blur-md text-slate-700 hover:text-emerald-700 border border-white/60 shadow-xs flex items-center justify-center transition-all cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
+              </button>
+            </Tooltip>
           </div>
         </div>
 
-        {/* Content Section: Filter Bar & Table */}
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+        {/* 4 KPI Cards Matching Dashboard Screenshot Design */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+          {/* Card 1: Ending Principal */}
+          <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 tracking-tight">
+                Assets & Wealth
+              </span>
+              <div className="w-7 h-7 rounded-lg border border-slate-200 bg-slate-100/90 flex items-center justify-center text-slate-600">
+                <Wallet className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-slate-900 mt-2.5 tracking-tight">
+              {formatPriceGHS(summary.totalEndingPrincipal)}
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">
+              Ending base principal in {sourceQuarter}
+            </p>
+          </div>
+
+          {/* Card 2: Accrued Returns */}
+          <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 tracking-tight">
+                Accrued Profit
+              </span>
+              <div className="w-7 h-7 rounded-lg border border-slate-200 bg-slate-100/90 flex items-center justify-center text-emerald-600">
+                <TrendingUp className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-emerald-700 mt-2.5 tracking-tight">
+              +{formatPriceGHS(summary.totalAccruedReturn)}
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">
+              Client returns to capitalize
+            </p>
+          </div>
+
+          {/* Card 3: Projected Rollover Capital */}
+          <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 tracking-tight">
+                Projected Total
+              </span>
+              <div className="w-7 h-7 rounded-lg border border-slate-200 bg-slate-100/90 flex items-center justify-center text-slate-600">
+                <Sparkles className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-slate-900 mt-2.5 tracking-tight">
+              {formatPriceGHS(summary.totalProjectedRollover)}
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">
+              Projected {targetQuarter} starting sum
+            </p>
+          </div>
+
+          {/* Card 4: Rollover Progress */}
+          <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800 tracking-tight">
+                Rollover Progress
+              </span>
+              <div className="w-7 h-7 rounded-lg border border-slate-200 bg-slate-100/90 flex items-center justify-center text-emerald-600">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-slate-900 mt-2.5 tracking-tight">
+              {summary.alreadyRolledOverCount} / {summary.totalCandidates}
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium flex items-center justify-between">
+              <span>{summary.pendingCount} pending</span>
+              <span className="font-bold text-emerald-700">
+                {summary.totalCandidates > 0
+                  ? Math.round(
+                      (summary.alreadyRolledOverCount / summary.totalCandidates) * 100
+                    )
+                  : 0}
+                % complete
+              </span>
+            </p>
+          </div>
+        </div>
+
+        {/* Table Container Card Matching Dashboard Card Style */}
+        <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
           {/* Filters & Search Toolbar */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-5">
-            {/* Status Tabs */}
+            {/* Status Tabs with emerald active state */}
             <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => setActiveTab("all")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   activeTab === "all"
                     ? "bg-white text-slate-900 shadow-xs"
                     : "text-slate-500 hover:text-slate-900"
@@ -640,7 +624,7 @@ export default function RolloverPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("pending")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeTab === "pending"
                     ? "bg-white text-amber-700 shadow-xs"
                     : "text-slate-500 hover:text-slate-900"
@@ -652,7 +636,7 @@ export default function RolloverPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("completed")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeTab === "completed"
                     ? "bg-white text-emerald-700 shadow-xs"
                     : "text-slate-500 hover:text-slate-900"
@@ -671,7 +655,7 @@ export default function RolloverPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 allowClear
-                className="rounded-xl h-10 border-slate-200 hover:border-emerald-400 focus:border-emerald-500"
+                className="rounded-xl h-9 border-slate-200 hover:border-emerald-400 focus:border-emerald-500"
               />
             </div>
           </div>
