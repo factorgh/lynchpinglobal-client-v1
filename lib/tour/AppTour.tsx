@@ -5,6 +5,7 @@ import { driver, DriveStep, Driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { usePathname } from "next/navigation";
 import { getTourSteps, getTourKey, TourPersona } from "./tourSteps";
+import { useAuth } from "@/context/authContext";
 
 // Storage helpers
 const storage = {
@@ -37,32 +38,147 @@ interface AppTourProps {
 
 const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = true }) => {
   const pathname = usePathname() || "/";
+  const { user, setUser } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [persona, setPersona] = useState<TourPersona>("client");
   const [tourKey, setTourKey] = useState("");
+  const [dbSeenTours, setDbSeenTours] = useState<string[]>([]);
+  const [hasLoadedDb, setHasLoadedDb] = useState(false);
   const driverRef = useRef<Driver | null>(null);
 
-  // Initialize on mount
+  // Initialize on mount and fetch user's seen tours from DB
   useEffect(() => {
     setMounted(true);
 
-    // Get persona from localStorage user
+    // Get persona from user or localStorage
     try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const storedUser = user || JSON.parse(localStorage.getItem("user") || "{}");
       const userPersona: TourPersona =
-        user.role === "admin" || user.role === "superadmin" ? "admin" : "client";
+        storedUser.role === "admin" || storedUser.role === "superadmin" ? "admin" : "client";
       setPersona(propPersona || userPersona);
+
+      if (Array.isArray(storedUser.seenTours)) {
+        setDbSeenTours(storedUser.seenTours);
+      }
     } catch {
       setPersona(propPersona || "client");
     }
 
+    // Fetch latest seen tours from DB
+    let isCancelled = false;
+    const fetchDbTours = async () => {
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        if (!token) {
+          setHasLoadedDb(true);
+          return;
+        }
+
+        const res = await fetch("/api/v1/users/tours", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (!isCancelled && Array.isArray(data?.seenTours)) {
+            setDbSeenTours(data.seenTours);
+            // Cache in local storage for instant offline access
+            data.seenTours.forEach((k: string) => {
+              storage.set(`tour_${k}`, "seen");
+            });
+
+            if (user && (!user.seenTours || user.seenTours.length !== data.seenTours.length)) {
+              const updated = { ...user, seenTours: data.seenTours };
+              setUser(updated);
+              try {
+                localStorage.setItem("user", JSON.stringify(updated));
+              } catch {}
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch tours from database:", err);
+      } finally {
+        if (!isCancelled) {
+          setHasLoadedDb(true);
+        }
+      }
+    };
+
+    fetchDbTours();
+
     // Cleanup on unmount
     return () => {
+      isCancelled = true;
       if (driverRef.current) {
         driverRef.current.destroy();
       }
     };
-  }, [propPersona]);
+  }, [propPersona, user, setUser]);
+
+  // Sync a seen tour to database and local state
+  const syncTourSeenToDb = useCallback(
+    async (key: string) => {
+      storage.set(`tour_${key}`, "seen");
+      setDbSeenTours((prev) => (prev.includes(key) ? prev : [...prev, key]));
+
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        if (!token) return;
+
+        const res = await fetch("/api/v1/users/tours/seen", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ tourKey: key }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data?.seenTours)) {
+            setDbSeenTours(data.seenTours);
+            if (user) {
+              const updated = { ...user, seenTours: data.seenTours };
+              setUser(updated);
+              try {
+                localStorage.setItem("user", JSON.stringify(updated));
+              } catch {}
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to record seen tour in database:", err);
+      }
+    },
+    [user, setUser]
+  );
+
+  // Helper to check if tour has already been seen in DB or locally
+  const isTourAlreadySeen = useCallback(
+    (key: string): boolean => {
+      // 1. Check local storage
+      if (storage.get(`tour_${key}`) === "seen" || storage.get(`lynchpin_tour_${key}`) === "seen") {
+        return true;
+      }
+      // 2. Check DB tours state
+      if (dbSeenTours.includes(key) || dbSeenTours.includes("all")) {
+        return true;
+      }
+      // 3. Check auth user context
+      if (
+        Array.isArray(user?.seenTours) &&
+        (user.seenTours.includes(key) || user.seenTours.includes("all"))
+      ) {
+        return true;
+      }
+      return false;
+    },
+    [dbSeenTours, user?.seenTours]
+  );
 
   // Initialize driver and start tour when route changes
   useEffect(() => {
@@ -88,7 +204,7 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
       prevBtnText: "← Back",
       doneBtnText: "Finish ✓",
       onDestroyStarted: () => {
-        storage.set(`tour_${newTourKey}`, "seen");
+        syncTourSeenToDb(newTourKey);
         driverInstance.destroy();
       },
       steps: steps,
@@ -96,13 +212,13 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
 
     driverRef.current = driverInstance;
 
-    // Auto-start if not seen (desktop only, to avoid locking mobile touch viewport)
-    if (autoStart) {
+    // Auto-start only if NOT seen yet in DB or locally (desktop only, to avoid locking mobile touch viewport)
+    if (autoStart && hasLoadedDb) {
       if (typeof window !== "undefined" && window.innerWidth < 768) {
         return; // Skip auto-starting on mobile to prevent blocking mobile UI
       }
 
-      const hasSeen = storage.get(`tour_${newTourKey}`);
+      const hasSeen = isTourAlreadySeen(newTourKey);
       if (!hasSeen) {
         // Wait for DOM to be ready
         const timer = setTimeout(() => {
@@ -132,22 +248,49 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
         return () => clearTimeout(timer);
       }
     }
-  }, [mounted, pathname, persona, propPersona, autoStart]);
+  }, [mounted, pathname, persona, propPersona, autoStart, hasLoadedDb, isTourAlreadySeen, syncTourSeenToDb]);
 
-  // Manual start tour
+  // Manual start tour (user-initiated)
   const startTour = useCallback(() => {
     if (driverRef.current) {
       driverRef.current.drive();
     }
   }, []);
 
-  // Restart tour (clear storage and start)
-  const restartTour = useCallback(() => {
+  // Restart tour (clears from DB & local storage, then starts immediately)
+  const restartTour = useCallback(async () => {
     storage.remove(`tour_${tourKey}`);
+    storage.remove(`lynchpin_tour_${tourKey}`);
+    setDbSeenTours((prev) => prev.filter((k) => k !== tourKey));
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (token && tourKey) {
+        await fetch("/api/v1/users/tours/reset", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ tourKey }),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to reset tour in database:", err);
+    }
+
     if (driverRef.current) {
       driverRef.current.drive();
     }
   }, [tourKey]);
+
+  // Dismiss all tours across the app in the database
+  const dismissAllTours = useCallback(async () => {
+    await syncTourSeenToDb("all");
+    if (driverRef.current) {
+      driverRef.current.destroy();
+    }
+  }, [syncTourSeenToDb]);
 
   if (!mounted) return null;
 
@@ -268,7 +411,11 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
       `}</style>
 
       {/* Floating Help Button */}
-      <TourFloatingButton onStart={startTour} onRestart={restartTour} />
+      <TourFloatingButton
+        onStart={startTour}
+        onRestart={restartTour}
+        onDismissAll={dismissAllTours}
+      />
     </>
   );
 };
@@ -277,22 +424,27 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
 interface TourFloatingButtonProps {
   onStart: () => void;
   onRestart: () => void;
+  onDismissAll: () => void;
 }
 
-const TourFloatingButton: React.FC<TourFloatingButtonProps> = ({ onStart, onRestart }) => {
+const TourFloatingButton: React.FC<TourFloatingButtonProps> = ({
+  onStart,
+  onRestart,
+  onDismissAll,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999]">
       {/* Expanded menu */}
       {isOpen && (
-        <div className="absolute bottom-14 sm:bottom-16 right-0 bg-white rounded-xl shadow-2xl border border-gray-100 p-2 min-w-[160px]">
+        <div className="absolute bottom-14 sm:bottom-16 right-0 bg-white rounded-xl shadow-2xl border border-gray-100 p-2 min-w-[170px]">
           <button
             onClick={() => {
               onStart();
               setIsOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors text-left"
           >
             <span className="text-base sm:text-lg">▶️</span>
             Start Tour
@@ -302,10 +454,20 @@ const TourFloatingButton: React.FC<TourFloatingButtonProps> = ({ onStart, onRest
               onRestart();
               setIsOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors text-left"
           >
             <span className="text-base sm:text-lg">🔄</span>
             Restart Tour
+          </button>
+          <button
+            onClick={() => {
+              onDismissAll();
+              setIsOpen(false);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs sm:text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 rounded-lg transition-colors text-left border-t border-gray-100 mt-1"
+          >
+            <span className="text-base sm:text-lg">✕</span>
+            Dismiss All Tours
           </button>
         </div>
       )}

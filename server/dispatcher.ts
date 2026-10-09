@@ -22,6 +22,9 @@ import {
   updateUser,
   deleteUser,
   getUser,
+  getSeenTours,
+  markTourSeen,
+  resetSeenTours,
 } from "./features/auth/controllers/user.controller.js";
 
 // Investment controllers
@@ -197,6 +200,17 @@ export async function dispatchApiRequest(
 
   // 2. USERS ROUTES
   if (prefix === "users") {
+    if (segs[1] === "tours") {
+      if (segs.length === 2 && method === "GET") {
+        return runHandlerChain(webReq, params, [verifyToken, getSeenTours]);
+      }
+      if (segs[2] === "seen" && method === "POST") {
+        return runHandlerChain(webReq, params, [verifyToken, markTourSeen]);
+      }
+      if (segs[2] === "reset" && method === "POST") {
+        return runHandlerChain(webReq, params, [verifyToken, resetSeenTours]);
+      }
+    }
     if (segs.length === 1) {
       if (method === "GET") return runHandlerChain(webReq, params, [getAllUsers]);
     }

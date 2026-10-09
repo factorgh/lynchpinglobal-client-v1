@@ -71,8 +71,9 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isRunning, setIsRunning] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [persona, setPersona] = useState<TourPersona>("client");
+  const [dbSeenTours, setDbSeenTours] = useState<string[]>([]);
 
-  // Load persona from user role on mount
+  // Load persona and seen tours from user role on mount
   useEffect(() => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -81,7 +82,24 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setPersona("client");
       }
+      if (Array.isArray(user.seenTours)) {
+        setDbSeenTours(user.seenTours);
+      }
     } catch {}
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token) {
+      fetch("/api/v1/users/tours", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data?.seenTours)) {
+            setDbSeenTours(data.seenTours);
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const startTour = useCallback(() => {
@@ -111,15 +129,45 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const hasSeenTour = useCallback((key: string): boolean => {
-    return storage.get(`${STORAGE_PREFIX}${key}`) === "seen";
-  }, []);
+    if (storage.get(`${STORAGE_PREFIX}${key}`) === "seen" || storage.get(`tour_${key}`) === "seen") return true;
+    if (dbSeenTours.includes(key) || dbSeenTours.includes("all")) return true;
+    return false;
+  }, [dbSeenTours]);
 
   const markTourSeen = useCallback((key: string): void => {
     storage.set(`${STORAGE_PREFIX}${key}`, "seen");
+    storage.set(`tour_${key}`, "seen");
+    setDbSeenTours((prev) => (prev.includes(key) ? prev : [...prev, key]));
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token) {
+      fetch("/api/v1/users/tours/seen", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tourKey: key }),
+      }).catch(() => {});
+    }
   }, []);
 
   const resetAllTours = useCallback((): void => {
     storage.clearPrefix(STORAGE_PREFIX);
+    storage.clearPrefix("tour_");
+    setDbSeenTours([]);
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token) {
+      fetch("/api/v1/users/tours/reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tourKey: "all" }),
+      }).catch(() => {});
+    }
   }, []);
 
   return (

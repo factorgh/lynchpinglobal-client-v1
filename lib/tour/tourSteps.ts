@@ -411,5 +411,11 @@ export function getTourSteps(
 
 // Get tour key for storage
 export function getTourKey(persona: TourPersona, pathname: string): string {
-  return `${persona}_${pathname.replace(/\//g, "_") || "home"}_v2`;
+  const normalizedPath =
+    !pathname || pathname === "/"
+      ? persona === "admin"
+        ? "/dashboard"
+        : "/landing"
+      : pathname;
+  return `${persona}_${normalizedPath.replace(/\//g, "_")}_v2`;
 }

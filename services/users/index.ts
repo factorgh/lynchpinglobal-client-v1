@@ -29,13 +29,29 @@ export const UsersApi = baseApi.injectEndpoints({
         query: (id) => usersCrud.getSingle(id),
         providesTags: ["Users"],
       }),
-      //   getUserUsers: builder.query({
-      //     query: (id) => ({
-      //       url: `/Users/user`,
-      //       method: "GET",
-      //     }),
-      //     providesTags: ["Investment"],
-      //   }),
+      getSeenTours: builder.query<{ status: string; seenTours: string[] }, void>({
+        query: () => ({
+          url: "/users/tours",
+          method: "GET",
+        }),
+        providesTags: ["Users"],
+      }),
+      markTourSeen: builder.mutation<{ status: string; seenTours: string[] }, { tourKey: string }>({
+        query: (body) => ({
+          url: "/users/tours/seen",
+          method: "POST",
+          body,
+        }),
+        invalidatesTags: ["Users"],
+      }),
+      resetSeenTours: builder.mutation<{ status: string; seenTours: string[] }, { tourKey?: string } | void>({
+        query: (body) => ({
+          url: "/users/tours/reset",
+          method: "POST",
+          body: body || {},
+        }),
+        invalidatesTags: ["Users"],
+      }),
     };
   },
 });
@@ -46,4 +62,7 @@ export const {
   useGetAllUsersQuery,
   useGetSingleUserQuery,
   useUpdateUserMutation,
+  useGetSeenToursQuery,
+  useMarkTourSeenMutation,
+  useResetSeenToursMutation,
 } = UsersApi;
