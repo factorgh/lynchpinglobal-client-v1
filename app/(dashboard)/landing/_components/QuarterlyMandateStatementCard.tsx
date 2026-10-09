@@ -165,49 +165,20 @@ export const QuarterlyMandateStatementCard: React.FC<
               />
             </div>
           </div>
-
-          {/* Real-Time Mandate Schedule Highlights */}
-          <div className="mt-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
-              <span className="text-gray-500 font-medium">Active Principal:</span>
-              <span className="font-bold text-gray-800">
-                {formatPriceGHS(principal)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
-              <span className="text-gray-500 font-medium">
-                Accrued Return to Date:
-              </span>
-              <span className="font-bold text-emerald-600">
-                +{formatPriceGHS(accruedInterest)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
-              <span className="text-gray-500 font-medium">Projected Valuation:</span>
-              <span className="font-bold text-blue-700">
-                {formatPriceGHS(totalBalance)}
-              </span>
-            </div>
-          </div>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer Actions - Preview only visible on the quarter */}
         <div className="mt-5 pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <Button
-              type={isClosed ? "primary" : "default"}
-              icon={<EyeOutlined />}
-              onClick={() => setIsModalOpen(true)}
-              className={`flex-1 font-semibold rounded-xl text-xs h-9 ${
-                isClosed
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "border-blue-200 text-blue-700 hover:text-blue-800 hover:border-blue-400 bg-blue-50/40"
-              }`}
-            >
-              {isClosed ? "View Full Statement" : "Preview Live Statement"}
-            </Button>
-
-            {isClosed ? (
+          {isClosed ? (
+            <div className="flex items-center gap-2">
+              <Button
+                type="primary"
+                icon={<EyeOutlined />}
+                onClick={() => setIsModalOpen(true)}
+                className="flex-1 font-semibold rounded-xl text-xs h-9 bg-blue-600 hover:bg-blue-700"
+              >
+                View Full Statement
+              </Button>
               <Button
                 type="primary"
                 icon={<DownloadOutlined />}
@@ -216,18 +187,18 @@ export const QuarterlyMandateStatementCard: React.FC<
               >
                 Download PDF
               </Button>
-            ) : (
-              <Tooltip title={`Official signed statement available upon quarter close (${formattedQuarterEnd})`}>
-                <Button
-                  disabled
-                  icon={<LockOutlined />}
-                  className="rounded-xl text-xs h-9 bg-gray-100 text-gray-400 border-gray-200"
-                >
-                  Locked
-                </Button>
-              </Tooltip>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-500">
+              <span className="flex items-center gap-1.5 font-medium text-slate-600">
+                <LockOutlined className="text-slate-400" />
+                Preview available on quarter close
+              </span>
+              <span className="text-[11px] font-semibold text-blue-700">
+                {formattedQuarterEnd}
+              </span>
+            </div>
+          )}
         </div>
       </Card>
 

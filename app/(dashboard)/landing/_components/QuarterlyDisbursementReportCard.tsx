@@ -167,49 +167,20 @@ export const QuarterlyDisbursementReportCard: React.FC<
               />
             </div>
           </div>
-
-          {/* Real-Time Yield Highlights */}
-          <div className="mt-4 space-y-2.5">
-            <div className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
-              <span className="text-gray-500 font-medium">Total Accrued Yield:</span>
-              <span className="font-bold text-emerald-600">
-                +{formatPriceGHS(totalDisbursements)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
-              <span className="text-gray-500 font-medium">
-                Contractual Rate:
-              </span>
-              <span className="font-bold text-gray-800">
-                {guaranteedRate ? `${guaranteedRate}% p.a.` : "Active Terms"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-gray-50/80 border border-gray-100">
-              <span className="text-gray-500 font-medium">Add-on Return:</span>
-              <span className="font-bold text-emerald-700">
-                +{formatPriceGHS(addonAccruedReturn)}
-              </span>
-            </div>
-          </div>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer Actions - Preview only visible on the quarter */}
         <div className="mt-5 pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <Button
-              type={isClosed ? "primary" : "default"}
-              icon={<EyeOutlined />}
-              onClick={() => setIsModalOpen(true)}
-              className={`flex-1 font-semibold rounded-xl text-xs h-9 ${
-                isClosed
-                  ? "bg-emerald-600 hover:bg-emerald-700"
-                  : "border-emerald-200 text-emerald-700 hover:text-emerald-800 hover:border-emerald-400 bg-emerald-50/40"
-              }`}
-            >
-              {isClosed ? "View Full Report" : "View Interim Yield Ledger"}
-            </Button>
-
-            {isClosed ? (
+          {isClosed ? (
+            <div className="flex items-center gap-2">
+              <Button
+                type="primary"
+                icon={<EyeOutlined />}
+                onClick={() => setIsModalOpen(true)}
+                className="flex-1 font-semibold rounded-xl text-xs h-9 bg-emerald-600 hover:bg-emerald-700"
+              >
+                View Full Report
+              </Button>
               <Button
                 type="primary"
                 icon={<DownloadOutlined />}
@@ -218,18 +189,18 @@ export const QuarterlyDisbursementReportCard: React.FC<
               >
                 Download PDF
               </Button>
-            ) : (
-              <Tooltip title={`Full audited yield report released upon quarter settlement (${formattedQuarterEnd})`}>
-                <Button
-                  disabled
-                  icon={<LockOutlined />}
-                  className="rounded-xl text-xs h-9 bg-gray-100 text-gray-400 border-gray-200"
-                >
-                  Locked
-                </Button>
-              </Tooltip>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-500">
+              <span className="flex items-center gap-1.5 font-medium text-slate-600">
+                <LockOutlined className="text-slate-400" />
+                Preview available on quarter settlement
+              </span>
+              <span className="text-[11px] font-semibold text-emerald-700">
+                {formattedQuarterEnd}
+              </span>
+            </div>
+          )}
         </div>
       </Card>
 
