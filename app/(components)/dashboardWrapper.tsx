@@ -53,18 +53,18 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="absolute inset-0 bg-white/30 backdrop-blur-[0.5px] pointer-events-none"></div>
 
           {/* Main content area */}
-          <div className="relative z-20 flex w-full min-h-screen">
+          <div className="relative z-20 flex w-full min-w-0 max-w-full min-h-screen">
             <Sidebar
               isOpenMobile={isMobileSidebarOpen}
               onCloseMobile={() => setIsMobileSidebarOpen(false)}
             />
-            <main className="flex flex-col w-full min-h-screen flex-1 ml-0 lg:ml-64 bg-transparent overflow-x-hidden">
+            <main className="flex flex-col w-full min-w-0 max-w-full min-h-screen flex-1 ml-0 lg:ml-64 bg-transparent overflow-x-hidden">
               <Navbar
                 onToggleMobileSidebar={() =>
                   setIsMobileSidebarOpen((prev) => !prev)
                 }
               />
-              <div className="flex-1 overflow-y-auto">{children}</div>
+              <div className="flex-1 overflow-y-auto min-w-0 max-w-full">{children}</div>
               {user && (
                 <AppTour 
                   persona={user.role === "admin" || user.role === "superadmin" ? "admin" : "client"} 

@@ -96,8 +96,12 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
 
     driverRef.current = driverInstance;
 
-    // Auto-start if not seen
+    // Auto-start if not seen (desktop only, to avoid locking mobile touch viewport)
     if (autoStart) {
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+        return; // Skip auto-starting on mobile to prevent blocking mobile UI
+      }
+
       const hasSeen = storage.get(`tour_${newTourKey}`);
       if (!hasSeen) {
         // Wait for DOM to be ready
@@ -279,18 +283,18 @@ const TourFloatingButton: React.FC<TourFloatingButtonProps> = ({ onStart, onRest
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999]">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999]">
       {/* Expanded menu */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 bg-white rounded-xl shadow-2xl border border-gray-100 p-2 min-w-[160px]">
+        <div className="absolute bottom-14 sm:bottom-16 right-0 bg-white rounded-xl shadow-2xl border border-gray-100 p-2 min-w-[160px]">
           <button
             onClick={() => {
               onStart();
               setIsOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
           >
-            <span className="text-lg">▶️</span>
+            <span className="text-base sm:text-lg">▶️</span>
             Start Tour
           </button>
           <button
@@ -298,9 +302,9 @@ const TourFloatingButton: React.FC<TourFloatingButtonProps> = ({ onStart, onRest
               onRestart();
               setIsOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
           >
-            <span className="text-lg">🔄</span>
+            <span className="text-base sm:text-lg">🔄</span>
             Restart Tour
           </button>
         </div>
@@ -310,8 +314,8 @@ const TourFloatingButton: React.FC<TourFloatingButtonProps> = ({ onStart, onRest
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
-          w-14 h-14 rounded-full shadow-lg flex items-center justify-center
-          transition-all duration-200 transform hover:scale-105
+          w-11 h-11 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center
+          transition-all duration-200 transform hover:scale-105 active:scale-95
           ${isOpen 
             ? "bg-gray-800 text-white" 
             : "bg-blue-600 hover:bg-blue-700 text-white"
@@ -320,11 +324,11 @@ const TourFloatingButton: React.FC<TourFloatingButtonProps> = ({ onStart, onRest
         aria-label="Tour Help"
       >
         {isOpen ? (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

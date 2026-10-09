@@ -61,6 +61,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
       open={visible}
       onCancel={onClose}
       width={780}
+      style={{ maxWidth: "calc(100vw - 24px)", top: 20 }}
       footer={[
         <Button key="close" onClick={onClose}>
           Close

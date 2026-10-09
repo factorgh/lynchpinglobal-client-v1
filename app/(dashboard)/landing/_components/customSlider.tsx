@@ -65,7 +65,7 @@ const CustomSlider = () => {
   };
 
   return (
-    <div className="relative overflow-hidden w-full h-[300px] bg-white">
+    <div className="relative overflow-hidden w-full h-[220px] sm:h-[300px] bg-white rounded-2xl shadow-lg border border-gray-200">
       {/* Slider container */}
       <div
         className="absolute inset-0 transition-all duration-500 ease-in-out"
@@ -85,7 +85,7 @@ const CustomSlider = () => {
           {slides.map((slide, index) => (
             <div
               key={index}
-              className="flex-shrink-0 w-full h-[300px] bg-contain bg-center"
+              className="flex-shrink-0 w-full h-[220px] sm:h-[300px] bg-cover bg-center"
               style={{
                 backgroundImage: `url(${slide.backgroundImage})`, // Set the background image correctly
                 backgroundSize: "cover", // Prevent stretching

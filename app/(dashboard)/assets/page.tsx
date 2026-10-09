@@ -5,7 +5,7 @@ import AssetTable from "./_components/asset-table";
 const Assets = () => {
   return (
     <Wrapper>
-      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)] my-6">
+      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)] my-6">
         <div
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-5"
           data-tour="asset-header"

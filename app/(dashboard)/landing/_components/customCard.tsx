@@ -18,7 +18,7 @@ const CustomCard: React.FC<DashboardCardProps> = ({
 }) => {
   return (
     <Card
-      className="max-w-sm h-60 bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200 relative"
+      className="w-full min-h-[180px] sm:h-60 bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200 relative"
       bodyStyle={{
         display: "flex",
         flexDirection: "column",

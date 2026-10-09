@@ -25,8 +25,8 @@ const Rentals = () => {
 
           {/* Tab Content */}
           <TabsContent value="loan">
-            <div className="p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-5">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+            <div className="p-4 sm:p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
                 <div>
                   <h1 className="text-xl font-bold text-slate-800">
                     Loan Management
@@ -43,7 +43,7 @@ const Rentals = () => {
                 </TabsList>
 
                 <TabsContent value="existing">
-                  <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3" data-tour="loan-header">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-3" data-tour="loan-header">
                     <div>
                       <h2 className="text-sm font-semibold text-slate-800">
                         Existing Clients
@@ -52,7 +52,7 @@ const Rentals = () => {
                         Loans for registered clients
                       </p>
                     </div>
-                    <span data-tour="loan-form">
+                    <span data-tour="loan-form" className="self-start sm:self-auto">
                       <LoanForm />
                     </span>
                   </div>
@@ -62,7 +62,7 @@ const Rentals = () => {
                 </TabsContent>
 
                 <TabsContent value="external">
-                  <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-3">
                     <div>
                       <h2 className="text-sm font-semibold text-slate-800">
                         Non Clients
@@ -71,7 +71,9 @@ const Rentals = () => {
                         Quick capture for non-registered clients
                       </p>
                     </div>
-                    <NonClientLoanForm />
+                    <div className="self-start sm:self-auto">
+                      <NonClientLoanForm />
+                    </div>
                   </div>
                   <NonClientLoanTable />
                 </TabsContent>
@@ -80,8 +82,8 @@ const Rentals = () => {
           </TabsContent>
 
           <TabsContent value="rentals">
-            <div className="p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-5">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-4" data-tour="rental-header">
+            <div className="p-4 sm:p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4" data-tour="rental-header">
                 <div>
                   <h1 className="text-xl font-bold text-slate-800">
                     Rentals Management
@@ -90,7 +92,7 @@ const Rentals = () => {
                     Latest rental transactions and agreements
                   </p>
                 </div>
-                <span data-tour="rental-form">
+                <span data-tour="rental-form" className="self-start sm:self-auto">
                   <RentalForm />
                 </span>
               </div>

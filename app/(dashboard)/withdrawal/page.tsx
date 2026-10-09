@@ -86,14 +86,15 @@ const WithdrawalPage = () => {
   return (
     <div>
       <Wrapper>
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold mb-4 text-white mt-7">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-7 mb-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">
             Mandate Contribution & Disbursement
           </h1>
           <Button
             type="primary"
             onClick={handleShowInboxForm}
             data-tour="withdrawal-new-request"
+            className="bg-emerald-600 hover:bg-emerald-700 font-semibold"
           >
             Make a Request
           </Button>
@@ -104,13 +105,14 @@ const WithdrawalPage = () => {
             setShowInboxForm={setShowInboxForm}
           />
         )}
-        <Card className="mt-3">
-          <div data-tour="withdrawal-table">
+        <Card className="mt-3 overflow-hidden rounded-2xl shadow-sm border border-slate-200">
+          <div data-tour="withdrawal-table" className="overflow-x-auto">
             <Table
               loading={isFetching}
               columns={columns}
               dataSource={withdrawals?.data.data}
               rowKey="id"
+              scroll={{ x: 600 }}
             />
           </div>
         </Card>

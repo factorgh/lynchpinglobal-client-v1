@@ -373,13 +373,14 @@ export const GlobalSearch: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-between w-full max-w-[190px] sm:max-w-[240px] md:max-w-[300px] px-3.5 py-2 bg-white/95 hover:bg-white text-xs text-slate-500 rounded-xl border border-slate-200/90 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all shadow-xs group cursor-pointer"
+        className="flex items-center justify-between w-full max-w-[130px] sm:max-w-[240px] md:max-w-[300px] px-2.5 sm:px-3.5 py-2 bg-white/95 hover:bg-white text-xs text-slate-500 rounded-xl border border-slate-200/90 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all shadow-xs group cursor-pointer"
         title="Search anything (⌘K)"
       >
-        <div className="flex items-center gap-2.5 truncate">
-          <Search className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
+        <div className="flex items-center gap-2 truncate">
+          <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
           <span className="truncate text-slate-400 group-hover:text-slate-600">
-            Search anything...
+            <span className="hidden sm:inline">Search anything...</span>
+            <span className="sm:hidden">Search...</span>
           </span>
         </div>
         <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-slate-100 border border-slate-200 rounded shrink-0">

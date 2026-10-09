@@ -150,7 +150,7 @@ const Users = () => {
         </p>
       </div>
 
-      <div className="p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-8 space-y-4">
+      <div className="p-4 sm:p-6 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 mb-8 space-y-4">
         {/* Search and Filter Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
           <div className="relative flex-1 max-w-md">

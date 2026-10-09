@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
 import Notification from "./(components)/Notification";
@@ -19,6 +19,13 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Lynchpin Global",
   description: "A financial management system",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -51,7 +58,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full max-w-full overflow-x-hidden`}
         suppressHydrationWarning={true}
       >
         <Providers>{children}</Providers>

@@ -54,7 +54,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
 
   return (
     <header
-      className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8 py-3.5 bg-transparent select-none gap-3"
+      className="flex items-center justify-between w-full px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 bg-transparent select-none gap-2 sm:gap-3"
       data-tour="navbar"
     >
       {/* LEFT SIDE: Mobile Menu Toggle + Global Search */}

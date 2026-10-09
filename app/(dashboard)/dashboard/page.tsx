@@ -126,7 +126,7 @@ export default function DashboardPage() {
   return (
     <div className="px-3 sm:px-6 lg:px-8 py-5 w-full mx-auto select-none">
       {/* Page Header matching screenshot */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
             Dashboard
@@ -137,7 +137,7 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={() => setIsAddClientOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+          className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add Client</span>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
 
         {/* Recent Clients List */}
         <div className="lg:col-span-5 xl:col-span-4">
-          <Card className="bg-white/85 backdrop-blur-md rounded-2xl p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+          <Card className="bg-white/85 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
             <div className="mb-4">
               <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
                 Recent Clients

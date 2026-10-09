@@ -186,18 +186,18 @@ const CustomerLanding = () => {
           data-tour="cta-primary"
         >
           {/* first card */}
-          <Card className="p-5 flex flex-col gap-8 justify-start ">
+          <Card className="p-5 flex flex-col gap-8 justify-start col-span-1 sm:col-span-2 lg:col-span-1 shadow-lg border border-gray-200 rounded-2xl bg-white/95">
             <div className="flex justify-between items-center ">
-              <h3 className="mt-6 text-md">TOTAL BALANCE</h3>
-              <LucideCreditCard className="text-2xl" />
+              <h3 className="mt-6 text-md font-bold text-slate-800">TOTAL BALANCE</h3>
+              <LucideCreditCard className="text-2xl text-slate-700" />
             </div>
-            <p className="text-xl font-bold">{formatPriceGHS(totalBalance)}</p>
-            <p>Current Quarter: {quarter}</p>
+            <p className="text-2xl font-black text-slate-900">{formatPriceGHS(totalBalance)}</p>
+            <p className="text-xs text-slate-500 font-medium">Current Quarter: {quarter}</p>
             <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full "></div>
           </Card>
 
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 col-span-1 sm:col-span-2 lg:col-span-2"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 col-span-1 sm:col-span-2 lg:col-span-2"
             data-tour="feature-cards"
           >
             <LandingCard
@@ -240,10 +240,10 @@ const CustomerLanding = () => {
             <CustomSlider />
           </div>
         </div>
-        <Divider className="bg-white" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
+        <Divider className="bg-white/40 my-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 col-span-1 md:col-span-2 lg:col-span-1"
             data-tour="yield-cards"
           >
             <CustomCard
@@ -318,6 +318,7 @@ const CustomerLanding = () => {
             </Button>,
           ]}
           width={750}
+          style={{ maxWidth: "calc(100vw - 24px)", top: 20 }}
         >
           <div className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">

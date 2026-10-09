@@ -22,7 +22,7 @@ const LandingCard: React.FC<DashboardCardProps> = ({
 }) => {
   return (
     <Card
-      className="  max-w-sm  bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200 "
+      className="w-full bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200"
       bodyStyle={{
         display: "flex",
         flexDirection: "column",
