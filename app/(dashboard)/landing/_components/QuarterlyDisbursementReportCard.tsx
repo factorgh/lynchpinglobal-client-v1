@@ -9,6 +9,8 @@ import {
   DownloadOutlined,
   LockOutlined,
   CheckCircleFilled,
+  FileTextOutlined,
+  FileDoneOutlined,
 } from "@ant-design/icons";
 import { formatPriceGHS } from "@/lib/helper";
 import { QuarterlyDocumentModal } from "./QuarterlyDocumentModal";
@@ -163,33 +165,54 @@ export const QuarterlyDisbursementReportCard: React.FC<
             )}
           </div>
 
-          {/* Ledger Overview Hero Box (No duplicate countdown counter) */}
-          <div className="my-6 p-6 rounded-2xl bg-gradient-to-b from-white to-emerald-50/60 border border-emerald-100 shadow-sm flex flex-col justify-between text-center relative overflow-hidden">
-            {/* Top status indicator inside box */}
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-semibold text-emerald-700 tracking-wider uppercase">
-                Reconciled Ledger Hub
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
-                <CheckCircleFilled className="text-[10px]" />
-                Audited
-              </span>
-            </div>
-
-            {/* Centralized Valuation/Disbursement Highlight */}
-            <div className="py-2.5">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">
-                Total Accrued Disbursements & Yield
-              </span>
-              <div className="text-4xl sm:text-5xl font-black tracking-tight text-emerald-950 leading-none">
-                {formatPriceGHS(totalAccruedDisbursements)}
+          {/* Ledger Overview Hero Box (Empty document state when accruing, finalized ledger when closed) */}
+          <div className="my-6 p-6 rounded-2xl bg-gradient-to-b from-white to-emerald-50/50 border border-emerald-100 shadow-sm flex flex-col justify-between text-center relative overflow-hidden min-h-[220px]">
+            {isClosed ? (
+              <div className="flex flex-col items-center justify-center my-auto py-2">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 text-2xl shadow-sm mb-3">
+                  <FileDoneOutlined />
+                </div>
+                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">
+                  Reconciled Ledger Ready
+                </span>
+                <div className="text-3xl sm:text-4xl font-black text-emerald-950 mb-1">
+                  {formatPriceGHS(totalAccruedDisbursements)}
+                </div>
+                <p className="text-xs text-slate-500 font-medium">
+                  Audited closing for {quarter} {year}
+                </p>
               </div>
-              <p className="text-xs text-emerald-700 font-medium mt-2">
-                Cumulative yield for {quarter} {year}
-              </p>
-            </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center my-auto py-1">
+                {/* Visual Empty Document Graphic */}
+                <div className="relative mb-3">
+                  <div className="w-14 h-16 rounded-xl bg-white border-2 border-dashed border-emerald-300 shadow-2xs flex flex-col items-center justify-center p-2">
+                    <FileTextOutlined className="text-2xl text-emerald-500 mb-1" />
+                    {/* Simulated document lines */}
+                    <div className="w-7 h-1 bg-emerald-200 rounded-full mb-1"></div>
+                    <div className="w-4 h-1 bg-emerald-100 rounded-full"></div>
+                  </div>
+                  <span className="absolute -bottom-1 -right-2 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+                    Pending
+                  </span>
+                </div>
 
-            {/* Ledger Metric Pill Tiles */}
+                <h4 className="text-sm font-bold text-slate-800 tracking-tight mb-1">
+                  No Ledger Generated Yet
+                </h4>
+
+                <p className="text-xs text-slate-500 max-w-[260px] leading-relaxed mb-3">
+                  Official disbursement & yield ledger will be compiled upon {quarter} reconciliation closing.
+                </p>
+
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                  <ClockCircleOutlined className="text-emerald-500 text-xs" />
+                  <span>Scheduled for <strong className="text-emerald-900">{formattedQuarterEnd}</strong></span>
+                </div>
+              </div>
+            )}
+
+            {/* Bottom summary pill strip */}
             <div className="grid grid-cols-2 gap-2.5 mt-3 pt-3 border-t border-emerald-100">
               <div className="bg-white/90 rounded-xl p-2.5 border border-emerald-100 text-left">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
@@ -201,10 +224,10 @@ export const QuarterlyDisbursementReportCard: React.FC<
               </div>
               <div className="bg-white/90 rounded-xl p-2.5 border border-emerald-100 text-left">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                  Quarter Closing
+                  Status
                 </span>
                 <span className="text-xs font-bold text-emerald-800 truncate block">
-                  {formattedQuarterEnd}
+                  {isClosed ? "Audited & Reconciled" : "Accruing Daily"}
                 </span>
               </div>
             </div>
