@@ -104,10 +104,10 @@ export const QuarterlyDisbursementReportCard: React.FC<
               </div>
               <div>
                 <h3 className="text-base font-bold text-gray-900 leading-tight">
-                  Disbursement & Yield Report
+                  End-Of-Quarter Report
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {quarter} {year} Accruals & Return Schedule
+                <p className="text-xs text-emerald-700 font-medium mt-0.5">
+                  Disbursement & Yield Report ({quarter} {year})
                 </p>
               </div>
             </div>

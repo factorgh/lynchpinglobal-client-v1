@@ -102,10 +102,10 @@ export const QuarterlyMandateStatementCard: React.FC<
               </div>
               <div>
                 <h3 className="text-base font-bold text-gray-900 leading-tight">
-                  Quarterly Mandate Statement
+                  End-Of-Quarter Report
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {quarter} {year} Official Partner Statement
+                <p className="text-xs text-blue-700 font-medium mt-0.5">
+                  Quarterly Mandate Statement ({quarter} {year})
                 </p>
               </div>
             </div>
