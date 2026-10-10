@@ -327,6 +327,7 @@ const CustomerLanding = () => {
               operationalCost={operationalCost}
               guaranteedRate={guaranteedRate}
               activeInvestmentsCount={activeInves?.length || 1}
+              investments={activeInves}
             />
           </div>
         </div>

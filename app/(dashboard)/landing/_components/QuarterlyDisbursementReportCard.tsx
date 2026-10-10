@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card, Button, Progress, Tag } from "antd";
+import React, { useState, useMemo } from "react";
+import { Card, Button, Progress, Tag, Modal } from "antd";
 import {
   PieChartOutlined,
   ClockCircleOutlined,
@@ -11,6 +11,7 @@ import {
   CheckCircleFilled,
   FileTextOutlined,
   FileDoneOutlined,
+  FilePdfOutlined,
 } from "@ant-design/icons";
 import { formatPriceGHS } from "@/lib/helper";
 import { QuarterlyDocumentModal } from "./QuarterlyDocumentModal";
@@ -28,6 +29,7 @@ interface QuarterlyDisbursementReportCardProps {
   operationalCost: number;
   guaranteedRate: number;
   activeInvestmentsCount: number;
+  investments?: any[];
 }
 
 export const QuarterlyDisbursementReportCard: React.FC<
@@ -45,6 +47,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
   operationalCost,
   guaranteedRate,
   activeInvestmentsCount,
+  investments = [],
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const today = new Date();
@@ -121,16 +124,57 @@ export const QuarterlyDisbursementReportCard: React.FC<
   const totalAccruedDisbursements =
     accruedInterest + addonAccruedReturn + oneOffs + performanceYield;
 
+  // Extract all ledger documents attached to the client's mandate records (certificate field)
+  const attachedLedgers = useMemo(() => {
+    if (!Array.isArray(investments)) return [];
+    return investments.flatMap((inv: any) => {
+      const certs: string[] = Array.isArray(inv.certificate)
+        ? inv.certificate
+        : typeof inv.certificate === "string" && inv.certificate.trim()
+        ? [inv.certificate]
+        : [];
+
+      return certs
+        .filter((url) => typeof url === "string" && url.trim().length > 0)
+        .map((url: string, index: number) => {
+          const isPdf = /\.pdf($|\?)/i.test(url);
+          const mandateLabel =
+            inv.name ||
+            (inv.transactionId ? `Mandate #${inv.transactionId.slice(-6)}` : "Active Mandate");
+
+          return {
+            url,
+            title:
+              certs.length === 1
+                ? `Mandate Ledger Report`
+                : `Mandate Ledger Report #${index + 1}`,
+            mandateName: mandateLabel,
+            transactionId: inv.transactionId,
+            principal: inv.principal,
+            isPdf,
+          };
+        });
+    });
+  }, [investments]);
+
+  const hasAttachedLedgers = attachedLedgers.length > 0;
+  const [selectedLedgerIndex, setSelectedLedgerIndex] = useState(0);
+  const activeLedger =
+    attachedLedgers[selectedLedgerIndex] || attachedLedgers[0] || null;
+  const [isPreviewDocOpen, setIsPreviewDocOpen] = useState(false);
+
   return (
     <>
       <Card
         className="h-full rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 border border-slate-200/90 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-white via-slate-50/40 to-emerald-50/30"
-        bodyStyle={{
-          padding: "24px",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          height: "100%",
+        styles={{
+          body: {
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            height: "100%",
+          },
         }}
       >
         <div className="flex flex-col h-full justify-between">
@@ -150,7 +194,14 @@ export const QuarterlyDisbursementReportCard: React.FC<
               </div>
             </div>
 
-            {isClosed ? (
+            {hasAttachedLedgers ? (
+              <Tag
+                color="success"
+                className="px-2.5 py-0.5 rounded-full text-xs font-semibold m-0"
+              >
+                <CheckCircleFilled className="mr-1" /> Mandate Ledger Attached
+              </Tag>
+            ) : isClosed ? (
               <Tag
                 color="success"
                 className="px-2.5 py-0.5 rounded-full text-xs font-semibold m-0"
@@ -165,9 +216,59 @@ export const QuarterlyDisbursementReportCard: React.FC<
             )}
           </div>
 
-          {/* Ledger Overview Hero Box (Empty document state when accruing, finalized ledger when closed) */}
-          <div className="my-6 p-6 rounded-2xl bg-gradient-to-b from-white to-emerald-50/50 border border-emerald-100 shadow-sm flex flex-col justify-between text-center relative overflow-hidden min-h-[220px]">
-            {isClosed ? (
+          {/* Ledger Overview Hero Box */}
+          <div className="my-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-white to-emerald-50/50 border border-emerald-100 shadow-sm flex flex-col justify-between text-center relative overflow-hidden min-h-[220px]">
+            {hasAttachedLedgers && activeLedger ? (
+              <div className="flex flex-col items-center justify-center my-auto py-1">
+                {/* Multi-ledger pills if more than 1 document */}
+                {attachedLedgers.length > 1 && (
+                  <div className="flex flex-wrap gap-1.5 justify-center mb-2.5 max-w-full">
+                    {attachedLedgers.map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedLedgerIndex(idx)}
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all cursor-pointer ${
+                          selectedLedgerIndex === idx
+                            ? "bg-emerald-600 text-white shadow-xs"
+                            : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
+                        }`}
+                      >
+                        {item.mandateName} ({idx + 1})
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Document Graphic */}
+                <div
+                  className="w-14 h-16 rounded-xl bg-white border border-emerald-200 shadow-sm flex flex-col items-center justify-center p-2 mb-2 relative cursor-pointer hover:border-emerald-400 transition-colors"
+                  onClick={() => setIsPreviewDocOpen(true)}
+                  title="Click to preview ledger"
+                >
+                  <FilePdfOutlined className="text-3xl text-rose-500 mb-1" />
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                    {activeLedger.isPdf ? "PDF" : "DOC"}
+                  </span>
+                  <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-full text-[8px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    ATTACHED
+                  </span>
+                </div>
+
+                <h4 className="text-sm font-bold text-slate-900 tracking-tight mb-0.5">
+                  {activeLedger.title}
+                </h4>
+                <p className="text-xs text-slate-500 font-medium mb-1.5">
+                  {activeLedger.mandateName}
+                </p>
+
+                <div className="text-2xl sm:text-3xl font-black text-emerald-950 mb-0.5">
+                  {formatPriceGHS(totalAccruedDisbursements)}
+                </div>
+                <p className="text-[11px] text-emerald-700 font-medium">
+                  Official mandate ledger on record
+                </p>
+              </div>
+            ) : isClosed ? (
               <div className="flex flex-col items-center justify-center my-auto py-2">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 text-2xl shadow-sm mb-3">
                   <FileDoneOutlined />
@@ -184,11 +285,10 @@ export const QuarterlyDisbursementReportCard: React.FC<
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center my-auto py-1">
-                {/* Visual Empty Document Graphic */}
+                {/* Visual Pending Document Graphic */}
                 <div className="relative mb-3">
                   <div className="w-14 h-16 rounded-xl bg-white border-2 border-dashed border-emerald-300 shadow-2xs flex flex-col items-center justify-center p-2">
                     <FileTextOutlined className="text-2xl text-emerald-500 mb-1" />
-                    {/* Simulated document lines */}
                     <div className="w-7 h-1 bg-emerald-200 rounded-full mb-1"></div>
                     <div className="w-4 h-1 bg-emerald-100 rounded-full"></div>
                   </div>
@@ -198,16 +298,23 @@ export const QuarterlyDisbursementReportCard: React.FC<
                 </div>
 
                 <h4 className="text-sm font-bold text-slate-800 tracking-tight mb-1">
-                  No Ledger Generated Yet
+                  No Ledger Report Attached Yet
                 </h4>
 
-                <p className="text-xs text-slate-500 max-w-[260px] leading-relaxed mb-3">
-                  Official disbursement & yield ledger will be compiled upon {quarter} reconciliation closing.
+                <p className="text-xs text-slate-500 max-w-[270px] leading-relaxed mb-2.5">
+                  The official ledger report uploaded to your mandate record by the portfolio team will appear here.
                 </p>
+
+                <div className="text-xl font-bold text-emerald-900 mb-2">
+                  {formatPriceGHS(totalAccruedDisbursements)}
+                </div>
 
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                   <ClockCircleOutlined className="text-emerald-500 text-xs" />
-                  <span>Scheduled for <strong className="text-emerald-900">{formattedQuarterEnd}</strong></span>
+                  <span>
+                    Scheduled closing:{" "}
+                    <strong className="text-emerald-900">{formattedQuarterEnd}</strong>
+                  </span>
                 </div>
               </div>
             )}
@@ -219,23 +326,55 @@ export const QuarterlyDisbursementReportCard: React.FC<
                   Mandate Portfolios
                 </span>
                 <span className="text-sm font-bold text-slate-800">
-                  {activeInvestmentsCount} {activeInvestmentsCount === 1 ? "Mandate" : "Mandates"}
+                  {activeInvestmentsCount}{" "}
+                  {activeInvestmentsCount === 1 ? "Mandate" : "Mandates"}
                 </span>
               </div>
               <div className="bg-white/90 rounded-xl p-2.5 border border-emerald-100 text-left">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                  Status
+                  Document Status
                 </span>
                 <span className="text-xs font-bold text-emerald-800 truncate block">
-                  {isClosed ? "Audited & Reconciled" : "Accruing Daily"}
+                  {hasAttachedLedgers
+                    ? "Mandate Ledger Attached"
+                    : isClosed
+                    ? "Audited & Reconciled"
+                    : "Awaiting Ledger Upload"}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Footer Actions - Preview only visible on the quarter */}
+          {/* Footer Actions */}
           <div className="pt-2">
-            {isClosed ? (
+            {hasAttachedLedgers && activeLedger ? (
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="primary"
+                    icon={<EyeOutlined />}
+                    onClick={() => setIsPreviewDocOpen(true)}
+                    className="flex-1 font-semibold rounded-xl text-xs h-9 bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    View Ledger Report
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<DownloadOutlined />}
+                    onClick={() => window.open(activeLedger.url, "_blank")}
+                    className="bg-emerald-600 hover:bg-emerald-700 font-semibold rounded-xl text-xs h-9"
+                  >
+                    Download
+                  </Button>
+                </div>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 text-center py-1 cursor-pointer hover:underline"
+                >
+                  View Statement Calculation Schedule
+                </button>
+              </div>
+            ) : isClosed ? (
               <div className="flex items-center gap-2">
                 <Button
                   type="primary"
@@ -255,21 +394,69 @@ export const QuarterlyDisbursementReportCard: React.FC<
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center justify-between px-4 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs shadow-sm">
-                <span className="flex items-center gap-2 font-medium text-slate-600">
-                  <LockOutlined className="text-slate-400" />
-                  Preview available on quarter ledger close
-                </span>
-                <span className="text-xs font-semibold text-emerald-700">
-                  {formattedQuarterEnd}
-                </span>
-              </div>
+              <Button
+                type="default"
+                icon={<EyeOutlined />}
+                onClick={() => setIsModalOpen(true)}
+                className="w-full font-semibold rounded-xl text-xs h-9 border-emerald-300 text-emerald-800 hover:bg-emerald-50"
+              >
+                View Interim Breakdown Schedule
+              </Button>
             )}
           </div>
         </div>
       </Card>
 
-      {/* Full Yield Document Modal */}
+      {/* Embedded Document Preview Modal for Attached Mandate Ledger */}
+      {activeLedger && (
+        <Modal
+          open={isPreviewDocOpen}
+          onCancel={() => setIsPreviewDocOpen(false)}
+          width={920}
+          title={
+            <div className="flex items-center gap-2">
+              <FilePdfOutlined className="text-red-500 text-lg" />
+              <span className="font-bold text-slate-900">
+                {activeLedger.title} — {activeLedger.mandateName}
+              </span>
+            </div>
+          }
+          footer={[
+            <Button key="close" onClick={() => setIsPreviewDocOpen(false)}>
+              Close
+            </Button>,
+            <Button
+              key="download"
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={() => window.open(activeLedger.url, "_blank")}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              Open / Download Document
+            </Button>,
+          ]}
+        >
+          <div className="w-full h-[72vh] bg-slate-50 rounded-xl overflow-hidden mt-3 border border-slate-200">
+            {activeLedger.isPdf ? (
+              <iframe
+                src={activeLedger.url}
+                className="w-full h-full rounded-xl"
+                title={activeLedger.title}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center p-4">
+                <img
+                  src={activeLedger.url}
+                  alt={activeLedger.title}
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                />
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {/* Full Yield Document Calculation Schedule Modal */}
       <QuarterlyDocumentModal
         visible={isModalOpen}
         onClose={() => setIsModalOpen(false)}
