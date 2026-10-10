@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { formatPriceGHS } from "@/lib/helper";
+import { formatPriceGHS, round2 } from "@/lib/helper";
 import { useGetAllAssetssQuery } from "@/services/assets";
 import { useGetUsersQuery } from "@/services/auth";
 import { useGetAllInvestmentsQuery } from "@/services/investment";
@@ -64,45 +64,52 @@ export default function DashboardPage() {
 
       // Calculate total assets and outstanding payments
       assets?.data?.data?.forEach((asset: any) => {
-        totalAssets += asset.assetValue || 0;
+        totalAssets = round2(totalAssets + (asset.assetValue || 0));
       });
 
       // Loop through all the data and add those needed
       activeInvestments.forEach((investment: any) => {
-        totalPrincipal += investment.principal || 0;
-        totalAccruedInterest += investment.totalAccruedReturn || 0;
-        totalAddOns += (investment.addOns || []).reduce(
-          (sum: any, addOn: any) => sum + (addOn.amount || 0),
-          0
+        totalPrincipal = round2(totalPrincipal + (investment.principal || 0));
+        totalAccruedInterest = round2(totalAccruedInterest + (investment.totalAccruedReturn || 0));
+        totalAddOns = round2(
+          totalAddOns +
+          (investment.addOns || []).reduce(
+            (sum: any, addOn: any) => round2(sum + (addOn.amount || 0)),
+            0
+          )
         );
         const exchangeRateUSDToGHS = 11;
 
         // Calculate the total for one-off investments
-        totalOneOff += (investment.oneOffs || []).reduce((sum: any, oneOff: any) => {
-          if (oneOff.currency === "USD") {
-            return sum + (oneOff.yield || 0) * exchangeRateUSDToGHS;
-          } else if (oneOff.currency === "GHS") {
-            return sum + (oneOff.yield || 0);
-          } else {
-            return sum;
-          }
-        }, 0);
-
-        totalAddOnIneterest += investment.addOnAccruedReturn || 0;
-        totalPerformanceYield += investment.performanceYield || 0;
-        totalAddonAccruedReturn += investment.addOnAccruedReturn || 0;
-
-        totalAssetsUnderManagement = totalPrincipal + totalAddOns + totalAssets;
-
-        totalOutstandingPayments =
-          totalAccruedInterest +
-          totalAddOnIneterest +
+        totalOneOff = round2(
           totalOneOff +
-          totalPerformanceYield;
+          (investment.oneOffs || []).reduce((sum: any, oneOff: any) => {
+            if (oneOff.currency === "USD") {
+              return round2(sum + round2((oneOff.yield || 0) * exchangeRateUSDToGHS));
+            } else if (oneOff.currency === "GHS") {
+              return round2(sum + (oneOff.yield || 0));
+            } else {
+              return sum;
+            }
+          }, 0)
+        );
 
-        setAssetsUnderMgt(totalAssetsUnderManagement);
-        setOutstandingPayments(totalOutstandingPayments);
+        totalAddOnIneterest = round2(totalAddOnIneterest + (investment.addOnAccruedReturn || 0));
+        totalPerformanceYield = round2(totalPerformanceYield + (investment.performanceYield || 0));
+        totalAddonAccruedReturn = round2(totalAddonAccruedReturn + (investment.addOnAccruedReturn || 0));
       });
+
+      totalAssetsUnderManagement = round2(totalPrincipal + totalAddOns + totalAssets);
+
+      totalOutstandingPayments = round2(
+        totalAccruedInterest +
+        totalAddOnIneterest +
+        totalOneOff +
+        totalPerformanceYield
+      );
+
+      setAssetsUnderMgt(totalAssetsUnderManagement);
+      setOutstandingPayments(totalOutstandingPayments);
     }
   }, [userInvestments, loans, assets]);
 

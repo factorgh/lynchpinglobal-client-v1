@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { formatPriceGHS } from "@/lib/helper";
+import { formatPriceGHS, round2 } from "@/lib/helper";
 import { useGetUserAssetsQuery } from "@/services/assets";
 import { useGetUserInvestmentsQuery } from "@/services/investment";
 import { useGetUserPaymentsQuery } from "@/services/payments";
@@ -72,47 +72,62 @@ const CustomerLanding = () => {
 
       // Calculate the totals and gather additional fields
       activeInvestments.forEach((investment: any) => {
-        totalPrincipal += investment.principal;
-        totalAccruedInterest += investment.totalAccruedReturn;
-        totalAddOns += investment.addOns.reduce(
-          (sum: any, addOn: any) => sum + (addOn.amount || 0),
+        totalPrincipal = round2(totalPrincipal + Number(investment.principal || 0));
+        totalAccruedInterest = round2(
+          totalAccruedInterest + Number(investment.totalAccruedReturn || 0)
+        );
+        const addOnSum = (investment.addOns || []).reduce(
+          (sum: any, addOn: any) => round2(sum + Number(addOn.amount || 0)),
           0,
         );
+        totalAddOns = round2(totalAddOns + addOnSum);
         const exchangeRateUSDToGHS = 11; // Replace this with the actual exchange rate
 
         // Calculate the total for one-off investments
-        totalOneOffs += investment.oneOffs.reduce((sum: any, oneOff: any) => {
-          // Check the currency of the one-off investment
+        const oneOffSum = (investment.oneOffs || []).reduce((sum: any, oneOff: any) => {
+          const yieldAmt = Number(oneOff.oneOffYield || 0);
           if (oneOff.currency === "USD") {
-            // Convert to GHS and add to the sum
-            return sum + (oneOff.oneOffYield || 0) * exchangeRateUSDToGHS;
+            return round2(sum + round2(yieldAmt * exchangeRateUSDToGHS));
           } else if (oneOff.currency === "GHS") {
-            // Add directly to the sum
-            return sum + (oneOff.oneOffYield || 0);
+            return round2(sum + yieldAmt);
           } else {
             console.warn(`Unhandled currency: ${oneOff.currency}`);
-            return sum; // Ignore unhandled currencies
+            return sum;
           }
         }, 0);
-        totalAddonAccruedReturn += investment.addOnAccruedReturn || 0;
-        totalManagementFee += investment.managementFee || 0; // Assuming managementFee is a field
-        totalPerformanceYield += investment.performanceYield || 0; // Assuming performanceYield is a field
-        totalOperationalCost += investment.operationalCost || 0;
-        guaranteedRate += investment.guaranteedRate || 0;
+        totalOneOffs = round2(totalOneOffs + oneOffSum);
+
+        totalAddonAccruedReturn = round2(
+          totalAddonAccruedReturn + Number(investment.addOnAccruedReturn || 0)
+        );
+        totalManagementFee = round2(
+          totalManagementFee + Number(investment.managementFee || 0)
+        );
+        totalPerformanceYield = round2(
+          totalPerformanceYield + Number(investment.performanceYield || 0)
+        );
+        totalOperationalCost = round2(
+          totalOperationalCost + Number(investment.operationalCost || 0)
+        );
+        guaranteedRate = round2(
+          guaranteedRate + Number(investment.guaranteedRate || 0)
+        );
       });
 
-      const totalCalculatedBalance =
+      const totalCalculatedBalance = round2(
         totalPrincipal +
         totalAccruedInterest +
         totalAddOns +
         totalAddonAccruedReturn +
         totalPerformanceYield +
-        totalOneOffs;
+        totalOneOffs
+      );
 
-      const totalDeductions = totalOperationalCost + totalManagementFee;
+      const totalDeductions = round2(totalOperationalCost + totalManagementFee);
 
-      const totalCalculatedBalanceAfterDeductions =
-        totalCalculatedBalance - totalDeductions;
+      const totalCalculatedBalanceAfterDeductions = round2(
+        totalCalculatedBalance - totalDeductions
+      );
       // Set the calculated values to state
       setTotalBalance(totalCalculatedBalanceAfterDeductions);
       setPrincipal(totalPrincipal);

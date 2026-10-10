@@ -1,5 +1,5 @@
 import moment from "moment";
-import { generateTransactionId, calculateDailyRate } from "../../../utils/halper.js";
+import { generateTransactionId, calculateDailyRate, round2 } from "../../../utils/halper.js";
 import {
   getQuarter,
   getQuarterEndDate,
@@ -40,26 +40,28 @@ export const createInvestment = catchAsync(async (req, res, next) => {
   const creationDate = new Date();
   const quarterEndDate = getQuarterEndDate(creationDate);
 
-  const principalAccruedReturn =
+  const principalAccruedReturn = round2(
     (await calculateDynamicAccruedReturn(
       principal,
       creationDate,
       quarterEndDate,
       guaranteedRate,
-    )) || 0;
+    )) || 0
+  );
 
-  const totalAccrued = principalAccruedReturn + performanceYield;
+  const totalAccrued = round2(principalAccruedReturn + Number(performanceYield || 0));
   const transformedTotalAccrued = Number(totalAccrued) || 0;
 
   let managementFeeTotal = 0;
   if (transformedTotalAccrued > 0) {
-    managementFeeTotal = (transformedTotalAccrued * managementFeeRate) / 100;
+    managementFeeTotal = round2(
+      (transformedTotalAccrued * (managementFeeRate !== undefined ? managementFeeRate : 20)) / 100
+    );
   }
 
-  const totalAccruedReturn = transformedTotalAccrued - managementFeeTotal;
-  const transformedTotalAccruedReturn = Math.max(
-    Number(totalAccruedReturn) || 0,
-    0,
+  const totalAccruedReturn = round2(transformedTotalAccrued - managementFeeTotal);
+  const transformedTotalAccruedReturn = round2(
+    Math.max(Number(totalAccruedReturn) || 0, 0)
   );
 
   // Build owners: always include primary user, exclude primary from co-owners, and dedupe
@@ -774,7 +776,7 @@ export const calculateDailyAccruals = async (req, res, next) => {
         investment.guaranteedRate ?? 8,
         mandateQuarterDays
       );
-      const principalReturn = principalDailyReturn * daysSinceStart;
+      const principalReturn = round2(principalDailyReturn * daysSinceStart);
       investment.principalAccruedReturn = principalReturn;
 
       // 2. Add-on Returns
@@ -804,36 +806,38 @@ export const calculateDailyAccruals = async (req, res, next) => {
             investment.guaranteedRate ?? 8,
             mandateQuarterDays
           );
-          const addOnInterest = dailyAddOnReturn * addOnDays;
+          const addOnInterest = round2(dailyAddOnReturn * addOnDays);
           addOn.accruedAddOnInterest = addOnInterest;
           await addOn.save();
-          totalAddOnReturn += addOnInterest;
+          totalAddOnReturn = round2(totalAddOnReturn + addOnInterest);
         }
       }
       investment.addOnAccruedReturn = totalAddOnReturn;
 
       // 3. Management Fee
-      const grossReturn = principalReturn + totalAddOnReturn;
+      const grossReturn = round2(principalReturn + totalAddOnReturn);
       const feeRate =
         investment.managementFeeRate !== undefined ? investment.managementFeeRate : 20;
-      const managementFee = (grossReturn * feeRate) / 100;
+      const managementFee = round2((grossReturn * feeRate) / 100);
       investment.managementFee = managementFee;
 
       // 4. Net Accrued Return
-      const performanceYield = Number(investment.performanceYield || 0);
-      const operationalCost = Number(investment.operationalCost || 0);
-      const netReturn = Math.max(
-        grossReturn + performanceYield - (managementFee + operationalCost),
-        0
+      const performanceYield = round2(Number(investment.performanceYield || 0));
+      const operationalCost = round2(Number(investment.operationalCost || 0));
+      const netReturn = round2(
+        Math.max(
+          grossReturn + performanceYield - (managementFee + operationalCost),
+          0
+        )
       );
       investment.totalAccruedReturn = netReturn;
 
       await investment.save({ validateBeforeSave: false });
 
       updatedCount++;
-      totalGrossAccrued += principalReturn + totalAddOnReturn;
-      totalManagementFees += managementFee;
-      totalNetAccrued += netReturn;
+      totalGrossAccrued = round2(totalGrossAccrued + principalReturn + totalAddOnReturn);
+      totalManagementFees = round2(totalManagementFees + managementFee);
+      totalNetAccrued = round2(totalNetAccrued + netReturn);
 
       details.push({
         investmentId: investment._id,

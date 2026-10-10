@@ -9,4 +9,10 @@ export const calculateDailyRate = (principal, expectedRate, quarterDays) => {
   return returnValue;
 };
 
+export const round2 = (num) => {
+  return Math.round((Number(num || 0) + Number.EPSILON) * 100) / 100;
+};
+
+export const roundToTwo = round2;
+
 export const calulcateManagementFee = () => {};

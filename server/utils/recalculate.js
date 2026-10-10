@@ -1,6 +1,6 @@
 import moment from "moment";
 import Investment from "../features/investment/model/investment.model.js";
-import { calculateDailyRate } from "./halper.js";
+import { calculateDailyRate, round2 } from "./halper.js";
 import { getQuarterDetails } from "./handle_date_range.js";
 
 export const recalculateInvestment = async (investmentId) => {
@@ -32,7 +32,7 @@ export const recalculateInvestment = async (investmentId) => {
         investment.guaranteedRate,
         quarterDays
       );
-      principalReturn = principalDailyReturn * daysSinceStart;
+      principalReturn = round2(principalDailyReturn * daysSinceStart);
     }
     investment.principalAccruedReturn = principalReturn;
 
@@ -67,26 +67,29 @@ export const recalculateInvestment = async (investmentId) => {
         quarterDays
       );
 
-      const addOnInterest = dailyAddOnReturn * addOnDays;
+      const addOnInterest = round2(dailyAddOnReturn * addOnDays);
       addOn.accruedAddOnInterest = addOnInterest;
       await addOn.save(); // Persist the add-on document update
-      totalAddOnReturn += addOnInterest;
+      totalAddOnReturn = round2(totalAddOnReturn + addOnInterest);
     }
 
     investment.addOnAccruedReturn = totalAddOnReturn;
 
     // ----- Service Fee Calculation -----
-    const grossReturn = principalReturn + totalAddOnReturn;
-    const managementFee =
-      (grossReturn * investment.managementFeeRate) / 100;
+    const grossReturn = round2(principalReturn + totalAddOnReturn);
+    const managementFee = round2(
+      (grossReturn * (investment.managementFeeRate !== undefined ? investment.managementFeeRate : 20)) / 100
+    );
     investment.managementFee = managementFee;
 
     // ----- Total Accrued Return -----
-    investment.totalAccruedReturn = Math.max(
-      grossReturn +
-      investment.performanceYield -
-      (managementFee + investment.operationalCost),
-      0
+    const performanceYield = round2(investment.performanceYield || 0);
+    const operationalCost = round2(investment.operationalCost || 0);
+    investment.totalAccruedReturn = round2(
+      Math.max(
+        grossReturn + performanceYield - (managementFee + operationalCost),
+        0
+      )
     );
 
     await investment.save();
