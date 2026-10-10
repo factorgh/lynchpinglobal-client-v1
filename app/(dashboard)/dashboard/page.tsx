@@ -176,39 +176,41 @@ export default function DashboardPage() {
       </div>
 
       {/* 2-Column Section: Statistics (Left) & Recent Clients (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         {/* Statistics Chart */}
         <div className="lg:col-span-7 xl:col-span-8" data-tour="statistics">
           <Statistics />
         </div>
 
         {/* Recent Clients List */}
-        <div className="lg:col-span-5 xl:col-span-4">
-          <Card className="bg-white/85 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
-            <div className="mb-4">
-              <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
-                Recent Clients
-              </h6>
-              <p className="text-slate-500 text-xs font-medium">
-                Latest client activities
-              </p>
-            </div>
-            <div className="space-y-1">
-              {clientList.length > 0 ? (
-                clientList
-                  .slice(0, 5)
-                  .map((client: any, index: number) => (
-                    <ClientRow
-                      key={client._id || index}
-                      client={client}
-                      index={index}
-                    />
-                  ))
-              ) : (
-                <div className="text-center py-8 text-slate-400 text-xs font-medium">
-                  No recent clients found
-                </div>
-              )}
+        <div className="lg:col-span-5 xl:col-span-4 w-full flex flex-col">
+          <Card className="bg-white/85 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] w-full flex-1 flex flex-col justify-between overflow-hidden">
+            <div>
+              <div className="mb-4">
+                <h6 className="text-slate-900 mb-0.5 text-base font-bold tracking-tight">
+                  Recent Clients
+                </h6>
+                <p className="text-slate-500 text-xs font-medium">
+                  Latest client activities
+                </p>
+              </div>
+              <div className="space-y-1">
+                {clientList.length > 0 ? (
+                  clientList
+                    .slice(0, 5)
+                    .map((client: any, index: number) => (
+                      <ClientRow
+                        key={client._id || index}
+                        client={client}
+                        index={index}
+                      />
+                    ))
+                ) : (
+                  <div className="text-center py-8 text-slate-400 text-xs font-medium">
+                    No recent clients found
+                  </div>
+                )}
+              </div>
             </div>
           </Card>
         </div>
