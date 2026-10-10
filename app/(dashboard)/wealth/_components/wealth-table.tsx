@@ -66,6 +66,7 @@ const WealthTable = ({
   const [form] = Form.useForm();
   const [investmentDetailsDrawerVisible, setInvestmentDetailsDrawerVisible] =
     useState(false);
+  const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
   const [selectedInvestmentId, setSelectedInvestmentId] = useState<
     string | null
   >(null);
@@ -181,11 +182,13 @@ const WealthTable = ({
   };
 
   const showInvestmentDetailsDrawer = (investment: any) => {
+    setSelectedInvestment(investment);
     setSelectedInvestmentId(investment._id);
     setInvestmentDetailsDrawerVisible(true);
   };
 
   const closeInvestmentDetailsDrawer = () => {
+    setSelectedInvestment(null);
     setSelectedInvestmentId(null);
     setInvestmentDetailsDrawerVisible(false);
   };
@@ -780,10 +783,12 @@ const WealthTable = ({
       </Drawer>
 
       {/* Details Drawer */}
-      {selectedInvestmentId && (
+      {(selectedInvestment || selectedInvestmentId) && (
         <InvestmentDetailDrawer
+          investment={selectedInvestment}
           investmentId={selectedInvestmentId}
           open={investmentDetailsDrawerVisible}
+          visible={investmentDetailsDrawerVisible}
           onClose={closeInvestmentDetailsDrawer}
         />
       )}

@@ -4,6 +4,7 @@ import {
   useDeleteAddOnMutation,
   useUpdateAddOnMutation,
 } from "@/services/addOn";
+import { useGetAllInvestmentsQuery } from "@/services/investment";
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import {
   Button,
@@ -64,7 +65,27 @@ interface InvestmentData {
   managementFeeRate?: number;
 }
 
-const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
+const InvestmentDetailDrawer = ({
+  investment: propInvestment,
+  investmentId,
+  visible,
+  open,
+  onClose,
+}: any) => {
+  const isOpen = open !== undefined ? Boolean(open) : Boolean(visible);
+
+  const { data: allInvestmentsData } = useGetAllInvestmentsQuery(null, {
+    skip: !isOpen,
+  });
+
+  const investment =
+    propInvestment ||
+    (investmentId &&
+      allInvestmentsData?.data?.find(
+        (i: any) => String(i._id) === String(investmentId),
+      )) ||
+    null;
+
   const [form] = Form.useForm();
   const [editingAddOn, setEditingAddOn] = useState<AddOn | null>(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -313,8 +334,9 @@ const InvestmentDetailDrawer = ({ investment, visible, onClose }: any) => {
         title="Mandate Details"
         width={1000}
         onClose={onClose}
-        visible={visible}
-        bodyStyle={{ paddingBottom: 80 }}
+        open={isOpen}
+        visible={isOpen}
+        styles={{ body: { paddingBottom: 80 } }}
       >
         <Card title="Mandate Summary" bordered={false}>
           <Descriptions column={2} bordered>

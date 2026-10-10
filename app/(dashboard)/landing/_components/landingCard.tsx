@@ -22,31 +22,42 @@ const LandingCard: React.FC<DashboardCardProps> = ({
 }) => {
   return (
     <Card
-      className="w-full bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200"
-      bodyStyle={{
-        display: "flex",
-        flexDirection: "column",
+      className="w-full h-full bg-white/95 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-200/80 backdrop-blur-xs flex flex-col justify-between"
+      styles={{
+        body: {
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "16px",
+          height: "100%",
+        },
       }}
     >
-      {/* Row: Icon and Title */}
-      <div className="flex items-center justify-between">
-        {/* Icon */}
+      <div>
+        {/* Row: Icon and Title */}
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 line-clamp-1"
+            title={title}
+          >
+            {title}
+          </span>
+          <div className="text-base sm:text-lg text-slate-600 p-1.5 rounded-lg bg-slate-100 flex-shrink-0">
+            {icon}
+          </div>
+        </div>
 
-        {/* Title */}
-        <span className=" text-sm uppercase tracking-wider">{title}</span>
-        <div className="text-2xl pr-3">{icon}</div>
+        {/* Amount */}
+        <div className="flex items-baseline justify-between mt-2.5 gap-2">
+          <span className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+            {amount}
+          </span>
+          {action}
+        </div>
       </div>
 
-      {/* Amount */}
-      <div className="flex items-baseline justify-between mt-2">
-        <span className="text-md font-bold text-gray-800 text-start">
-          {amount}
-        </span>
-        {action}
-      </div>
-
-      {/* Divider */}
-      <div className={`mt-4 h-1 w-full rounded-full ${color}`}></div>
+      {/* Accent Indicator */}
+      <div className={`mt-3 h-1 w-full rounded-full ${color || "bg-emerald-400"}`}></div>
     </Card>
   );
 };

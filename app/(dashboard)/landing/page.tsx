@@ -182,46 +182,57 @@ const CustomerLanding = () => {
     <div className="">
       <Wrapper>
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-5"
+          className="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 mt-5 items-stretch"
           data-tour="cta-primary"
         >
           {/* first card */}
-          <Card className="p-5 flex flex-col gap-8 justify-start col-span-1 sm:col-span-2 lg:col-span-1 shadow-lg border border-gray-200 rounded-2xl bg-white/95">
-            <div className="flex justify-between items-center ">
-              <h3 className="mt-6 text-md font-bold text-slate-800">TOTAL BALANCE</h3>
-              <LucideCreditCard className="text-2xl text-slate-700" />
+          <Card className="p-5 sm:p-6 flex flex-col justify-between col-span-1 md:col-span-12 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow border border-slate-200/80 rounded-2xl bg-white/95 backdrop-blur-xs">
+            <div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  TOTAL BALANCE
+                </span>
+                <div className="p-2 rounded-xl bg-sky-50 text-sky-600">
+                  <LucideCreditCard className="w-5 h-5" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-4 tracking-tight truncate">
+                {formatPriceGHS(totalBalance)}
+              </p>
+              <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                <span>Current Quarter:</span>
+                <span className="font-semibold text-slate-800">{quarter}</span>
+              </div>
             </div>
-            <p className="text-2xl font-black text-slate-900">{formatPriceGHS(totalBalance)}</p>
-            <p className="text-xs text-slate-500 font-medium">Current Quarter: {quarter}</p>
-            <div className="mt-2 h-1 w-full bg-gradient-to-r from-sky-400 to-green-400 rounded-full "></div>
+            <div className="mt-5 h-1.5 w-full bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full"></div>
           </Card>
 
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 col-span-1 sm:col-span-2 lg:col-span-2"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 col-span-1 md:col-span-12 lg:col-span-5"
             data-tour="feature-cards"
           >
             <LandingCard
-              icon={<HandCoins />}
+              icon={<HandCoins className="w-4 h-4" />}
               title="MANDATE CONTRIBUTION"
               amount={formatPriceGHS(principal)}
-              color={principal > 0 ? "bg-green-400" : "bg-blue-400"}
+              color={principal > 0 ? "bg-emerald-400" : "bg-sky-400"}
             />
             <LandingCard
               icon={<PieChartOutlined />}
               title="ACCRUED DISBURSEMENTS"
               amount={formatPriceGHS(accruedInterest)}
-              color={accruedInterest > 0 ? "bg-green-400" : "bg-blue-400"}
+              color={accruedInterest > 0 ? "bg-emerald-400" : "bg-sky-400"}
             />
             <LandingCard
               icon={<PlusCircleOutlined />}
               title="ADDITIONAL CONTRIBUTIONS"
               amount={formatPriceGHS(addOns)}
-              color={addOns > 0 ? "bg-green-400" : "bg-blue-400"}
+              color={addOns > 0 ? "bg-emerald-400" : "bg-sky-400"}
               action={
                 <Button
                   type="link"
                   size="small"
-                  className="p-0 h-auto font-medium text-blue-600 hover:text-blue-800"
+                  className="p-0 h-auto font-semibold text-xs text-sky-600 hover:text-sky-800"
                   onClick={() => setIsAddOnModalVisible(true)}
                 >
                   View All
@@ -232,43 +243,43 @@ const CustomerLanding = () => {
               icon={<PieChartOutlined />}
               title="ADDITIONAL DISBURSEMENTS"
               amount={formatPriceGHS(addonAccruedReturn)}
-              color={addonAccruedReturn > 0 ? "bg-green-400" : "bg-blue-400"}
+              color={addonAccruedReturn > 0 ? "bg-emerald-400" : "bg-sky-400"}
             />
           </div>
 
-          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+          <div className="col-span-1 md:col-span-12 lg:col-span-4 h-full min-h-[220px]">
             <CustomSlider />
           </div>
         </div>
         <Divider className="bg-white/40 my-6" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mt-6 mb-10 items-stretch">
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 col-span-1 md:col-span-2 lg:col-span-1"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 col-span-1 md:col-span-2 lg:col-span-1"
             data-tour="yield-cards"
           >
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="ONE-OFF DISBURSEMENT"
               amount={formatPriceGHS(oneOffs)}
-              color={oneOffs > 0 ? "bg-green-400" : "bg-blue-400"}
+              color={oneOffs > 0 ? "bg-emerald-400" : "bg-sky-400"}
             />
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="PERFORMANCE-LINKED DISBURSEMENT"
               amount={formatPriceGHS(performanceYield)}
-              color={performanceYield > 0 ? "bg-green-400" : "bg-blue-400"}
+              color={performanceYield > 0 ? "bg-emerald-400" : "bg-sky-400"}
             />
             <CustomCard
               icon={<MinusCircleOutlined />}
               title="SERVICE FEE"
               amount={formatPriceGHS(managementFee)}
-              color="bg-red-500"
+              color="bg-rose-500"
             />
             <CustomCard
               icon={<MinusCircleOutlined />}
               title="OPERATIONAL CHARGE"
               amount={formatPriceGHS(operationalCost)}
-              color="bg-red-400"
+              color="bg-rose-400"
             />
           </div>
           <div data-tour="assets-under" className="h-full">
