@@ -12,8 +12,15 @@ import RentalTable from "./_components/rental-table";
 const Rentals = () => {
   return (
     <Wrapper>
-      <div className="mt-7 text-white">
-        <h1 className="text-2xl font-bold mb-4 text-white">Loans & Rentals</h1>
+      <div className="py-5 select-none text-white">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
+            Loans & Rentals
+          </h1>
+          <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
+            Manage credit facilities, client lending, and equipment rental agreements
+          </p>
+        </div>
 
         {/* Custom Tabs using your UI library */}
         <Tabs defaultValue="loan" data-tour="rentals-tabs">

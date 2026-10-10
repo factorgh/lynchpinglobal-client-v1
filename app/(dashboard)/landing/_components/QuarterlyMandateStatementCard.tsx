@@ -215,7 +215,7 @@ export const QuarterlyMandateStatementCard: React.FC<
                   type="primary"
                   icon={<EyeOutlined />}
                   onClick={() => setIsModalOpen(true)}
-                  className="flex-1 font-semibold rounded-xl text-xs h-9 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 font-semibold rounded-xl text-xs h-9 bg-emerald-600 hover:bg-emerald-700"
                 >
                   View Full Statement
                 </Button>

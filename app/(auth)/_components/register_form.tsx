@@ -392,7 +392,7 @@ const RegisterForm = () => {
             className={`w-full py-2.5 px-4 text-white font-medium rounded-lg shadow-md transition-colors ${
               isLoading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-400"
+                : "bg-emerald-600 hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-400"
             }`}
             data-tour="register-submit"
           >
@@ -405,7 +405,7 @@ const RegisterForm = () => {
             Already have an account?{" "}
             <Link
               href="/"
-              className="text-blue-500 hover:underline font-medium"
+              className="text-emerald-600 hover:underline font-medium"
             >
               Login
             </Link>
@@ -417,8 +417,8 @@ const RegisterForm = () => {
       <Modal
         title={
           <div className="flex items-center gap-2.5 pb-2 border-b border-gray-100">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0">
-              <ShieldCheck className="w-4 h-4 text-blue-600" />
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
             </div>
             <div>
               <h3 className="text-base font-bold text-gray-900 leading-tight">
@@ -453,7 +453,7 @@ const RegisterForm = () => {
                   setErrors((prev) => ({ ...prev, terms: "" }));
                   setTermsModalVisible(false);
                 }}
-                className="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+                className="px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 I Agree & Confirm

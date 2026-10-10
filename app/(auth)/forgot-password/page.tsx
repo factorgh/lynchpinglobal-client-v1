@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
             <div className="space-y-3">
               <button
                 onClick={() => setIsSubmitted(false)}
-                className="w-full bg-blue-500 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 transition-colors"
+                className="w-full bg-emerald-600 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-400 transition-colors"
               >
                 Try Again
               </button>
@@ -190,7 +190,7 @@ export default function ForgotPasswordPage() {
           className={`w-full py-2.5 px-4 text-white font-medium rounded-lg shadow-md transition-colors ${
             isLoading
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
+              : "bg-emerald-600 hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-400"
           }`}
         >
           {isLoading ? "Sending..." : "Send Reset Link"}

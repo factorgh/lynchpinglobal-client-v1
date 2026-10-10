@@ -1,27 +1,23 @@
 "use client";
 
-// Import necessary components
 import { useGetActivityLogsQuery } from "@/services/activity-logs";
 import { SmileOutlined } from "@ant-design/icons";
-import { Select, Timeline } from "antd";
+import { Select, Timeline, Empty, Spin } from "antd";
 import moment from "moment";
 import React from "react";
 import Wrapper from "../wealth/_components/wapper";
-import TimelineWidget from "./_components/TimelineItem"; // Ensure this component is correct
+import TimelineWidget from "./_components/TimelineItem";
 
 const { Option } = Select;
 
 const ActivityPage: React.FC = () => {
   const { data: activities, isLoading, error } = useGetActivityLogsQuery(null);
-
   const [filter, setFilter] = React.useState("all");
 
-  // Handle the filter change
   const handleFilterChange = (value: string) => {
     setFilter(value);
   };
 
-  // Function to filter activities based on selected filter
   const filteredActivities = React.useMemo(() => {
     if (!activities?.data) return [];
 
@@ -38,105 +34,83 @@ const ActivityPage: React.FC = () => {
         moment(activity.createdAt).isAfter(fourteenDaysAgo)
       );
     } else if (filter === "1month") {
-      const oneMonthAgo = moment().subtract(1, "months");
+      const oneMonthAgo = moment().subtract(1, "month");
       filtered = filtered.filter((activity: any) =>
         moment(activity.createdAt).isAfter(oneMonthAgo)
       );
     }
 
     return filtered;
-  }, [activities?.data, filter]);
-
-  // Avoid state update in the render cycle
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error fetching activities.</div>;
-  }
-
-  // Handle case where no activities are available
-  if (!activities?.data || activities.data.length === 0) {
-    return <div>No activities found.</div>;
-  }
+  }, [activities, filter]);
 
   return (
     <Wrapper>
-      <div
-        style={{
-          padding: "20px",
-          backgroundColor: "#f9fafb",
-          borderRadius: "8px",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-          marginBottom: "20px",
-          marginTop: "30px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between", // Space between title and filter
-            alignItems: "center",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "28px",
-              fontWeight: "600",
-              color: "#111827",
-              marginBottom: "10px",
-              borderBottom: "2px solid #e5e7eb",
-              paddingBottom: "5px",
-            }}
-          >
-            Activity Logs Report
-          </h2>
+      <div className="py-5 select-none text-white">
+        {/* Page Header aligned with global design */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
+              Activity & Audit Log
+            </h1>
+            <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
+              Monitor administrative operations, user actions, and system transactions
+            </p>
+          </div>
 
           {/* Filter Dropdown */}
-          <Select
-            value={filter}
-            onChange={handleFilterChange}
-            style={{ width: 180 }}
-            data-tour="activity-filters"
-          >
-            <Option value="all">All Activities</Option>
-            <Option value="7days">Last 7 days</Option>
-            <Option value="14days">Last 14 days</Option>
-            <Option value="1month">Last 1 month</Option>
-          </Select>
+          <div className="self-start sm:self-auto bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/60 shadow-xs">
+            <Select
+              value={filter}
+              onChange={handleFilterChange}
+              style={{ width: 150 }}
+              bordered={false}
+              className="font-semibold text-slate-800 text-xs"
+              data-tour="activity-filters"
+            >
+              <Option value="all">All Activities</Option>
+              <Option value="7days">Last 7 days</Option>
+              <Option value="14days">Last 14 days</Option>
+              <Option value="1month">Last 1 month</Option>
+            </Select>
+          </div>
         </div>
 
-        <p
-          style={{
-            fontSize: "16px",
-            color: "#4b5563",
-            marginBottom: "20px",
-          }}
-        >
-          Monitor all administrative activities on the dashboard for better
-          tracking and transparency.
-        </p>
-
-        <Timeline data-tour="activity-table">
-          {filteredActivities.map((activity: any) => (
-            <Timeline.Item
-              key={activity._id}
-              dot={
-                <SmileOutlined style={{ fontSize: "16px", color: "#0ea5e9" }} />
-              }
-            >
-              <TimelineWidget
-                dotColor="#0ea5e9"
-                title={activity.activity}
-                description={activity.description}
-                user={activity.user?.name}
-                timestamp={activity.createdAt} // Format the timestamp
-                icon={<SmileOutlined />}
-              />
-            </Timeline.Item>
-          ))}
-        </Timeline>
+        {/* Timeline Container Card */}
+        <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-slate-800">
+          {isLoading ? (
+            <div className="py-12 flex justify-center">
+              <Spin size="large" />
+            </div>
+          ) : error ? (
+            <div className="py-8 text-center text-rose-500 text-xs">
+              Failed to load activity logs. Please try again.
+            </div>
+          ) : filteredActivities.length === 0 ? (
+            <div className="py-12 text-center">
+              <Empty description="No activities found for the selected period" />
+            </div>
+          ) : (
+            <Timeline data-tour="activity-table" className="pt-2">
+              {filteredActivities.map((activity: any) => (
+                <Timeline.Item
+                  key={activity._id}
+                  dot={
+                    <SmileOutlined style={{ fontSize: "15px", color: "#059669" }} />
+                  }
+                >
+                  <TimelineWidget
+                    dotColor="#059669"
+                    title={activity.activity}
+                    description={activity.description}
+                    user={activity.user?.name}
+                    timestamp={activity.createdAt}
+                    icon={<SmileOutlined />}
+                  />
+                </Timeline.Item>
+              ))}
+            </Timeline>
+          )}
+        </div>
       </div>
     </Wrapper>
   );

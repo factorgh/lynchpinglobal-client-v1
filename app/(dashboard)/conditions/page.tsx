@@ -151,18 +151,18 @@ const ConditionsUploader = () => {
   };
 
   return (
-    <div style={{ maxWidth: 940, margin: "0 auto", padding: 24 }}>
+    <div className="max-w-5xl mx-auto py-5 select-none px-3 sm:px-6">
       <Space direction="vertical" size={16} style={{ width: "100%" }}>
-        <div>
-          <Typography.Title level={3} style={{ marginBottom: 4 }}>
-            Terms and Conditions
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            Upload and manage your Terms & Conditions documents (PDF only).
-          </Typography.Text>
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
+            Terms & Conditions Uploader
+          </h1>
+          <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
+            Upload and manage company Terms & Conditions documents (PDF only)
+          </p>
         </div>
 
-        <Card>
+        <Card className="rounded-2xl border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] bg-white/90 backdrop-blur-md">
           <Upload.Dragger
             multiple={false}
             accept="application/pdf"

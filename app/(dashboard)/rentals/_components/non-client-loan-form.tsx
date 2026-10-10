@@ -47,9 +47,14 @@ const NonClientLoanForm: React.FC = () => {
 
   return (
     <>
-      <Button type="primary" icon={<PlusOutlined />} onClick={showDrawer}>
-        New Non-Client Loan
-      </Button>
+      <button
+        type="button"
+        onClick={showDrawer}
+        className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+      >
+        <PlusOutlined className="text-xs" />
+        <span>New Non-Client Loan</span>
+      </button>
       <Drawer
         title="New Non-Client Loan"
         width={drawerWidth}
@@ -184,7 +189,13 @@ const NonClientLoanForm: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button loading={isLoading} type="primary" htmlType="submit" block>
+            <Button
+              loading={isLoading}
+              type="primary"
+              htmlType="submit"
+              block
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs"
+            >
               Create
             </Button>
           </Form.Item>

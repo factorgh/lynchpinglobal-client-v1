@@ -126,9 +126,14 @@ const RentalForm: React.FC = () => {
 
   return (
     <>
-      <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
-        New Rental
-      </Button>
+      <button
+        type="button"
+        onClick={showDrawer}
+        className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+      >
+        <PlusOutlined className="text-xs" />
+        <span>New Rental</span>
+      </button>
       <Drawer
         title="Create a New Asset Rental"
         width={720}
@@ -346,7 +351,7 @@ const RentalForm: React.FC = () => {
           </Row>
           <Form.Item>
             <Button
-              className="w-full mt-6"
+              className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs"
               type="primary"
               htmlType="submit"
               loading={isLoading || Object.values(uploading).includes(true)}

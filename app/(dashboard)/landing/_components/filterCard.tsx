@@ -58,7 +58,7 @@ const FilterCard: React.FC<FilterCardProps> = ({ onFilter }) => {
         {/* Filter Button */}
         <Button
           type="primary"
-          className="w-full bg-blue-500 hover:bg-blue-600"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl"
           onClick={handleFilter}
         >
           Apply Filters

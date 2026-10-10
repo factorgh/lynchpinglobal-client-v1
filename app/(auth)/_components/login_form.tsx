@@ -129,7 +129,7 @@ const LoginForm = () => {
             className={`w-full py-2 px-4 text-white font-medium rounded-lg shadow-md transition-colors ${
               isLoading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-400"
+                : "bg-emerald-600 hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-400"
             }`}
             data-tour="login-submit"
           >

@@ -17,8 +17,111 @@ body {
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Unified Typography Standard */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+}
+
+/* Ant Design Global Typography & Sizing Harmonization */
+.ant-typography,
+.ant-btn,
+.ant-input,
+.ant-select,
+.ant-table,
+.ant-modal,
+.ant-drawer,
+.ant-form,
+.ant-tag,
+.ant-pagination {
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Ant Design Primary Buttons - Global Emerald Theme (Matching Dashboard "+ Add Client") */
+.ant-btn-primary,
+button.ant-btn-primary,
+.ant-btn.ant-btn-primary,
+.ant-btn-color-primary.ant-btn-variant-solid,
+button.ant-btn-color-primary.ant-btn-variant-solid {
+  background-color: #059669 !important;
+  background: #059669 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.75rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.ant-btn-primary > span,
+button.ant-btn-primary > span,
+.ant-btn-color-primary.ant-btn-variant-solid > span {
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:not(:disabled):hover,
+.ant-btn-primary:not(:disabled):focus,
+button.ant-btn-primary:not(:disabled):hover,
+button.ant-btn-primary:not(:disabled):focus,
+.ant-btn.ant-btn-primary:not(:disabled):hover,
+.ant-btn.ant-btn-primary:not(:disabled):focus,
+.ant-btn-color-primary.ant-btn-variant-solid:not(:disabled):hover,
+.ant-btn-color-primary.ant-btn-variant-solid:not(:disabled):focus {
+  background-color: #047857 !important;
+  background: #047857 !important;
+  border-color: #047857 !important;
+  color: #ffffff !important;
+}
+
+.ant-btn-primary:not(:disabled):active,
+button.ant-btn-primary:not(:disabled):active,
+.ant-btn.ant-btn-primary:not(:disabled):active,
+.ant-btn-color-primary.ant-btn-variant-solid:not(:disabled):active {
+  background-color: #065f46 !important;
+  background: #065f46 !important;
+  border-color: #065f46 !important;
+  color: #ffffff !important;
+  transform: scale(0.97) !important;
+}
+
+.ant-btn-primary:disabled,
+button.ant-btn-primary:disabled,
+.ant-btn-primary[disabled],
+.ant-btn-color-primary.ant-btn-variant-solid:disabled {
+  background-color: #a7f3d0 !important;
+  background: #a7f3d0 !important;
+  border-color: #a7f3d0 !important;
+  color: #ffffff !important;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+/* Ant Design Table Typography Harmonization */
+.ant-table {
+  font-size: 0.8125rem !important; /* 13px */
+}
+
+.ant-table-thead > tr > th {
+  font-size: 0.75rem !important; /* 12px */
+  font-weight: 600 !important;
+  color: #64748b !important; /* slate-500 */
+  letter-spacing: 0.025em !important;
+  background: #f8fafc !important; /* slate-50 */
+}
+
+.ant-table-tbody > tr > td {
+  font-size: 0.8125rem !important; /* 13px */
+  color: #334155 !important; /* slate-700 */
+}
+
+/* Ant Design Select & Input Typography */
+.ant-select, .ant-input {
+  font-size: 0.8125rem !important;
 }
 
 /* Ant Design Mobile Responsive Overrides */

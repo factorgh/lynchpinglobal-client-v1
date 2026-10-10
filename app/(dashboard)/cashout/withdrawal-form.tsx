@@ -57,14 +57,15 @@ const WithdrawalForm: React.FC = () => {
 
   return (
     <>
-      <Button
-        type="primary"
+      <button
+        type="button"
         onClick={showDrawer}
-        icon={<PlusOutlined />}
         data-tour="withdrawal-new-request"
+        className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
       >
-        Mandate Disbursement
-      </Button>
+        <PlusOutlined className="text-xs" />
+        <span>Mandate Disbursement</span>
+      </button>
       <Drawer
         title="Create Mandate Disbursement"
         width={400}
@@ -146,7 +147,13 @@ const WithdrawalForm: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button loading={isLoading} type="primary" htmlType="submit" block>
+            <Button
+              loading={isLoading}
+              type="primary"
+              htmlType="submit"
+              block
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs"
+            >
               Create
             </Button>
           </Form.Item>

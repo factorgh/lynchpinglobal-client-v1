@@ -264,8 +264,8 @@ export const EndOfQuarterReportsCard: React.FC<EndOfQuarterReportsCardProps> = (
                   onClick={() => openDocument("mandate-statement")}
                   className={`flex-1 font-semibold rounded-lg text-xs h-8 ${
                     isClosed
-                      ? "bg-blue-600 hover:bg-blue-700"
-                      : "border-blue-200 text-blue-700 hover:text-blue-800 bg-blue-50/40"
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      : "border-emerald-200 text-emerald-700 hover:text-emerald-800 bg-emerald-50/40"
                   }`}
                 >
                   {isClosed ? "View Statement" : "Preview Statement"}

@@ -5,24 +5,30 @@ import AssetTable from "./_components/asset-table";
 const Assets = () => {
   return (
     <Wrapper>
-      <div className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)] my-6">
+      <div className="py-5 select-none">
+        {/* Page Header aligned with global design */}
         <div
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 mb-5"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
           data-tour="asset-header"
         >
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
               Asset Management
             </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Latest asset transactions
+            <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
+              Manage client asset classes, purchases, and portfolio valuations
             </p>
           </div>
-          <span data-tour="asset-form">
+          <div data-tour="asset-form" className="self-start sm:self-auto">
             <AssetForm />
-          </span>
+          </div>
         </div>
-        <div data-tour="asset-table">
+
+        {/* Asset Table Card */}
+        <div
+          className="bg-white/85 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+          data-tour="asset-table"
+        >
           <AssetTable />
         </div>
       </div>

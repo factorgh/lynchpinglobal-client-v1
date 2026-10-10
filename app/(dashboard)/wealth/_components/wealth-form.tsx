@@ -130,14 +130,15 @@ const WealthForm: React.FC = () => {
 
   return (
     <>
-      <Button
-        type="primary"
+      <button
+        type="button"
         onClick={showDrawer}
-        icon={<PlusOutlined />}
         data-tour="wealth-new"
+        className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
       >
-        New Mandate
-      </Button>
+        <PlusOutlined className="text-xs" />
+        <span>New Mandate</span>
+      </button>
       <Drawer
         title="Create a New Mandate"
         width="70%"
@@ -301,7 +302,7 @@ const WealthForm: React.FC = () => {
 
           <Form.Item>
             <Button
-              className="w-full mt-6"
+              className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs"
               type="primary"
               htmlType="submit"
               loading={isLoading || Object.values(uploading).includes(true)}

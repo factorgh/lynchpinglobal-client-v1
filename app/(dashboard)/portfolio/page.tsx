@@ -39,9 +39,11 @@ const sampleData = [
 const PortfolioPage = () => {
   return (
     <Wrapper>
-      <div className="mt-7 text-white mb-5">
-        <h1 className="text-2xl font-bold mb-1 text-white">My Portfolio & Mandates</h1>
-        <p className="text-xs text-slate-300">
+      <div className="py-5 text-white mb-6 select-none">
+        <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
+          My Portfolio & Mandates
+        </h1>
+        <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
           View all your mandate participations, lending transactions, and portfolio records
         </p>
       </div>

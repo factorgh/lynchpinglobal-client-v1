@@ -144,8 +144,10 @@ const Users = () => {
   return (
     <Wrapper>
       <div className="mt-7 text-white mb-6">
-        <h1 className="text-2xl font-bold mb-1 text-white">User Management</h1>
-        <p className="text-sm text-slate-300">
+        <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
+          User Management
+        </h1>
+        <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
           Manage system administrators, staff members, and client user accounts
         </p>
       </div>

@@ -59,14 +59,15 @@ const PaymentForm: React.FC = () => {
 
   return (
     <>
-      <Button
-        type="primary"
+      <button
+        type="button"
         onClick={showDrawer}
-        icon={<PlusOutlined />}
         data-tour="cashout-new-payment"
+        className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
       >
-        Mandate Contribution
-      </Button>
+        <PlusOutlined className="text-xs" />
+        <span>Mandate Contribution</span>
+      </button>
       <Drawer
         title="Create Mandate Contribution"
         width={400}
@@ -158,6 +159,7 @@ const PaymentForm: React.FC = () => {
               htmlType="submit"
               block
               data-tour="payment-submit"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs"
             >
               Create
             </Button>

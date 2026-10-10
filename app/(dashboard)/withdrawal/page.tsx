@@ -90,14 +90,14 @@ const WithdrawalPage = () => {
           <h1 className="text-xl sm:text-2xl font-bold text-white">
             Mandate Contribution & Disbursement
           </h1>
-          <Button
-            type="primary"
+          <button
+            type="button"
             onClick={handleShowInboxForm}
             data-tour="withdrawal-new-request"
-            className="bg-emerald-600 hover:bg-emerald-700 font-semibold"
+            className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            Make a Request
-          </Button>
+            <span>Make a Request</span>
+          </button>
         </div>
         {showInboxForm && (
           <InboxForm

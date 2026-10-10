@@ -82,20 +82,26 @@ const TermsPage = () => {
 
   return (
     <Wrapper>
-      <div className="flex items-center justify-center p-3 bg-white mt-3">
-        <h1 className="text-2xl font-bold text-center ">Terms & Conditions</h1>
-      </div>
+      <div className="py-5 select-none">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
+            Terms & Conditions
+          </h1>
+          <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
+            Review Lynchpin Global terms, compliance policies, and operational agreements
+          </p>
+        </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-2 mb-6 flex-wrap">
         {pdfUrls.length > 1 &&
           pdfUrls.map((file: any, index: any) => (
             <button
               key={index}
               onClick={() => setSelectedPdf(file.url)}
-              className={`px-4 py-2 rounded ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 selectedPdf === file.url
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200"
+                  ? "bg-emerald-600 text-white shadow-xs"
+                  : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200"
               }`}
             >
               {file.name}
@@ -105,7 +111,7 @@ const TermsPage = () => {
 
       <div className="flex items-center justify-between mb-4">
         <div />
-        <label>
+        <label className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer">
           <input
             type="file"
             accept="application/pdf"
@@ -115,9 +121,7 @@ const TermsPage = () => {
               if (file) handleUploadTerms(file);
             }}
           />
-          {/* <Button type="primary" data-tour="acknowledge">
-            Upload Terms (PDF)
-          </Button> */}
+          <span>Upload Terms (PDF)</span>
         </label>
       </div>
 
@@ -150,6 +154,7 @@ const TermsPage = () => {
             />
           </div>
         )}
+      </div>
       </div>
     </Wrapper>
   );
