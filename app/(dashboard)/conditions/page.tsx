@@ -235,9 +235,9 @@ const ConditionsUploader = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-3 sm:px-6">
-      {/* Crisp White & Black Themed Container */}
-      <div className="bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-2xl p-6 sm:p-10 shadow-xl text-slate-900 space-y-8 min-h-[680px] relative">
+    <div className="w-full py-5 px-3 sm:px-6 lg:px-8 min-h-[calc(100vh-80px)] flex flex-col select-none">
+      {/* Crisp White & Black Themed Container - Full Page */}
+      <div className="w-full flex-1 bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-2xl p-6 sm:p-10 lg:p-12 shadow-xl text-slate-900 space-y-8 relative flex flex-col">
         {loading && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-2xl gap-3">
             <Spin size="large" />
