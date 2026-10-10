@@ -180,7 +180,7 @@ export const getInvestment = catchAsync(async (req, res, next) => {
   console.log("some user", userId);
   // Ensure the investment belongs to the user and include archived/active flags
   const investment = await Investment.find({
-    "owners.user": userId,
+    $or: [{ "owners.user": userId }, { userId: userId }],
   })
     .select("+archived +active")
     .populate(["addOns", "oneOffs", { path: "owners.user" }]);
@@ -761,14 +761,18 @@ export const calculateDailyAccruals = async (req, res, next) => {
         }
       }
 
-      const daysSinceStart = calcDate.diff(moment(investment.startDate), "days");
+      const daysSinceStart = Math.max(0, calcDate.diff(moment(investment.startDate), "days"));
       if (daysSinceStart <= 0) continue;
+
+      const mandateQuarterDays = getQuarterDetails(
+        investment.startDate || investment.creationDate || calcDate.toDate()
+      );
 
       // 1. Principal Daily Return
       const principalDailyReturn = calculateDailyRate(
         investment.principal,
         investment.guaranteedRate ?? 8,
-        quarterDays
+        mandateQuarterDays
       );
       const principalReturn = principalDailyReturn * daysSinceStart;
       investment.principalAccruedReturn = principalReturn;
@@ -785,7 +789,7 @@ export const calculateDailyAccruals = async (req, res, next) => {
             if (currentDate.isAfter(qEnd)) addOnCalcDate = qEnd;
           }
 
-          const addOnDays = addOnCalcDate.diff(moment(addOn.startDate), "days");
+          const addOnDays = Math.max(0, addOnCalcDate.diff(moment(addOn.startDate), "days"));
           if (addOnDays <= 0) continue;
 
           // Only charge interest if amount is at least 5000 GHS
@@ -798,7 +802,7 @@ export const calculateDailyAccruals = async (req, res, next) => {
           const dailyAddOnReturn = calculateDailyRate(
             addOn.amount,
             investment.guaranteedRate ?? 8,
-            quarterDays
+            mandateQuarterDays
           );
           const addOnInterest = dailyAddOnReturn * addOnDays;
           addOn.accruedAddOnInterest = addOnInterest;

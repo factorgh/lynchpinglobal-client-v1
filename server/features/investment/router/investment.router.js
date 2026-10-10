@@ -8,9 +8,13 @@ import {
   updateInvestment,
   archiveTransactions,
   rolloverInvestments,
+  calculateDailyAccruals,
 } from "../controller/investment.controller.js";
 
 const router = express.Router();
+
+// Accruals calculation endpoint (callable by external cron or admin)
+router.all("/accruals/calculate", calculateDailyAccruals);
 
 // investment routes
 router.get("/", getAllInvestments);
