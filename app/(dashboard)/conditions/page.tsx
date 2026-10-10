@@ -1,25 +1,26 @@
 "use client";
-import { DeleteOutlined } from "@ant-design/icons";
-import {
-  Button,
-  List,
-  Upload,
-  UploadFile,
-  message,
-  Typography,
-  Card,
-  Space,
-  Empty,
-  Popconfirm,
-} from "antd";
-import { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useRef } from "react";
+import { message, Spin } from "antd";
+import Swal from "sweetalert2";
+
+interface UploadedFile {
+  name: string;
+  url: string;
+  public_id: string;
+  resource_type?: string;
+  size?: number;
+  createdAt?: string;
+}
 
 const ConditionsUploader = () => {
-  const [files, setFiles] = useState<any[]>([]); // List of files from Cloudinary
+  const [files, setFiles] = useState<UploadedFile[]>([]);
   const [loading, setLoading] = useState(false);
-  console.log(files);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const API_BASE = "/api/v1";
+
   const getToken = () => {
     try {
       return typeof window !== "undefined"
@@ -30,7 +31,6 @@ const ConditionsUploader = () => {
     }
   };
 
-  // Fetch all terms and conditions from Firebase on component mount
   useEffect(() => {
     fetchFiles();
   }, []);
@@ -40,22 +40,23 @@ const ConditionsUploader = () => {
     try {
       // DB-first fetch (authoritative)
       const dbRes = await fetch(
-        `${API_BASE}/uploads/db?category=conditions&provider=any`,
+        `${API_BASE}/uploads/db?category=conditions&provider=any`
       );
       if (!dbRes.ok) throw new Error("Failed to fetch terms");
       const dbData = await dbRes.json();
-      let items = (dbData?.files || []).map((f: any) => ({
+      let items: UploadedFile[] = (dbData?.files || []).map((f: any) => ({
         name: f.filename || f.public_id,
         url: f.url,
         public_id: f.public_id,
         resource_type: f.resource_type,
         size: f.bytes,
+        createdAt: f.createdAt || f.updatedAt,
       }));
 
       // Fallback to direct R2 listing if DB returns empty
       if (items.length === 0) {
         const r2Res = await fetch(
-          `${API_BASE}/uploads/list?category=conditions&provider=r2`,
+          `${API_BASE}/uploads/list?category=conditions&provider=r2`
         );
         if (r2Res.ok) {
           const r2Data = await r2Res.json();
@@ -65,6 +66,7 @@ const ConditionsUploader = () => {
             public_id: f.public_id,
             resource_type: f.resource_type,
             size: f.bytes,
+            createdAt: f.createdAt || f.updatedAt,
           }));
         }
       }
@@ -87,23 +89,48 @@ const ConditionsUploader = () => {
     return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
   };
 
-  const handleUpload = async (file: any) => {
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "Active";
     try {
-      const isPdf = file.type === "application/pdf";
-      if (!isPdf) {
-        message.error("You can only upload PDF files.");
-        return false;
-      }
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "Active";
+      return d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch {
+      return "Active";
+    }
+  };
+
+  const handleUpload = async (file: File) => {
+    const isPdf =
+      file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      message.error("You can only upload PDF files.");
+      return;
+    }
+
+    // 10 MB limit as stated in the design
+    if (file.size > 10 * 1024 * 1024) {
+      message.error("File size exceeds 10 MB limit.");
+      return;
+    }
+
+    try {
       setLoading(true);
       const formData = new FormData();
       formData.append("category", "conditions");
       formData.append("files", file);
       const token = getToken();
+
       const res = await fetch(`${API_BASE}/uploads`, {
         method: "POST",
         headers: token ? { Authorization: token } : undefined,
         body: formData,
       });
+
       if (!res.ok) throw new Error("Upload failed");
       message.success(`${file.name} uploaded successfully.`);
       fetchFiles();
@@ -112,8 +139,62 @@ const ConditionsUploader = () => {
       message.error("Failed to upload file.");
     } finally {
       setLoading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
-    return false;
+  };
+
+  const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleUpload(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleUpload(file);
+    }
+  };
+
+  const confirmDelete = async (
+    public_id: string,
+    name?: string,
+    resource_type?: string
+  ) => {
+    const result = await Swal.fire({
+      title: "Delete Document?",
+      text: `Are you sure you want to delete "${name || "this document"}"? It will no longer be available to partners.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#27272a",
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+      background: "#0c0e12",
+      color: "#ffffff",
+    });
+
+    if (result.isConfirmed) {
+      await handleDelete(public_id, resource_type);
+    }
   };
 
   const handleDelete = async (public_id: string, resource_type?: string) => {
@@ -122,6 +203,7 @@ const ConditionsUploader = () => {
       const token = getToken();
       const qs = new URLSearchParams({ public_id, provider: "r2" });
       if (resource_type) qs.set("resource_type", resource_type);
+
       const res = await fetch(`${API_BASE}/uploads?${qs.toString()}`, {
         method: "DELETE",
         headers: token
@@ -132,6 +214,7 @@ const ConditionsUploader = () => {
             }
           : undefined,
       });
+
       if (!res.ok) {
         let msg = "Delete failed";
         try {
@@ -140,6 +223,7 @@ const ConditionsUploader = () => {
         } catch {}
         throw new Error(msg);
       }
+
       message.success(`Deleted successfully.`);
       fetchFiles();
     } catch (error) {
@@ -151,105 +235,169 @@ const ConditionsUploader = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-5 select-none px-3 sm:px-6">
-      <Space direction="vertical" size={16} style={{ width: "100%" }}>
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
-            Terms & Conditions Uploader
-          </h1>
-          <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
-            Upload and manage company Terms & Conditions documents (PDF only)
-          </p>
+    <div className="max-w-5xl mx-auto py-6 px-3 sm:px-6">
+      {/* Dark Gold Themed Container */}
+      <div className="bg-[#0b0d11] border border-zinc-800/80 rounded-2xl p-6 sm:p-10 shadow-2xl text-slate-100 space-y-8 min-h-[680px] relative">
+        {loading && (
+          <div className="absolute inset-0 bg-[#0b0d11]/75 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-2xl gap-3">
+            <Spin size="large" />
+            <span className="text-xs text-zinc-300 font-medium tracking-wide">
+              Processing request...
+            </span>
+          </div>
+        )}
+
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf"
+          className="hidden"
+          onChange={onFileInputChange}
+        />
+
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-zinc-800/60 pb-6">
+          <div>
+            <span className="text-[11px] font-bold tracking-widest text-[#cca260] uppercase mb-1.5 block">
+              LEGAL
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              Terms & Conditions
+            </h1>
+          </div>
+          <div className="text-xs text-zinc-400 font-medium">
+            {files.length} {files.length === 1 ? "document" : "documents"} · PDF only
+          </div>
         </div>
 
-        <Card className="rounded-2xl border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] bg-white/90 backdrop-blur-md">
-          <Upload.Dragger
-            multiple={false}
-            accept="application/pdf"
-            beforeUpload={(file: any) => {
-              const isPdf = file.type === "application/pdf";
-              if (!isPdf) message.error("You can only upload PDF files.");
-              return isPdf || Upload.LIST_IGNORE;
-            }}
-            customRequest={({ file }: any) =>
-              handleUpload(file)
-            }
-            showUploadList={false}
-            disabled={loading}
-          >
-            <p style={{ marginBottom: 8 }}>
-              <Typography.Text strong>Drag & drop a PDF here</Typography.Text>
-            </p>
-            <Typography.Text type="secondary">
-              or click to browse and upload
-            </Typography.Text>
-          </Upload.Dragger>
-        </Card>
+        {/* Upload Drop Area */}
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`relative border border-dashed rounded-2xl p-10 sm:p-14 flex flex-col items-center justify-center text-center transition-all cursor-pointer group ${
+            isDragging
+              ? "border-[#cca260] bg-[#cca260]/10 scale-[1.005]"
+              : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 hover:bg-zinc-950/70"
+          }`}
+        >
+          {/* Circle Icon with Upward Arrow */}
+          <div className="w-12 h-12 rounded-full border border-zinc-700/80 bg-zinc-900/80 flex items-center justify-center text-zinc-300 group-hover:text-[#cca260] group-hover:border-[#cca260]/60 transition-all mb-4">
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 4h16" />
+              <path d="M12 20V8" />
+              <path d="m7 13 5-5 5 5" />
+            </svg>
+          </div>
 
-        <Card title="Uploaded Files" bodyStyle={{ paddingTop: 0 }}>
-          {!loading && files.length === 0 ? (
-            <Empty
-              image={
-                <img
-                  src="/empty-doc.svg"
-                  alt="No terms and conditions found"
-                  style={{ maxWidth: 200, opacity: 0.9 }}
-                />
-              }
-              description={<span>No files yet</span>}
-            />
-          ) : (
-            <List
-              loading={loading}
-              itemLayout="horizontal"
-              dataSource={files}
-              data-tour="policy-view"
-              renderItem={(file: any) => (
-                <List.Item
-                  actions={[
-                    <Button
-                      key="view"
-                      type="link"
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View
-                    </Button>,
-                    <Popconfirm
-                      key="delete"
-                      title="Delete file"
-                      description={`Delete “${file.name}”?`}
-                      okText="Delete"
-                      okButtonProps={{ danger: true }}
-                      onConfirm={() =>
-                        handleDelete(file.public_id, file.resource_type)
-                      }
-                    >
-                      <Button type="link" danger icon={<DeleteOutlined />}>
-                        Delete
-                      </Button>
-                    </Popconfirm>,
-                  ]}
-                >
-                  <List.Item.Meta
-                    title={
+          <h3 className="text-base sm:text-lg font-bold text-white mb-1">
+            Drop a PDF to upload
+          </h3>
+          <p className="text-xs text-zinc-400 mb-6 max-w-sm">
+            It replaces the active terms for all partners. Max 10 MB.
+          </p>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+            disabled={loading}
+            className="bg-[#cca260] hover:bg-[#dfb472] active:scale-95 text-zinc-950 font-bold text-xs px-6 py-2.5 rounded-full shadow-md transition-all cursor-pointer flex items-center gap-2"
+          >
+            Choose file
+          </button>
+        </div>
+
+        {/* Active Document Section */}
+        <div className="pt-2">
+          <h4 className="text-[11px] font-bold tracking-widest text-zinc-400 uppercase mb-3">
+            ACTIVE DOCUMENT
+          </h4>
+
+          <div data-tour="policy-view">
+            {files.length === 0 ? (
+              <div className="p-8 rounded-xl border border-dashed border-zinc-800/80 text-center text-xs text-zinc-500 bg-zinc-950/20">
+                No active terms document uploaded yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {files.map((file, idx) => (
+                  <div
+                    key={file.public_id || idx}
+                    className="bg-[#12141a] border border-zinc-800/80 hover:border-zinc-700/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-sm"
+                  >
+                    {/* Left: PDF badge and File Name */}
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-10 h-10 rounded-lg bg-zinc-800/90 border border-zinc-700/80 flex items-center justify-center shrink-0 text-[11px] font-bold text-zinc-300">
+                        PDF
+                      </div>
+                      <div className="min-w-0">
+                        <h5
+                          className="text-sm font-semibold text-white truncate max-w-sm sm:max-w-md"
+                          title={file.name}
+                        >
+                          {file.name}
+                        </h5>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          {formatBytes(file.size) || "PDF"} · Uploaded{" "}
+                          {formatDate(file.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right: Live Badge & Actions */}
+                    <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
+                      {/* Live Status Badge */}
+                      <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Live
+                      </span>
+
+                      {/* View Button */}
                       <a
                         href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 hover:border-zinc-600 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors"
                       >
-                        {file.name}
+                        View
                       </a>
-                    }
-                    description={formatBytes(file.size)}
-                  />
-                </List.Item>
-              )}
-            />
-          )}
-        </Card>
-      </Space>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          confirmDelete(
+                            file.public_id,
+                            file.name,
+                            file.resource_type
+                          )
+                        }
+                        disabled={loading}
+                        className="bg-zinc-800 hover:bg-red-950/50 text-red-400 hover:text-red-300 border border-zinc-700 hover:border-red-900/60 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
