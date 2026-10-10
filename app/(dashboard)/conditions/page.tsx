@@ -185,11 +185,11 @@ const ConditionsUploader = () => {
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#27272a",
+      cancelButtonColor: "#64748b",
       confirmButtonText: "Yes, delete",
       cancelButtonText: "Cancel",
-      background: "#0c0e12",
-      color: "#ffffff",
+      background: "#ffffff",
+      color: "#0f172a",
     });
 
     if (result.isConfirmed) {
@@ -236,12 +236,12 @@ const ConditionsUploader = () => {
 
   return (
     <div className="max-w-5xl mx-auto py-6 px-3 sm:px-6">
-      {/* Dark Gold Themed Container */}
-      <div className="bg-[#0b0d11] border border-zinc-800/80 rounded-2xl p-6 sm:p-10 shadow-2xl text-slate-100 space-y-8 min-h-[680px] relative">
+      {/* Crisp White & Black Themed Container */}
+      <div className="bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-2xl p-6 sm:p-10 shadow-xl text-slate-900 space-y-8 min-h-[680px] relative">
         {loading && (
-          <div className="absolute inset-0 bg-[#0b0d11]/75 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-2xl gap-3">
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-2xl gap-3">
             <Spin size="large" />
-            <span className="text-xs text-zinc-300 font-medium tracking-wide">
+            <span className="text-xs text-slate-600 font-medium tracking-wide">
               Processing request...
             </span>
           </div>
@@ -257,16 +257,16 @@ const ConditionsUploader = () => {
         />
 
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-zinc-800/60 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-slate-100 pb-6">
           <div>
-            <span className="text-[11px] font-bold tracking-widest text-[#cca260] uppercase mb-1.5 block">
+            <span className="text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-1.5 block">
               LEGAL
             </span>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
               Terms & Conditions
             </h1>
           </div>
-          <div className="text-xs text-zinc-400 font-medium">
+          <div className="text-xs text-slate-500 font-medium">
             {files.length} {files.length === 1 ? "document" : "documents"} · PDF only
           </div>
         </div>
@@ -277,14 +277,14 @@ const ConditionsUploader = () => {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`relative border border-dashed rounded-2xl p-10 sm:p-14 flex flex-col items-center justify-center text-center transition-all cursor-pointer group ${
+          className={`relative border-2 border-dashed rounded-2xl p-10 sm:p-14 flex flex-col items-center justify-center text-center transition-all cursor-pointer group ${
             isDragging
-              ? "border-[#cca260] bg-[#cca260]/10 scale-[1.005]"
-              : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 hover:bg-zinc-950/70"
+              ? "border-slate-900 bg-slate-100/90 scale-[1.005]"
+              : "border-slate-300 hover:border-slate-800 bg-slate-50/70 hover:bg-slate-100/80"
           }`}
         >
           {/* Circle Icon with Upward Arrow */}
-          <div className="w-12 h-12 rounded-full border border-zinc-700/80 bg-zinc-900/80 flex items-center justify-center text-zinc-300 group-hover:text-[#cca260] group-hover:border-[#cca260]/60 transition-all mb-4">
+          <div className="w-12 h-12 rounded-full border border-slate-300 bg-white shadow-xs flex items-center justify-center text-slate-800 group-hover:border-slate-800 group-hover:scale-105 transition-all mb-4">
             <svg
               className="w-5 h-5"
               viewBox="0 0 24 24"
@@ -300,10 +300,10 @@ const ConditionsUploader = () => {
             </svg>
           </div>
 
-          <h3 className="text-base sm:text-lg font-bold text-white mb-1">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1">
             Drop a PDF to upload
           </h3>
-          <p className="text-xs text-zinc-400 mb-6 max-w-sm">
+          <p className="text-xs text-slate-500 mb-6 max-w-sm">
             It replaces the active terms for all partners. Max 10 MB.
           </p>
 
@@ -314,7 +314,7 @@ const ConditionsUploader = () => {
               fileInputRef.current?.click();
             }}
             disabled={loading}
-            className="bg-[#cca260] hover:bg-[#dfb472] active:scale-95 text-zinc-950 font-bold text-xs px-6 py-2.5 rounded-full shadow-md transition-all cursor-pointer flex items-center gap-2"
+            className="bg-slate-950 hover:bg-slate-800 active:scale-95 text-white font-semibold text-xs px-6 py-2.5 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-2"
           >
             Choose file
           </button>
@@ -322,13 +322,13 @@ const ConditionsUploader = () => {
 
         {/* Active Document Section */}
         <div className="pt-2">
-          <h4 className="text-[11px] font-bold tracking-widest text-zinc-400 uppercase mb-3">
+          <h4 className="text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-3">
             ACTIVE DOCUMENT
           </h4>
 
           <div data-tour="policy-view">
             {files.length === 0 ? (
-              <div className="p-8 rounded-xl border border-dashed border-zinc-800/80 text-center text-xs text-zinc-500 bg-zinc-950/20">
+              <div className="p-8 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400 bg-slate-50/50">
                 No active terms document uploaded yet.
               </div>
             ) : (
@@ -336,21 +336,21 @@ const ConditionsUploader = () => {
                 {files.map((file, idx) => (
                   <div
                     key={file.public_id || idx}
-                    className="bg-[#12141a] border border-zinc-800/80 hover:border-zinc-700/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-sm"
+                    className="bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200/90 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-xs"
                   >
                     {/* Left: PDF badge and File Name */}
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-10 h-10 rounded-lg bg-zinc-800/90 border border-zinc-700/80 flex items-center justify-center shrink-0 text-[11px] font-bold text-zinc-300">
+                      <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0 text-[11px] font-bold shadow-xs">
                         PDF
                       </div>
                       <div className="min-w-0">
                         <h5
-                          className="text-sm font-semibold text-white truncate max-w-sm sm:max-w-md"
+                          className="text-sm font-semibold text-slate-900 truncate max-w-sm sm:max-w-md"
                           title={file.name}
                         >
                           {file.name}
                         </h5>
-                        <p className="text-xs text-zinc-400 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           {formatBytes(file.size) || "PDF"} · Uploaded{" "}
                           {formatDate(file.createdAt)}
                         </p>
@@ -360,8 +360,8 @@ const ConditionsUploader = () => {
                     {/* Right: Live Badge & Actions */}
                     <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
                       {/* Live Status Badge */}
-                      <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         Live
                       </span>
 
@@ -370,7 +370,7 @@ const ConditionsUploader = () => {
                         href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 hover:border-zinc-600 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors"
+                        className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 hover:border-slate-400 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors shadow-2xs"
                       >
                         View
                       </a>
@@ -386,7 +386,7 @@ const ConditionsUploader = () => {
                           )
                         }
                         disabled={loading}
-                        className="bg-zinc-800 hover:bg-red-950/50 text-red-400 hover:text-red-300 border border-zinc-700 hover:border-red-900/60 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors cursor-pointer"
+                        className="bg-white hover:bg-red-50 text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors cursor-pointer shadow-2xs"
                       >
                         Delete
                       </button>
