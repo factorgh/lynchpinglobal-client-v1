@@ -132,12 +132,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
                 onClick={onCloseMobile}
               />
               <SidebarLink
-                href="/rollover"
-                icon={RefreshCw}
-                label="Quarterly Rollover"
-                onClick={onCloseMobile}
-              />
-              <SidebarLink
                 href="/terms"
                 icon={Handshake}
                 label="Terms & Conditions"

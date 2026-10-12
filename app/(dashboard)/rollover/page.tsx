@@ -24,7 +24,6 @@ import {
   Settings,
   Sparkles,
   FileText,
-  RotateCcw,
 } from "lucide-react";
 import { formatPriceGHS } from "@/lib/helper";
 import Wrapper from "../wealth/_components/wapper";
@@ -36,104 +35,6 @@ import {
 } from "@/services/investment";
 import RolloverEditModal from "./_components/RolloverEditModal";
 import RolloverBatchModal from "./_components/RolloverBatchModal";
-
-// Realistic presentation test candidates that have reached quarterly rollover
-const DEFAULT_TEST_CANDIDATES = [
-  {
-    investmentId: "seed-mandate-001",
-    transactionId: "LP-TX-2026-Q3-094",
-    name: "Fixed Yield Wealth Mandate",
-    sourceQuarter: "Q3",
-    targetQuarter: "Q4",
-    quarter: "Q3",
-    user: {
-      name: "Kwame Mensah",
-      displayName: "Kwame Mensah",
-      email: "kwame.mensah@example.com",
-      license: "LP-ACC-8821",
-    },
-    owners: [
-      { user: { name: "Kwame Mensah" }, role: "primary" },
-      { user: { name: "Abena Mensah" }, role: "co-owner" },
-    ],
-    isJoint: true,
-    endingPrincipal: 100000,
-    accruedReturn: 8000,
-    netClosingBalance: 108000,
-    suggestedNewPrincipal: 108000,
-    guaranteedRate: 8,
-    managementFeeRate: 20,
-    operationalCost: 0,
-    performanceYield: 0,
-    isRolledOver: false,
-    existingRolloverId: null,
-    existingRolloverTransactionId: null,
-    startDate: "2026-07-01T00:00:00.000Z",
-    quarterEndDate: "2026-09-30T23:59:59.000Z",
-  },
-  {
-    investmentId: "seed-mandate-002",
-    transactionId: "LP-TX-2026-Q3-118",
-    name: "Prime Capital Preservation",
-    sourceQuarter: "Q3",
-    targetQuarter: "Q4",
-    quarter: "Q3",
-    user: {
-      name: "Serwaa Ampofo",
-      displayName: "Serwaa Ampofo",
-      email: "serwaa.ampofo@lynchpin.com",
-      license: "LP-ACC-9042",
-    },
-    owners: [
-      { user: { name: "Serwaa Ampofo" }, role: "primary" },
-    ],
-    isJoint: false,
-    endingPrincipal: 75000,
-    accruedReturn: 6000,
-    netClosingBalance: 81000,
-    suggestedNewPrincipal: 81000,
-    guaranteedRate: 8,
-    managementFeeRate: 20,
-    operationalCost: 0,
-    performanceYield: 0,
-    isRolledOver: false,
-    existingRolloverId: null,
-    existingRolloverTransactionId: null,
-    startDate: "2026-07-01T00:00:00.000Z",
-    quarterEndDate: "2026-09-30T23:59:59.000Z",
-  },
-  {
-    investmentId: "seed-mandate-003",
-    transactionId: "LP-TX-2026-Q3-042",
-    name: "Executive Growth Portfolio",
-    sourceQuarter: "Q3",
-    targetQuarter: "Q4",
-    quarter: "Q3",
-    user: {
-      name: "Dr. Kofi Boateng",
-      displayName: "Dr. Kofi Boateng",
-      email: "kofi.boateng@example.com",
-      license: "LP-ACC-4109",
-    },
-    owners: [
-      { user: { name: "Dr. Kofi Boateng" }, role: "primary" },
-    ],
-    isJoint: false,
-    endingPrincipal: 250000,
-    accruedReturn: 20000,
-    netClosingBalance: 270000,
-    suggestedNewPrincipal: 270000,
-    guaranteedRate: 8.5,
-    managementFeeRate: 20,
-    operationalCost: 0,
-    performanceYield: 0,
-    isRolledOver: true,
-    existingRolloverId: "seed-rollover-003",
-    existingRolloverTransactionId: "LP-TX-2026-Q4-015",
-    startDate: "2026-07-01T00:00:00.000Z",
-    quarterEndDate: "2026-09-30T23:59:59.000Z",
-  },
-];
 
 // Helper to calculate current and previous quarter
 const getDefaultQuarters = () => {
@@ -155,10 +56,6 @@ export default function RolloverPage() {
   const [targetQuarter, setTargetQuarter] = useState<string>(defaultTarget);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"all" | "pending" | "completed">("all");
-
-  // Presentation test mandates state
-  const [presentationCandidates, setPresentationCandidates] =
-    useState<any[]>(DEFAULT_TEST_CANDIDATES);
 
   // Modals state
   const [selectedCandidate, setSelectedCandidate] = useState<any | null>(null);
@@ -183,61 +80,14 @@ export default function RolloverPage() {
   const [calculateDailyAccruals, { isLoading: isAccrualsLoading }] =
     useCalculateDailyAccrualsMutation();
 
-  const hasApiData = Boolean(
-    candidatesResponse?.data?.candidates &&
-      candidatesResponse.data.candidates.length > 0
-  );
-
-  // Active candidate list: prefers API data if present, otherwise uses presentation candidates
-  const candidatesData = useMemo(() => {
-    if (hasApiData) {
-      return candidatesResponse.data.candidates;
-    }
-    return presentationCandidates.map((c) => ({
-      ...c,
-      sourceQuarter,
-      targetQuarter,
-    }));
-  }, [hasApiData, candidatesResponse, presentationCandidates, sourceQuarter, targetQuarter]);
-
-  // Dynamic summary derived from active candidates
-  const summary = useMemo(() => {
-    if (hasApiData && candidatesResponse?.data?.summary) {
-      return candidatesResponse.data.summary;
-    }
-    const totalCandidates = candidatesData.length;
-    const alreadyRolledOverCount = candidatesData.filter(
-      (c: any) => c.isRolledOver
-    ).length;
-    const pendingCount = totalCandidates - alreadyRolledOverCount;
-    const totalEndingPrincipal = candidatesData.reduce(
-      (acc: number, c: any) => acc + (Number(c.endingPrincipal) || 0),
-      0
-    );
-    const totalAccruedReturn = candidatesData.reduce(
-      (acc: number, c: any) => acc + (Number(c.accruedReturn) || 0),
-      0
-    );
-    const totalProjectedRollover = candidatesData.reduce(
-      (acc: number, c: any) =>
-        acc + (Number(c.suggestedNewPrincipal ?? c.netClosingBalance) || 0),
-      0
-    );
-
-    return {
-      totalCandidates,
-      alreadyRolledOverCount,
-      pendingCount,
-      totalEndingPrincipal,
-      totalAccruedReturn,
-      totalProjectedRollover,
-    };
-  }, [hasApiData, candidatesResponse, candidatesData]);
-
-  // Reset presentation candidates to original state
-  const handleResetDemoData = () => {
-    setPresentationCandidates(DEFAULT_TEST_CANDIDATES);
-    message.info("Presentation test mandates reset to initial state.");
+  const candidatesData = candidatesResponse?.data?.candidates || [];
+  const summary = candidatesResponse?.data?.summary || {
+    totalCandidates: 0,
+    alreadyRolledOverCount: 0,
+    pendingCount: 0,
+    totalEndingPrincipal: 0,
+    totalAccruedReturn: 0,
+    totalProjectedRollover: 0,
   };
 
   // Filter candidates by search term & status tab
@@ -273,34 +123,6 @@ export default function RolloverPage() {
   // Handle single rollover submit from edit modal
   const handleEditModalSubmit = async (payload: any) => {
     try {
-      if (!hasApiData || String(selectedCandidate?.investmentId).startsWith("seed-")) {
-        setPresentationCandidates((prev) =>
-          prev.map((c) =>
-            c.investmentId === payload.investmentId
-              ? {
-                  ...c,
-                  isRolledOver: true,
-                  endingPrincipal: payload.newPrincipal,
-                  suggestedNewPrincipal: payload.newPrincipal,
-                  netClosingBalance: payload.newPrincipal,
-                  guaranteedRate: payload.guaranteedRate ?? c.guaranteedRate,
-                  managementFeeRate:
-                    payload.managementFeeRate ?? c.managementFeeRate,
-                  existingRolloverTransactionId: `LP-TX-${targetQuarter}-${Math.floor(
-                    100 + Math.random() * 900
-                  )}`,
-                }
-              : c
-          )
-        );
-        message.success(
-          `Mandate successfully rolled over to ${targetQuarter} with manual values!`
-        );
-        setIsEditModalOpen(false);
-        setSelectedCandidate(null);
-        return;
-      }
-
       const res: any = await executeSingleRollover(payload).unwrap();
       message.success(
         res?.message ||
@@ -310,30 +132,6 @@ export default function RolloverPage() {
       setSelectedCandidate(null);
       refetch();
     } catch (err: any) {
-      if (!hasApiData || String(selectedCandidate?.investmentId).startsWith("seed-")) {
-        setPresentationCandidates((prev) =>
-          prev.map((c) =>
-            c.investmentId === payload.investmentId
-              ? {
-                  ...c,
-                  isRolledOver: true,
-                  endingPrincipal: payload.newPrincipal,
-                  suggestedNewPrincipal: payload.newPrincipal,
-                  netClosingBalance: payload.newPrincipal,
-                  existingRolloverTransactionId: `LP-TX-${targetQuarter}-${Math.floor(
-                    100 + Math.random() * 900
-                  )}`,
-                }
-              : c
-          )
-        );
-        message.success(
-          `Mandate successfully rolled over to ${targetQuarter} with manual values!`
-        );
-        setIsEditModalOpen(false);
-        setSelectedCandidate(null);
-        return;
-      }
       message.error(
         err?.data?.message || err?.message || "Failed to execute rollover"
       );
@@ -343,28 +141,6 @@ export default function RolloverPage() {
   // Quick 100% full compounding rollover
   const handleQuickRollover = async (candidate: any) => {
     try {
-      if (!hasApiData || String(candidate.investmentId).startsWith("seed-")) {
-        setPresentationCandidates((prev) =>
-          prev.map((c) =>
-            c.investmentId === candidate.investmentId
-              ? {
-                  ...c,
-                  isRolledOver: true,
-                  existingRolloverTransactionId: `LP-TX-${targetQuarter}-${Math.floor(
-                    100 + Math.random() * 900
-                  )}`,
-                }
-              : c
-          )
-        );
-        message.success(
-          `Mandate for ${
-            candidate.user?.name || "client"
-          } rolled over to ${targetQuarter}!`
-        );
-        return;
-      }
-
       const payload = {
         investmentId: candidate.investmentId,
         targetQuarter,
@@ -385,27 +161,6 @@ export default function RolloverPage() {
       );
       refetch();
     } catch (err: any) {
-      if (!hasApiData || String(candidate.investmentId).startsWith("seed-")) {
-        setPresentationCandidates((prev) =>
-          prev.map((c) =>
-            c.investmentId === candidate.investmentId
-              ? {
-                  ...c,
-                  isRolledOver: true,
-                  existingRolloverTransactionId: `LP-TX-${targetQuarter}-${Math.floor(
-                    100 + Math.random() * 900
-                  )}`,
-                }
-              : c
-          )
-        );
-        message.success(
-          `Mandate for ${
-            candidate.user?.name || "client"
-          } rolled over to ${targetQuarter}!`
-        );
-        return;
-      }
       message.error(
         err?.data?.message || err?.message || "Failed to execute quick rollover"
       );
@@ -424,32 +179,6 @@ export default function RolloverPage() {
     }
 
     try {
-      if (
-        !hasApiData ||
-        pendingCandidates.some((c: any) =>
-          String(c.investmentId).startsWith("seed-")
-        )
-      ) {
-        setPresentationCandidates((prev) =>
-          prev.map((c) =>
-            !c.isRolledOver
-              ? {
-                  ...c,
-                  isRolledOver: true,
-                  existingRolloverTransactionId: `LP-TX-${targetQuarter}-${Math.floor(
-                    100 + Math.random() * 900
-                  )}`,
-                }
-              : c
-          )
-        );
-        message.success(
-          `Batch rollover completed! ${pendingCandidates.length} mandates advanced to ${targetQuarter}.`
-        );
-        setIsBatchModalOpen(false);
-        return;
-      }
-
       const rollovers = pendingCandidates.map((c: any) => ({
         investmentId: c.investmentId,
         newPrincipal:
@@ -473,31 +202,6 @@ export default function RolloverPage() {
       setIsBatchModalOpen(false);
       refetch();
     } catch (err: any) {
-      if (
-        !hasApiData ||
-        pendingCandidates.some((c: any) =>
-          String(c.investmentId).startsWith("seed-")
-        )
-      ) {
-        setPresentationCandidates((prev) =>
-          prev.map((c) =>
-            !c.isRolledOver
-              ? {
-                  ...c,
-                  isRolledOver: true,
-                  existingRolloverTransactionId: `LP-TX-${targetQuarter}-${Math.floor(
-                    100 + Math.random() * 900
-                  )}`,
-                }
-              : c
-          )
-        );
-        message.success(
-          `Batch rollover completed! ${pendingCandidates.length} mandates advanced to ${targetQuarter}.`
-        );
-        setIsBatchModalOpen(false);
-        return;
-      }
       message.error(
         err?.data?.message || err?.message || "Failed to execute batch rollover"
       );
@@ -507,25 +211,6 @@ export default function RolloverPage() {
   // Handle run daily accruals
   const handleCalculateAccruals = async () => {
     try {
-      if (!hasApiData) {
-        setPresentationCandidates((prev) =>
-          prev.map((c) => {
-            const added = Math.round(Number(c.endingPrincipal || 0) * 0.002);
-            return {
-              ...c,
-              accruedReturn: Number(c.accruedReturn || 0) + added,
-              netClosingBalance: Number(c.netClosingBalance || 0) + added,
-              suggestedNewPrincipal:
-                Number(c.suggestedNewPrincipal || 0) + added,
-            };
-          })
-        );
-        message.success(
-          "Daily accruals successfully updated for all active mandates!"
-        );
-        return;
-      }
-
       const res: any = await calculateDailyAccruals({}).unwrap();
       message.success(
         res?.message ||
@@ -533,20 +218,8 @@ export default function RolloverPage() {
       );
       refetch();
     } catch (err: any) {
-      setPresentationCandidates((prev) =>
-        prev.map((c) => {
-          const added = Math.round(Number(c.endingPrincipal || 0) * 0.002);
-          return {
-            ...c,
-            accruedReturn: Number(c.accruedReturn || 0) + added,
-            netClosingBalance: Number(c.netClosingBalance || 0) + added,
-            suggestedNewPrincipal:
-              Number(c.suggestedNewPrincipal || 0) + added,
-          };
-        })
-      );
-      message.success(
-        "Daily accruals successfully updated for all active mandates!"
+      message.error(
+        err?.data?.message || err?.message || "Failed to calculate daily accruals"
       );
     }
   };
@@ -859,33 +532,6 @@ export default function RolloverPage() {
           </div>
         </div>
 
-        {/* Presentation Seed Banner (Active when live backend has no candidates) */}
-        {!hasApiData && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-950/70 border border-emerald-400/30 px-5 py-3 rounded-2xl text-white backdrop-blur-md mb-6 shadow-md">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 flex-shrink-0">
-                <Sparkles className="w-4 h-4 animate-pulse" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-white tracking-tight">
-                  Presentation Mode Active • Test Mandates Seeded
-                </p>
-                <p className="text-[11px] text-emerald-200/80 font-medium">
-                  Showing eligible test mandates reaching rollover from {sourceQuarter} to {targetQuarter}. Configure terms or test 100% full rollover.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleResetDemoData}
-              className="self-start sm:self-auto flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/20 transition-all cursor-pointer shadow-xs"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-emerald-300" />
-              <span>Reset Test Data</span>
-            </button>
-          </div>
-        )}
-
         {/* 4 KPI Cards Matching Dashboard Screenshot Design */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
           {/* Card 1: Ending Principal */}
@@ -1030,7 +676,7 @@ export default function RolloverPage() {
             columns={columns}
             dataSource={filteredCandidates}
             rowKey={(record) => record.investmentId || record.transactionId}
-            loading={isLoading && hasApiData}
+            loading={isLoading}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
