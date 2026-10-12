@@ -4,7 +4,7 @@ import Navbar from "@/app/(components)/Navbar";
 import Sidebar from "@/app/(components)/Sidebar";
 import AppTour from "@/lib/tour/AppTour";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { store } from "../../services/store";
@@ -18,6 +18,7 @@ const AuthProvider = dynamic(
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<{ role?: string } | null>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -35,15 +36,24 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (user) {
-      if (user.role === "admin" || user.role === "superadmin") {
-        router.push("/dashboard"); // Redirect admins to the admin dashboard.
-      } else if (user.role === "user") {
-        router.push("/landing"); // Redirect regular users to their dashboard.
-      } else {
-        router.push("/signup"); // Handle unauthorized roles.
+      if (pathname === "/" || pathname === "") {
+        if (user.role === "admin" || user.role === "superadmin") {
+          router.push("/dashboard");
+        } else if (user.role === "user") {
+          router.push("/landing");
+        } else {
+          router.push("/signup");
+        }
+      } else if (
+        user.role &&
+        user.role !== "admin" &&
+        user.role !== "superadmin" &&
+        user.role !== "user"
+      ) {
+        router.push("/signup");
       }
     }
-  }, [user, router]);
+  }, [user, pathname, router]);
 
   return (
     <AuthProvider>
