@@ -25,6 +25,7 @@ import {
   getSeenTours,
   markTourSeen,
   resetSeenTours,
+  createUser,
 } from "./features/auth/controllers/user.controller.js";
 
 // Investment controllers
@@ -217,6 +218,7 @@ export async function dispatchApiRequest(
     }
     if (segs.length === 1) {
       if (method === "GET") return runHandlerChain(webReq, params, [getAllUsers]);
+      if (method === "POST") return runHandlerChain(webReq, params, [createUser]);
     }
     if (segs[1] === "admin" && method === "GET") {
       return runHandlerChain(webReq, params, [getAllAdmin]);

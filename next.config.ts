@@ -17,10 +17,7 @@ const nextConfig: NextConfig = {
   },
   // Enable Turbopack (Next.js 16 default)
   turbopack: {},
-  // Handle hydration issues
-  experimental: {
-    optimizeCss: true,
-  },
+
   // Suppress hydration warnings in development
   webpack: (config: any, { dev }: { dev: boolean }) => {
     if (dev) {

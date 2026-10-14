@@ -39,6 +39,71 @@ export const deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
+export const createUser = catchAsync(async (req, res, next) => {
+  const {
+    name,
+    displayName,
+    email,
+    password,
+    passwordConfirm,
+    license,
+    role = "user",
+    designation,
+  } = req.body;
+
+  if (!name || !email || !password) {
+    return next(new AppError("Name, email, and password are required", 400));
+  }
+
+  const sanitizedEmail = String(email).trim().toLowerCase();
+  const sanitizedName = String(name).trim();
+  const sanitizedDisplayName =
+    displayName && String(displayName).trim()
+      ? String(displayName).trim()
+      : sanitizedName;
+
+  // Check if email already exists
+  const existingEmail = await User.findOne({ email: sanitizedEmail });
+  if (existingEmail) {
+    return next(new AppError("Email already registered", 400));
+  }
+
+  // Check if name already exists
+  const existingName = await User.findOne({ name: sanitizedName });
+  if (existingName) {
+    return next(new AppError("Username already exists", 400));
+  }
+
+  const effectivePasswordConfirm = passwordConfirm || password;
+
+  const userData = {
+    name: sanitizedName,
+    displayName: sanitizedDisplayName,
+    email: sanitizedEmail,
+    password,
+    passwordConfirm: effectivePasswordConfirm,
+    role,
+    designation: designation ? String(designation).trim() : undefined,
+    mustChangePassword: true,
+    agreedToTerms: false,
+  };
+
+  if (license && String(license).trim()) {
+    userData.license = String(license).trim();
+  }
+
+  const newUser = await User.create(userData);
+  newUser.password = undefined;
+
+  res.status(201).json({
+    status: "success",
+    data: {
+      user: newUser,
+    },
+    user: newUser,
+  });
+});
+
 export const getAll = catchAsync(async (req, res, next) => {
   const allUsers = await User.find({ role: "user" });
   console.log("allUsers", allUsers);

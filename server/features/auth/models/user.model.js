@@ -13,6 +13,11 @@ const userSchema = new mongoose.Schema(
     displayName: {
       type: String,
       unique: true,
+      sparse: true,
+    },
+    designation: {
+      type: String,
+      trim: true,
     },
     email: {
       type: String,
@@ -46,6 +51,7 @@ const userSchema = new mongoose.Schema(
     license: {
       type: String,
       unique: true,
+      sparse: true,
     },
     password: {
       type: String,

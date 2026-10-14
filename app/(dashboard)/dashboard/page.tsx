@@ -116,7 +116,12 @@ export default function DashboardPage() {
   const handleAddClientSubmit = async (values: any) => {
     try {
       await createUser({
-        ...values,
+        name: values.name?.trim(),
+        displayName: values.displayName?.trim() || values.name?.trim(),
+        email: values.email?.trim()?.toLowerCase(),
+        license: values.license?.trim() || undefined,
+        password: values.password,
+        passwordConfirm: values.password,
         role: "user",
       }).unwrap();
       toast.success("Client added successfully");
@@ -233,10 +238,17 @@ export default function DashboardPage() {
         <Form form={form} layout="vertical" onFinish={handleAddClientSubmit}>
           <Form.Item
             name="name"
-            label="Full Name"
+            label="Full Name / Username"
             rules={[{ required: true, message: "Please enter client name" }]}
           >
             <Input placeholder="e.g. John Doe" />
+          </Form.Item>
+          <Form.Item
+            name="displayName"
+            label="Display Name"
+            rules={[{ required: true, message: "Please enter display name" }]}
+          >
+            <Input placeholder="e.g. John D." />
           </Form.Item>
           <Form.Item
             name="email"
@@ -250,17 +262,19 @@ export default function DashboardPage() {
           </Form.Item>
           <Form.Item
             name="license"
-            label="Client ID / Code"
-            rules={[{ required: true, message: "Please enter client code" }]}
+            label="Client ID / Code (Optional)"
           >
-            <Input placeholder="e.g. 2024015" />
+            <Input placeholder="Leave blank to auto-generate (e.g. CL-2026001)" />
           </Form.Item>
           <Form.Item
             name="password"
             label="Temporary Password"
-            rules={[{ required: true, message: "Please enter password" }]}
+            rules={[
+              { required: true, message: "Please enter password" },
+              { min: 8, message: "Password must be at least 8 characters" },
+            ]}
           >
-            <Input.Password placeholder="Enter password" />
+            <Input.Password placeholder="Enter temporary password" />
           </Form.Item>
           <div className="flex justify-end gap-2 mt-6">
             <Button onClick={() => setIsAddClientOpen(false)}>Cancel</Button>

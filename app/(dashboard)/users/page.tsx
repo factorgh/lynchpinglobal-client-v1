@@ -19,7 +19,7 @@ import {
   EditOutlined,
   FolderOpenOutlined,
 } from "@ant-design/icons";
-import { Button, Drawer, Form, Input, Skeleton } from "antd";
+import { Button, Drawer, Form, Input, Select, Skeleton } from "antd";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -255,8 +255,13 @@ const Users = () => {
                             </div>
                             <div>
                               <span className="text-xs font-semibold text-slate-900 block">
-                                {user.name || "Unnamed User"}
+                                {user.displayName || user.name || "Unnamed User"}
                               </span>
+                              {user.displayName && user.displayName !== user.name && (
+                                <span className="text-[10px] text-slate-400 block -mt-0.5">
+                                  @{user.name}
+                                </span>
+                              )}
                               <span className="text-[11px] text-slate-400">
                                 {user.designation || user.role || "Member"}
                               </span>
@@ -412,10 +417,16 @@ const Users = () => {
         <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
           <Form.Item
             name="name"
-            label="Name"
+            label="Username / Full Name"
             rules={[{ required: true, message: "Please enter the name" }]}
           >
-            <Input />
+            <Input placeholder="e.g. John Doe" />
+          </Form.Item>
+          <Form.Item
+            name="displayName"
+            label="Display Name"
+          >
+            <Input placeholder="e.g. John D." />
           </Form.Item>
           <Form.Item
             name="email"
@@ -425,10 +436,20 @@ const Users = () => {
               { type: "email", message: "Please enter a valid email" },
             ]}
           >
-            <Input />
+            <Input placeholder="e.g. john@example.com" />
           </Form.Item>
           <Form.Item name="designation" label="Designation">
-            <Input />
+            <Select
+              allowClear
+              placeholder="Select designation"
+              options={[
+                { value: "Founder", label: "Founder" },
+                { value: "Director", label: "Director" },
+                { value: "Client", label: "Client" },
+                { value: "Admin", label: "Admin" },
+                { value: "Staff", label: "Staff" },
+              ]}
+            />
           </Form.Item>
         </Form>
       </Drawer>

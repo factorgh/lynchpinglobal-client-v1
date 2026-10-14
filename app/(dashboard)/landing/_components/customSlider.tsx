@@ -8,37 +8,37 @@ const CustomSlider = () => {
   // Slides content with image paths
   const slides = [
     {
-      backgroundImage: "/showcase11.png",
+      backgroundImage: "/showcase.png",
       title: "Slide 1",
       description: "Description for Slide 1",
     },
     {
-      backgroundImage: "/showcase12.png",
+      backgroundImage: "/showcase2.png",
       title: "Slide 2",
       description: "Description for Slide 2",
     },
     {
-      backgroundImage: "/showcase3.jpg",
+      backgroundImage: "/showcase3.png",
       title: "Slide 3",
       description: "Description for Slide 3",
     },
     {
-      backgroundImage: "/showcase4.jpg",
+      backgroundImage: "/showcase4.png",
       title: "Slide 4",
       description: "Description for Slide 4",
     },
     {
-      backgroundImage: "/showcase5.jpg",
+      backgroundImage: "/showcase5.png",
       title: "Slide 4",
       description: "Description for Slide 4",
     },
     {
-      backgroundImage: "/showcase6.jpg",
+      backgroundImage: "/showcase6.png",
       title: "Slide 4",
       description: "Description for Slide 4",
     },
     {
-      backgroundImage: "/showcase7.jpg",
+      backgroundImage: "/showcase7.png",
       title: "Slide 4",
       description: "Description for Slide 4",
     },
