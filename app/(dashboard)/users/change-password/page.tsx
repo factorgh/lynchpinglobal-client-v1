@@ -5,6 +5,7 @@ import { useUpdatePasswordMutation } from "@/services/auth";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import Wrapper from "../../wealth/_components/wapper";
+import ProfileImageUpload from "@/app/(components)/ProfileUpload/ProfileImageUpload";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -21,11 +22,26 @@ import {
   EyeInvisibleOutlined,
   ArrowLeftOutlined,
   SafetyCertificateOutlined,
+  UserOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  IdcardOutlined,
+  SaveOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
+
+  // Profile Form States
+  const [profileName, setProfileName] = useState("");
+  const [profileDisplayName, setProfileDisplayName] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  // Password Form States
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
@@ -40,12 +56,76 @@ export default function ChangePasswordPage() {
     try {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
-        setUserInfo(JSON.parse(storedUser));
+        const parsed = JSON.parse(storedUser);
+        setUserInfo(parsed);
+        setProfileName(parsed.name || "");
+        setProfileDisplayName(parsed.displayName || parsed.name || "");
+        setProfilePhone(parsed.phone || "");
+        setProfilePhoto(parsed.photo || null);
       }
     } catch (error) {
       console.error("Failed to load user info:", error);
     }
   }, []);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileName.trim()) {
+      toast.error("Username is required");
+      return;
+    }
+    if (!profileDisplayName.trim()) {
+      toast.error("Display Name is required");
+      return;
+    }
+
+    try {
+      setIsUpdatingProfile(true);
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const authHeader = token
+        ? token.startsWith("Bearer ")
+          ? token
+          : `Bearer ${token}`
+        : "";
+
+      const res = await fetch("/api/v1/users/updateMe", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authHeader,
+        },
+        body: JSON.stringify({
+          name: profileName.trim(),
+          displayName: profileDisplayName.trim(),
+          phone: profilePhone.trim() || undefined,
+          photo: profilePhoto || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to update profile");
+      }
+
+      const updated = {
+        ...userInfo,
+        name: profileName.trim(),
+        displayName: profileDisplayName.trim(),
+        phone: profilePhone.trim(),
+        photo: profilePhoto,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updated));
+      setUserInfo(updated);
+      window.dispatchEvent(new Event("user-profile-updated"));
+      toast.success("Profile information and photo updated successfully");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update profile");
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
 
   // Validation checks
   const checks = useMemo(() => {
@@ -251,34 +331,164 @@ export default function ChangePasswordPage() {
         {/* Left: Primary Password Change Form */}
         <div className="lg:col-span-7">
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
-            {/* User Profile Mini Banner */}
-            <div className="flex items-center gap-4 pb-6 mb-6 border-b border-slate-100">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900 text-white font-extrabold text-lg flex items-center justify-center shadow-md overflow-hidden shrink-0 border-2 border-white">
-                {userInfo?.photo ? (
-                  <img
-                    src={userInfo.photo}
-                    alt={userInfo?.name || "Profile"}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span>{userInitials}</span>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-slate-900 text-sm truncate">
-                    {userInfo?.displayName || userInfo?.name || "Lynchpin Global User"}
-                  </h3>
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100/70 text-emerald-800 uppercase tracking-wider">
-                    {userInfo?.role || "Account"}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 truncate mt-0.5">
-                  {userInfo?.email || "Encrypted User Session"}
-                </p>
-              </div>
+            {/* Tab navigation: Profile vs Password */}
+            <div className="flex items-center gap-2 mb-6 p-1.5 bg-slate-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setActiveTab("profile")}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  activeTab === "profile"
+                    ? "bg-white text-emerald-800 shadow-xs"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                <UserOutlined className="text-xs" />
+                <span>Profile & Photo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("password")}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  activeTab === "password"
+                    ? "bg-white text-emerald-800 shadow-xs"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                <LockOutlined className="text-xs" />
+                <span>Password & Security</span>
+              </button>
             </div>
 
+            {/* TAB 1: PROFILE INFORMATION & PICTURE */}
+            {activeTab === "profile" && (
+              <form onSubmit={handleUpdateProfile} className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">
+                    Profile Picture / Avatar
+                  </label>
+                  <ProfileImageUpload
+                    value={profilePhoto}
+                    onChange={(url) => setProfilePhoto(url)}
+                    initialsFallback={userInitials}
+                    label="Click or Drag photo to update profile picture"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1.5">
+                    Uploaded photos are securely stored in Cloudflare R2 and synced across your portal session.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Display Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Display Name <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <UserOutlined className="text-slate-400 text-sm" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={profileDisplayName}
+                        onChange={(e) => setProfileDisplayName(e.target.value)}
+                        placeholder="e.g. John Doe"
+                        className="w-full pl-10 pr-3 py-2.5 text-xs bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all font-medium"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Shown on your top navbar badge and greetings
+                    </span>
+                  </div>
+
+                  {/* Username */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Username <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <IdcardOutlined className="text-slate-400 text-sm" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        placeholder="e.g. jdoe"
+                        className="w-full pl-10 pr-3 py-2.5 text-xs bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Email (Read-only) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Primary Email
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <MailOutlined className="text-slate-400 text-sm" />
+                      </div>
+                      <input
+                        type="email"
+                        disabled
+                        value={userInfo?.email || ""}
+                        className="w-full pl-10 pr-3 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed font-medium"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Contact administrator to modify primary email
+                    </span>
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <PhoneOutlined className="text-slate-400 text-sm" />
+                      </div>
+                      <input
+                        type="tel"
+                        value={profilePhone}
+                        onChange={(e) => setProfilePhone(e.target.value)}
+                        placeholder="e.g. +233 24 000 0000"
+                        className="w-full pl-10 pr-3 py-2.5 text-xs bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit button */}
+                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                  <button
+                    type="submit"
+                    disabled={isUpdatingProfile}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 shadow-md shadow-emerald-600/20 cursor-pointer transition-all"
+                  >
+                    {isUpdatingProfile ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving Changes...</span>
+                      </>
+                    ) : (
+                      <>
+                        <SaveOutlined className="text-xs" />
+                        <span>Save Profile Changes</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* TAB 2: PASSWORD & SECURITY */}
+            {activeTab === "password" && (
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Current Password */}
               <div>
@@ -537,6 +747,7 @@ export default function ChangePasswordPage() {
                 </button>
               </div>
             </form>
+            )}
           </div>
         </div>
 

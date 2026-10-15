@@ -271,59 +271,105 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     return <UploadOutlined />;
   };
 
+  const CLIENT_CATEGORIES = ["mandate", "certificate", "others"] as const;
+  const ADMIN_CATEGORIES = ["checklist", "partnerForm"] as const;
+
+  const renderCategoryField = (category: string) => (
+    <div key={category} className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs">
+      <Form.Item
+        label={<span className="font-semibold text-xs text-slate-800">{CATEGORY_DISPLAY_NAMES[category] || category}</span>}
+        className="mb-0"
+      >
+        <input
+          type="file"
+          accept="application/pdf,image/*,video/*"
+          multiple
+          onChange={(e) => handleFileChange(category, e)}
+          className="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer w-full"
+        />
+
+        <ul className="w-full mt-2.5 space-y-1.5">
+          {(fileCategories[category] || []).map(
+            ({ previewUrl, mimeType, name }, index) => (
+              <li
+                key={index}
+                className="flex items-center justify-between gap-2 p-2 rounded-lg border border-slate-100 bg-slate-50/70 hover:border-slate-200 text-xs"
+              >
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 min-w-0"
+                >
+                  {renderPreview(previewUrl, mimeType)}
+                  <span className="truncate text-xs font-medium text-slate-700 max-w-[120px]">
+                    {name || previewUrl.split("/").pop()}
+                  </span>
+                </a>
+                <DeleteOutlined
+                  className="text-red-500 cursor-pointer hover:text-red-600 p-1"
+                  onClick={() => handleFileDelete(category, index)}
+                />
+              </li>
+            )
+          )}
+        </ul>
+
+        <Button
+          className="mt-2.5 w-full text-xs font-medium"
+          icon={<UploadOutlined />}
+          type="dashed"
+          size="small"
+          onClick={() => handleUpload(category)}
+          disabled={uploading[category]}
+        >
+          {uploading[category] ? "Uploading to Cloud..." : `Save ${CATEGORY_DISPLAY_NAMES[category]}`}
+        </Button>
+      </Form.Item>
+    </div>
+  );
+
   return (
-    <div className="grid grid-cols-2 gap-4">
-      {FILE_CATEGORIES.map((category) => (
-        <Col key={category} span={6}>
-          <Form.Item
-            label={`Upload ${CATEGORY_DISPLAY_NAMES[category] || category}`}
-          >
-            <input
-              type="file"
-              accept="application/pdf,image/*,video/*"
-              multiple
-              onChange={(e) => handleFileChange(category, e)}
-            />
+    <div className="space-y-5 my-4">
+      {/* 1. Client-Facing Documents Section */}
+      <div className="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-200/80">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-emerald-200/60">
+          <div>
+            <h4 className="font-bold text-xs text-emerald-900 uppercase tracking-wide">
+              Client Documents Section (Visible to Client)
+            </h4>
+            <p className="text-[11px] text-emerald-700/80 mt-0.5">
+              These documents are published directly to the client's portfolio vault
+            </p>
+          </div>
+          <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-100 text-emerald-800">
+            Client Shared
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {CLIENT_CATEGORIES.map(renderCategoryField)}
+        </div>
+      </div>
 
-            <ul className="w-60 mt-3 space-y-1">
-              {(fileCategories[category] || []).map(
-                ({ previewUrl, mimeType, name }, index) => (
-                  <li
-                    key={index}
-                    className="flex items-center justify-between gap-2 p-5 rounded-md border border-gray-200 hover:border-gray-300 "
-                  >
-                    <a
-                      href={previewUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center gap-2"
-                    >
-                      {renderPreview(previewUrl, mimeType)}
-                      <h5 className="truncate text-sm text-gray-700 max-w-[140px]">
-                        {name || previewUrl.split("/").pop()}
-                      </h5>
-                    </a>
-                    <DeleteOutlined
-                      className="text-red-500 cursor-pointer hover:text-red-600"
-                      onClick={() => handleFileDelete(category, index)}
-                    />
-                  </li>
-                )
-              )}
-            </ul>
-
-            <Button
-              className="mt-2"
-              icon={<UploadOutlined />}
-              type="dashed"
-              onClick={() => handleUpload(category)}
-              disabled={uploading[category]}
-            >
-              {uploading[category] ? "Uploading..." : "Upload"}
-            </Button>
-          </Form.Item>
-        </Col>
-      ))}
+      {/* 2. Admin Documents Section */}
+      <div className="p-3.5 rounded-2xl bg-amber-50/40 border border-amber-200/80">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-200/60">
+          <div>
+            <h4 className="font-bold text-xs text-amber-900 uppercase tracking-wide">
+              Admin Documents Section (Confidential / Internal)
+            </h4>
+            <p className="text-[11px] text-amber-700/80 mt-0.5">
+              Strictly internal due diligence checklists and partner contracts (hidden from client)
+            </p>
+          </div>
+          <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-amber-100 text-amber-800">
+            Admin Only
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {ADMIN_CATEGORIES.map(renderCategoryField)}
+        </div>
+      </div>
     </div>
   );
 };

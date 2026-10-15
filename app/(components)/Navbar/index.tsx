@@ -27,14 +27,25 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
   const [readAll] = useReadAllNotificationsMutation();
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("user");
-      if (stored) {
-        setUser(JSON.parse(stored));
+    const loadUser = () => {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          setUser(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    };
+
+    loadUser();
+    window.addEventListener("user-profile-updated", loadUser);
+    window.addEventListener("storage", loadUser);
+
+    return () => {
+      window.removeEventListener("user-profile-updated", loadUser);
+      window.removeEventListener("storage", loadUser);
+    };
   }, []);
 
   const handleShowInboxForm = () => {
@@ -148,7 +159,15 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
                 : []),
               {
                 key: "password",
-                label: <Link href="/users/change-password" className="text-xs font-medium text-slate-700">Change Password</Link>,
+                label: (
+                  <Link
+                    href="/users/change-password"
+                    className="text-xs font-semibold text-slate-700 flex items-center justify-between"
+                  >
+                    <span>Profile & Security</span>
+                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Settings</span>
+                  </Link>
+                ),
               },
               {
                 type: "divider",

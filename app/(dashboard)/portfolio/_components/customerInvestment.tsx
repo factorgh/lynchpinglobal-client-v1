@@ -9,10 +9,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
-import { useGetUserInvestmentsQuery } from "@/services/investment";
+import {
+  useGetUserInvestmentsQuery,
+  useUpdateInvestmentMutation,
+} from "@/services/investment";
 import {
   EyeOutlined,
   FolderOpenOutlined,
+  UploadOutlined,
+  DeleteOutlined,
+  ExportOutlined,
+  LoadingOutlined,
+  PaperClipOutlined,
 } from "@ant-design/icons";
 import {
   Card,
@@ -23,11 +31,19 @@ import {
   Skeleton,
   Table as AntdTable,
   Tag,
+  Button,
 } from "antd";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  FileText,
+  ShieldCheck,
+} from "lucide-react";
 import moment from "moment";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { AiOutlineFilePdf } from "react-icons/ai";
+import { toast } from "react-toastify";
 
 interface AddOn {
   id: string;
@@ -114,6 +130,107 @@ const CustomerInvestment: React.FC = () => {
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, currentPage, pageSize]);
 
+  const [updateInvestment, { isLoading: isUpdatingInvestment }] =
+    useUpdateInvestmentMutation();
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClientFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedInvestment?._id) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File size cannot exceed 15MB");
+      return;
+    }
+
+    try {
+      setIsUploadingDoc(true);
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const formData = new FormData();
+      formData.append("files", file);
+      formData.append("category", "mandates/client-docs");
+
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = token.startsWith("Bearer ")
+          ? token
+          : `Bearer ${token}`;
+      }
+
+      const res = await fetch("/api/v1/uploads", {
+        method: "POST",
+        headers,
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Upload failed");
+      }
+
+      const data = await res.json();
+      const uploadedUrl =
+        data?.uploads?.[0]?.url ||
+        data?.urls?.[0]?.secure_url ||
+        data?.urls?.[0]?.url;
+
+      if (!uploadedUrl) {
+        throw new Error("No URL returned from storage service");
+      }
+
+      const updatedOthers = [
+        ...(selectedInvestment.others || []),
+        uploadedUrl,
+      ];
+
+      await updateInvestment({
+        id: selectedInvestment._id,
+        data: { others: updatedOthers },
+      }).unwrap();
+
+      setSelectedInvestment((prev) =>
+        prev ? { ...prev, others: updatedOthers } : null
+      );
+      toast.success("Document attached to mandate successfully");
+    } catch (err: any) {
+      console.error("[ClientDocUpload] Error:", err);
+      toast.error(
+        err?.data?.message || err?.message || "Failed to upload document"
+      );
+    } finally {
+      setIsUploadingDoc(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleDeleteClientDoc = async (urlToDelete: string) => {
+    if (!selectedInvestment?._id) return;
+    try {
+      const updatedOthers = (selectedInvestment.others || []).filter(
+        (u) => u !== urlToDelete
+      );
+      await updateInvestment({
+        id: selectedInvestment._id,
+        data: { others: updatedOthers },
+      }).unwrap();
+
+      setSelectedInvestment((prev) =>
+        prev ? { ...prev, others: updatedOthers } : null
+      );
+      toast.success("Document removed successfully");
+    } catch (err: any) {
+      toast.error(
+        err?.data?.message || err?.message || "Failed to remove document"
+      );
+    }
+  };
+
   const showViewDrawer = (investment: DataType) => {
     setSelectedInvestment(investment);
     setDrawerVisible(true);
@@ -124,8 +241,7 @@ const CustomerInvestment: React.FC = () => {
     setSelectedInvestment(null);
   };
 
-  const handlePreviewOut = (previewFile: string, index: number) => {
-    setDrawerVisible(false);
+  const handlePreviewOut = (previewFile: string, index?: number) => {
     window.open(previewFile, "_blank");
   };
 
@@ -444,114 +560,232 @@ const CustomerInvestment: React.FC = () => {
               )}
             </Card>
 
-            {/* Documents Section */}
-            <Card title="Mandate Documentation" bordered={false}>
-              {selectedInvestment?.certificate &&
-                selectedInvestment.certificate.length > 0 && (
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-xs text-slate-700 mb-1">
-                      Ledger
-                    </h4>
-                    <Row gutter={16}>
-                      {selectedInvestment.certificate.map((fileUrl, index) => (
-                        <Col span={8} key={index}>
-                          <AiOutlineFilePdf
-                            size={36}
-                            className="cursor-pointer text-red-500 hover:text-red-600 mt-2"
-                            onClick={() => handlePreviewOut(fileUrl, index)}
-                          />
-                        </Col>
-                      ))}
-                    </Row>
+            {/* Mandate Documentation Section: Client-Facing Only */}
+            <Card
+              title={
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <PaperClipOutlined className="text-base text-emerald-600" />
+                    <span className="font-bold text-sm text-slate-800">
+                      Mandate Documents & Client Uploads
+                    </span>
                   </div>
-                )}
-
-              {selectedInvestment?.checklist &&
-                selectedInvestment.checklist.length > 0 && (
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-xs text-slate-700 mb-1">
-                      Checklists
-                    </h4>
-                    <Row gutter={16}>
-                      {selectedInvestment.checklist.map((fileUrl, index) => (
-                        <Col span={8} key={index}>
-                          <AiOutlineFilePdf
-                            size={36}
-                            className="cursor-pointer text-red-500 hover:text-red-600 mt-2"
-                            onClick={() => handlePreviewOut(fileUrl, index)}
-                          />
-                        </Col>
-                      ))}
-                    </Row>
+                  <Tag color="emerald" className="text-[11px] font-semibold">
+                    Verified Client Vault
+                  </Tag>
+                </div>
+              }
+              bordered={false}
+              className="shadow-xs rounded-xl"
+            >
+              {/* Client Upload Widget */}
+              <div className="mb-5 p-4 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                    <UploadOutlined className="w-5 h-5" />
                   </div>
-                )}
+                  <div>
+                    <h5 className="font-bold text-xs text-slate-900 leading-tight">
+                      Upload Supporting Document
+                    </h5>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Upload signed agreements, payment receipts, or KYC verification files (PDF, PNG, JPG, up to 15MB)
+                    </p>
+                  </div>
+                </div>
 
+                <div className="shrink-0 w-full sm:w-auto">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf,image/*"
+                    onChange={handleClientFileUpload}
+                    className="hidden"
+                    id="client-doc-upload-input"
+                  />
+                  <Button
+                    type="primary"
+                    onClick={() => fileInputRef.current?.click()}
+                    loading={isUploadingDoc}
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs flex items-center justify-center gap-1.5"
+                  >
+                    {isUploadingDoc ? (
+                      <>
+                        <LoadingOutlined className="text-xs" />
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadOutlined className="w-3.5 h-3.5" />
+                        <span>Attach Document</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* 1. Mandate Contract (Client-Facing) */}
               {selectedInvestment?.mandate &&
                 selectedInvestment.mandate.length > 0 && (
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-xs text-slate-700 mb-1">
-                      Mandates
-                    </h4>
-                    <Row gutter={16}>
-                      {selectedInvestment.mandate.map((fileUrl, index) => (
-                        <Col span={8} key={index}>
-                          <AiOutlineFilePdf
-                            size={36}
-                            className="cursor-pointer text-red-500 hover:text-red-600 mt-2"
-                            onClick={() => handlePreviewOut(fileUrl, index)}
-                          />
-                        </Col>
-                      ))}
-                    </Row>
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                      <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+                        Mandate Agreements ({selectedInvestment.mandate.length})
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {selectedInvestment.mandate.map((fileUrl, index) => {
+                        const fileName =
+                          fileUrl.split("/").pop()?.split("?")[0] ||
+                          `Mandate-Agreement-${index + 1}.pdf`;
+                        return (
+                          <div
+                            key={index}
+                            className="p-3 rounded-lg border border-slate-200 bg-white hover:border-blue-400 hover:shadow-xs transition-all flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <AiOutlineFilePdf className="text-2xl text-rose-500 shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>
+                                  {fileName}
+                                </p>
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  Official Mandate Contract
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              size="small"
+                              type="text"
+                              onClick={() => handlePreviewOut(fileUrl)}
+                              icon={<ExportOutlined className="text-xs text-blue-600" />}
+                              className="shrink-0 hover:bg-blue-50"
+                              title="View Document"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
-              {selectedInvestment?.partnerForm &&
-                selectedInvestment.partnerForm.length > 0 && (
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-xs text-slate-700 mb-1">
-                      Partner Forms
-                    </h4>
-                    <Row gutter={16}>
-                      {selectedInvestment.partnerForm.map((fileUrl, index) => (
-                        <Col span={8} key={index}>
-                          <AiOutlineFilePdf
-                            size={36}
-                            className="cursor-pointer text-red-500 hover:text-red-600 mt-2"
-                            onClick={() => handlePreviewOut(fileUrl, index)}
-                          />
-                        </Col>
-                      ))}
-                    </Row>
+              {/* 2. Certificate & Ledger (Client-Facing) */}
+              {selectedInvestment?.certificate &&
+                selectedInvestment.certificate.length > 0 && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+                        Ledger & Certificates ({selectedInvestment.certificate.length})
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {selectedInvestment.certificate.map((fileUrl, index) => {
+                        const fileName =
+                          fileUrl.split("/").pop()?.split("?")[0] ||
+                          `Certificate-${index + 1}.pdf`;
+                        return (
+                          <div
+                            key={index}
+                            className="p-3 rounded-lg border border-slate-200 bg-white hover:border-emerald-400 hover:shadow-xs transition-all flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <AiOutlineFilePdf className="text-2xl text-emerald-600 shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>
+                                  {fileName}
+                                </p>
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  Certificate of Allocation
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              size="small"
+                              type="text"
+                              onClick={() => handlePreviewOut(fileUrl)}
+                              icon={<ExportOutlined className="text-xs text-emerald-600" />}
+                              className="shrink-0 hover:bg-emerald-50"
+                              title="View Document"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
+              {/* 3. Client & Supporting Documents (Client Uploads / Others) */}
               {selectedInvestment?.others &&
                 selectedInvestment.others.length > 0 && (
-                  <div className="mb-3">
-                    <h4 className="font-semibold text-xs text-slate-700 mb-1">
-                      Others
-                    </h4>
-                    <Row gutter={16}>
-                      {selectedInvestment.others.map((fileUrl, index) => (
-                        <Col span={8} key={index}>
-                          <AiOutlineFilePdf
-                            size={36}
-                            className="cursor-pointer text-red-500 hover:text-red-600 mt-2"
-                            onClick={() => handlePreviewOut(fileUrl, index)}
-                          />
-                        </Col>
-                      ))}
-                    </Row>
+                  <div className="mb-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                      <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+                        Client & Supporting Documents ({selectedInvestment.others.length})
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {selectedInvestment.others.map((fileUrl, index) => {
+                        const fileName =
+                          fileUrl.split("/").pop()?.split("?")[0] ||
+                          `Document-${index + 1}`;
+                        return (
+                          <div
+                            key={index}
+                            className="p-3 rounded-lg border border-slate-200 bg-white hover:border-purple-300 hover:shadow-xs transition-all flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <FileText className="w-5 h-5 text-purple-600 shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>
+                                  {fileName}
+                                </p>
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  Attached Supporting File
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Button
+                                size="small"
+                                type="text"
+                                onClick={() => handlePreviewOut(fileUrl)}
+                                icon={<ExportOutlined className="text-xs text-purple-600" />}
+                                className="hover:bg-purple-50"
+                                title="View Document"
+                              />
+                              <Button
+                                size="small"
+                                type="text"
+                                danger
+                                onClick={() => handleDeleteClientDoc(fileUrl)}
+                                icon={<DeleteOutlined className="text-xs" />}
+                                className="hover:bg-rose-50"
+                                title="Remove File"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
+              {/* Empty State */}
               {!selectedInvestment?.certificate?.length &&
-                !selectedInvestment?.checklist?.length &&
                 !selectedInvestment?.mandate?.length &&
-                !selectedInvestment?.partnerForm?.length &&
                 !selectedInvestment?.others?.length && (
-                  <Tag color="red">No Documents available</Tag>
+                  <div className="text-center py-6 border border-slate-100 rounded-xl bg-slate-50/50">
+                    <PaperClipOutlined className="text-3xl text-slate-300 mx-auto mb-2 block" />
+                    <p className="text-xs font-semibold text-slate-600">
+                      No client documents attached yet
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Use the "Attach Document" button above to upload signed mandates or receipts
+                    </p>
+                  </div>
                 )}
             </Card>
           </div>

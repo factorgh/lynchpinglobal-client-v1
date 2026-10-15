@@ -424,12 +424,29 @@ const InvestmentDetailDrawer = ({
           />
         </Card>
 
-        <Card title="Mandate Documentation" bordered={false}>
-          {renderDocSection("Ledger", investment?.certificate)}
-          {renderDocSection("Partner Forms", investment?.partnerForm)}
-          {renderDocSection("Checklists", investment?.checklist)}
-          {renderDocSection("Mandates", investment?.mandate)}
-          {renderDocSection("Others", investment?.others)}
+        <Card title="Mandate Documentation Vault" bordered={false} className="shadow-xs rounded-xl">
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded">
+                Client-Facing Documents (Visible to Client)
+              </span>
+              <span className="text-[11px] text-slate-500">Shared in client portal</span>
+            </div>
+            {renderDocSection("Mandates", investment?.mandate)}
+            {renderDocSection("Ledger & Certificate", investment?.certificate)}
+            {renderDocSection("Client & Supporting Documents (Others)", investment?.others)}
+          </div>
+
+          <div className="pt-4 border-t border-slate-200">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded">
+                Admin Internal Documents (Confidential / Internal)
+              </span>
+              <span className="text-[11px] text-amber-600 font-medium">Hidden from client</span>
+            </div>
+            {renderDocSection("Checklists", investment?.checklist)}
+            {renderDocSection("Partner Forms", investment?.partnerForm)}
+          </div>
         </Card>
       </Drawer>
 

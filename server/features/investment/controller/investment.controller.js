@@ -148,11 +148,14 @@ export const updateInvestment = catchAsync(async (req, res, next) => {
   }
   const isAdmin =
     req.user && (req.user.role === "admin" || req.user.role === "superadmin");
-  const requesterId = req.user._id;
-  const isOwner = existing.owners?.some(
-    (o) => String(o.user?._id || o.user) === String(requesterId),
+  const requesterId = String(req.user._id || req.user.id);
+  const isDirectOwner =
+    existing.userId &&
+    String(existing.userId._id || existing.userId) === requesterId;
+  const isJointOwner = existing.owners?.some(
+    (o) => String(o.user?._id || o.user) === requesterId,
   );
-  if (!isAdmin && !isOwner) {
+  if (!isAdmin && !isDirectOwner && !isJointOwner) {
     return res.status(403).json({ status: "fail", message: "Not authorized" });
   }
 
