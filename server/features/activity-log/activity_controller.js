@@ -8,7 +8,19 @@ import {
 
 import ActivityLog from "./activity.model.js";
 
-export const createActivityLog = createOne(ActivityLog);
+export const createActivityLog = catchAsync(async (req, res, next) => {
+  const data = { ...req.body };
+  if (!data.user && req.user?._id) {
+    data.user = req.user._id;
+  }
+  const doc = await ActivityLog.create(data);
+  res.status(201).json({
+    status: "success",
+    data: {
+      data: doc,
+    },
+  });
+});
 export const deleteActivityLog = deleteOne(ActivityLog);
 export const updateActivityLog = updateOne(ActivityLog);
 // export const getAllActivityLogs = getAll(ActivityLog);

@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "pub-4e16d0b402584209bb0ec5b0e5c99bec.r2.dev",
+        pathname: "/**",
+      },
     ],
   },
   // Enable Turbopack (Next.js 16 default)

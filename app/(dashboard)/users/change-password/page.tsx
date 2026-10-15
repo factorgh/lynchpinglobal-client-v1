@@ -1,10 +1,28 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useUpdatePasswordMutation } from "@/services/auth";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import PasswordStrengthMeter from "@/components/PasswordStrengthMeter";
+import Wrapper from "../../wealth/_components/wapper";
+import {
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  Sparkles,
+  RefreshCw,
+  ChevronLeft,
+} from "lucide-react";
+import {
+  LockOutlined,
+  KeyOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
+  ArrowLeftOutlined,
+  SafetyCertificateOutlined,
+} from "@ant-design/icons";
+import Link from "next/link";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -12,92 +30,137 @@ export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [updatePassword, { isLoading, error }] = useUpdatePasswordMutation();
+  const [updatePassword, { isLoading }] = useUpdatePasswordMutation();
 
-  // Get user info for password validation
+  // Load user info from localStorage
   useEffect(() => {
-    // Get user info from localStorage or context
     try {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         setUserInfo(JSON.parse(storedUser));
       }
     } catch (error) {
-      console.error("Failed to get user info:", error);
+      console.error("Failed to load user info:", error);
     }
   }, []);
 
-  // Enhanced password validation
-  const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
+  // Validation checks
+  const checks = useMemo(() => {
+    const hasMinLength = newPassword.length >= 12;
+    const hasUpper = /[A-Z]/.test(newPassword);
+    const hasLower = /[a-z]/.test(newPassword);
+    const hasNumber = /\d/.test(newPassword);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
 
-    if (password.length < 12) {
-      errors.push("Password must be at least 12 characters long");
-    }
+    // Personal info checks
+    let hasNoPersonalInfo = true;
+    if (userInfo && newPassword) {
+      const userEmail = (userInfo.email || "").toLowerCase();
+      const userName = (userInfo.name || "").toLowerCase();
+      const displayName = (userInfo.displayName || "").toLowerCase();
+      const lower = newPassword.toLowerCase();
 
-    if (!/[A-Z]/.test(password)) {
-      errors.push("Password must contain at least one uppercase letter");
-    }
-
-    if (!/[a-z]/.test(password)) {
-      errors.push("Password must contain at least one lowercase letter");
-    }
-
-    if (!/\d/.test(password)) {
-      errors.push("Password must contain at least one number");
-    }
-
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      errors.push("Password must contain at least one special character");
-    }
-
-    // Check if password contains user info
-    if (userInfo) {
-      const userEmail = userInfo.email?.toLowerCase() || "";
-      const userName = userInfo.name?.toLowerCase() || "";
-      const displayName = userInfo.displayName?.toLowerCase() || "";
-
-      if (userEmail && password.toLowerCase().includes(userEmail.split("@")[0])) {
-        errors.push("Password cannot contain your email address");
+      if (userEmail && userEmail.includes("@")) {
+        const prefix = userEmail.split("@")[0];
+        if (prefix.length >= 3 && lower.includes(prefix)) {
+          hasNoPersonalInfo = false;
+        }
       }
-
-      if (userName && password.toLowerCase().includes(userName)) {
-        errors.push("Password cannot contain your name");
+      if (userName && userName.length >= 3 && lower.includes(userName)) {
+        hasNoPersonalInfo = false;
       }
-
-      if (displayName && password.toLowerCase().includes(displayName)) {
-        errors.push("Password cannot contain your display name");
+      if (displayName && displayName.length >= 3 && lower.includes(displayName)) {
+        hasNoPersonalInfo = false;
       }
     }
+
+    const isDifferentFromCurrent =
+      !currentPassword || !newPassword || currentPassword !== newPassword;
+    const passwordsMatch =
+      newPassword.length > 0 &&
+      newPasswordConfirm.length > 0 &&
+      newPassword === newPasswordConfirm;
 
     return {
-      isValid: errors.length === 0,
-      errors,
+      hasMinLength,
+      hasUpper,
+      hasLower,
+      hasNumber,
+      hasSpecial,
+      hasNoPersonalInfo,
+      isDifferentFromCurrent,
+      passwordsMatch,
     };
-  };
+  }, [newPassword, newPasswordConfirm, currentPassword, userInfo]);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  // Strength score
+  const strength = useMemo(() => {
+    if (!newPassword) {
+      return { score: 0, label: "Enter Password", color: "bg-slate-200", text: "text-slate-400" };
+    }
+
+    let score = 0;
+    if (newPassword.length >= 8) score += 1;
+    if (checks.hasMinLength) score += 1;
+    if (checks.hasUpper && checks.hasLower) score += 1;
+    if (checks.hasNumber) score += 1;
+    if (checks.hasSpecial) score += 1;
+    if (newPassword.length >= 16) score += 1;
+
+    if (score <= 2) {
+      return { score: 25, label: "Weak", color: "bg-rose-500", text: "text-rose-600" };
+    } else if (score === 3 || score === 4) {
+      return { score: 55, label: "Fair", color: "bg-amber-500", text: "text-amber-600" };
+    } else if (score === 5) {
+      return { score: 80, label: "Good", color: "bg-teal-500", text: "text-teal-600" };
+    } else {
+      return { score: 100, label: "Excellent", color: "bg-emerald-600", text: "text-emerald-700" };
+    }
+  }, [newPassword, checks]);
+
+  const isFormValid =
+    currentPassword.length > 0 &&
+    checks.hasMinLength &&
+    checks.hasUpper &&
+    checks.hasLower &&
+    checks.hasNumber &&
+    checks.hasSpecial &&
+    checks.hasNoPersonalInfo &&
+    checks.isDifferentFromCurrent &&
+    checks.passwordsMatch;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate passwords
-    const passwordValidation = validatePassword(newPassword);
-    if (!passwordValidation.isValid) {
-      toast.error(passwordValidation.errors[0]);
-      setShowPasswordRequirements(true);
+    if (!checks.hasMinLength) {
+      toast.error("Password must be at least 12 characters long");
       return;
     }
-
-    if (newPassword !== newPasswordConfirm) {
+    if (!checks.hasUpper || !checks.hasLower) {
+      toast.error("Password must contain both uppercase and lowercase letters");
+      return;
+    }
+    if (!checks.hasNumber) {
+      toast.error("Password must contain at least one number");
+      return;
+    }
+    if (!checks.hasSpecial) {
+      toast.error("Password must contain at least one special character");
+      return;
+    }
+    if (!checks.hasNoPersonalInfo) {
+      toast.error("Password cannot contain your personal name or email prefix");
+      return;
+    }
+    if (!checks.isDifferentFromCurrent) {
+      toast.error("New password must be different from your current password");
+      return;
+    }
+    if (!checks.passwordsMatch) {
       toast.error("New passwords do not match");
-      return;
-    }
-
-    if (currentPassword === newPassword) {
-      toast.error("New password must be different from current password");
       return;
     }
 
@@ -111,12 +174,11 @@ export default function ChangePasswordPage() {
       }).unwrap();
 
       toast.success("Password updated successfully! Please log in again.");
-      // Clear localStorage and redirect to login
       localStorage.clear();
       router.push("/");
     } catch (err: any) {
       let errorMessage = "Failed to update password";
-      
+
       if (err?.data?.message) {
         errorMessage = err.data.message;
       } else if (err?.error?.message) {
@@ -127,9 +189,6 @@ export default function ChangePasswordPage() {
 
       if (errorMessage.includes("history") || errorMessage.includes("reuse")) {
         toast.error("You cannot reuse a previous password. Please choose a different one.");
-      } else if (errorMessage.includes("validation")) {
-        toast.error("Password does not meet security requirements.");
-        setShowPasswordRequirements(true);
       } else if (errorMessage.includes("current password")) {
         toast.error("Current password is incorrect.");
       } else {
@@ -138,189 +197,421 @@ export default function ChangePasswordPage() {
     }
   };
 
-  // Check if form is valid
-  const isFormValid = () => {
-    const passwordValidation = validatePassword(newPassword);
-    return (
-      currentPassword.length > 0 &&
-      newPassword.length > 0 &&
-      newPasswordConfirm.length > 0 &&
-      newPassword === newPasswordConfirm &&
-      currentPassword !== newPassword &&
-      passwordValidation.isValid
-    );
-  };
+  const userInitials = (userInfo?.displayName || userInfo?.name || "LG")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(0, 2)
+    .toUpperCase() || "LG";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gray-900 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">LG</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            Change Password
-          </h1>
-          <p className="text-gray-600 mt-2">Please enter your current password and choose a new secure password</p>
-        </div>
-
-        <form onSubmit={onSubmit} className="space-y-6">
-          {/* Current Password */}
+    <Wrapper>
+      {/* Top Header & Breadcrumbs */}
+      <div className="pt-4 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <label
-              htmlFor="currentPassword"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Current Password
-            </label>
-            <div className="relative">
-              <input
-                id="currentPassword"
-                type={showCurrentPassword ? "text" : "password"}
-                required
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
-                placeholder="Enter current password"
-                data-tour="old-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute inset-y-0 right-0 my-auto h-8 px-3 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-2">
+              <Link
+                href="/landing"
+                className="hover:text-emerald-700 transition-colors flex items-center gap-1"
               >
-                {showCurrentPassword ? "Hide" : "Show"}
-              </button>
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Dashboard</span>
+              </Link>
+              <span>/</span>
+              <span className="text-slate-400">Account</span>
+              <span>/</span>
+              <span className="text-emerald-700 font-bold">Security & Password</span>
             </div>
-          </div>
-
-          {/* New Password */}
-          <div>
-            <label
-              htmlFor="newPassword"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              New Password
-            </label>
-            <div className="relative">
-              <input
-                id="newPassword"
-                type={showNewPassword ? "text" : "password"}
-                required
-                value={newPassword}
-                onChange={(e) => {
-                  setNewPassword(e.target.value);
-                  if (e.target.value.length > 0) {
-                    setShowPasswordRequirements(true);
-                  }
-                }}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
-                placeholder="Enter new password"
-                data-tour="new-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute inset-y-0 right-0 my-auto h-8 px-3 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                aria-label={showNewPassword ? "Hide new password" : "Show new password"}
-              >
-                {showNewPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-          </div>
-
-          {/* Password Strength Meter */}
-          {showPasswordRequirements && (
-            <div className="mt-2">
-              <PasswordStrengthMeter
-                password={newPassword}
-                userInfo={userInfo}
-                showDetails={true}
-              />
-            </div>
-          )}
-
-          {/* Confirm New Password */}
-          <div>
-            <label
-              htmlFor="newPasswordConfirm"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Confirm New Password
-            </label>
-            <div className="relative">
-              <input
-                id="newPasswordConfirm"
-                type={showConfirmPassword ? "text" : "password"}
-                required
-                value={newPasswordConfirm}
-                onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
-                placeholder="Confirm new password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 my-auto h-8 px-3 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-              >
-                {showConfirmPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-            {newPasswordConfirm && newPassword !== newPasswordConfirm && (
-              <p className="text-gray-600 text-sm mt-1">
-                Passwords do not match
-              </p>
-            )}
-          </div>
-
-          {/* Security Notice */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-gray-600"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white flex items-center justify-center shadow-md shadow-emerald-700/20">
+                <LockOutlined className="text-white text-lg" />
               </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-gray-900">
-                  Security Notice
-                </h3>
-                <div className="mt-2 text-sm text-gray-600">
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Password must be at least 12 characters long</li>
-                    <li>Include uppercase, lowercase, numbers, and special characters</li>
-                    <li>You cannot reuse previous passwords</li>
-                    <li>All sessions will be logged out after password change</li>
-                  </ul>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Security & Password Settings
+                </h1>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Update your master portal credentials and cryptographic account protection
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Cloudflare AES-256</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl">
+        {/* Left: Primary Password Change Form */}
+        <div className="lg:col-span-7">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
+            {/* User Profile Mini Banner */}
+            <div className="flex items-center gap-4 pb-6 mb-6 border-b border-slate-100">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900 text-white font-extrabold text-lg flex items-center justify-center shadow-md overflow-hidden shrink-0 border-2 border-white">
+                {userInfo?.photo ? (
+                  <img
+                    src={userInfo.photo}
+                    alt={userInfo?.name || "Profile"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span>{userInitials}</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-slate-900 text-sm truncate">
+                    {userInfo?.displayName || userInfo?.name || "Lynchpin Global User"}
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100/70 text-emerald-800 uppercase tracking-wider">
+                    {userInfo?.role || "Account"}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 truncate mt-0.5">
+                  {userInfo?.email || "Encrypted User Session"}
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Current Password */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Current Master Password <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <LockOutlined className="text-slate-400 text-sm" />
+                  </div>
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password"
+                    className="w-full pl-10 pr-12 py-2.5 text-xs bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showCurrentPassword ? (
+                      <EyeInvisibleOutlined className="text-slate-400 text-sm" />
+                    ) : (
+                      <EyeOutlined className="text-slate-400 text-sm" />
+                    )}
+                  </button>
                 </div>
               </div>
+
+              {/* New Password */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    New Master Password <span className="text-rose-500">*</span>
+                  </label>
+                  {newPassword && (
+                    <span className={`text-[11px] font-bold ${strength.text}`}>
+                      {strength.label}
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <KeyOutlined className="text-slate-400 text-sm" />
+                  </div>
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter secure new password"
+                    className="w-full pl-10 pr-12 py-2.5 text-xs bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showNewPassword ? (
+                      <EyeInvisibleOutlined className="text-slate-400 text-sm" />
+                    ) : (
+                      <EyeOutlined className="text-slate-400 text-sm" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Password Strength Meter Bar */}
+                {newPassword && (
+                  <div className="mt-2.5 space-y-1.5">
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 ${strength.color}`}
+                        style={{ width: `${strength.score}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Confirm New Password */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Confirm New Password <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <LockOutlined className="text-slate-400 text-sm" />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    value={newPasswordConfirm}
+                    onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                    placeholder="Re-enter new password to verify"
+                    className={`w-full pl-10 pr-12 py-2.5 text-xs bg-slate-50/60 border rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none transition-all font-medium ${
+                      newPasswordConfirm && !checks.passwordsMatch
+                        ? "border-rose-300 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10"
+                        : newPasswordConfirm && checks.passwordsMatch
+                        ? "border-emerald-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                        : "border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeInvisibleOutlined className="text-slate-400 text-sm" />
+                    ) : (
+                      <EyeOutlined className="text-slate-400 text-sm" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Match indicator pill */}
+                {newPasswordConfirm && (
+                  <div className="mt-1.5 flex items-center gap-1.5 text-[11px]">
+                    {checks.passwordsMatch ? (
+                      <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                        Passwords match
+                      </span>
+                    ) : (
+                      <span className="text-rose-500 font-semibold flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                        Passwords do not match
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Real-time Security Checklist */}
+              <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2">
+                <span className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Password Requirements
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div
+                    className={`flex items-center gap-2 ${
+                      checks.hasMinLength ? "text-emerald-700 font-semibold" : "text-slate-400"
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        checks.hasMinLength ? "text-emerald-600" : "text-slate-300"
+                      }`}
+                    />
+                    <span>At least 12 characters</span>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-2 ${
+                      checks.hasUpper && checks.hasLower
+                        ? "text-emerald-700 font-semibold"
+                        : "text-slate-400"
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        checks.hasUpper && checks.hasLower ? "text-emerald-600" : "text-slate-300"
+                      }`}
+                    />
+                    <span>Upper & lowercase letters</span>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-2 ${
+                      checks.hasNumber ? "text-emerald-700 font-semibold" : "text-slate-400"
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        checks.hasNumber ? "text-emerald-600" : "text-slate-300"
+                      }`}
+                    />
+                    <span>At least one number (0-9)</span>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-2 ${
+                      checks.hasSpecial ? "text-emerald-700 font-semibold" : "text-slate-400"
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        checks.hasSpecial ? "text-emerald-600" : "text-slate-300"
+                      }`}
+                    />
+                    <span>One special character (!@#$)</span>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-2 ${
+                      checks.hasNoPersonalInfo ? "text-emerald-700 font-semibold" : "text-rose-600 font-semibold"
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        checks.hasNoPersonalInfo ? "text-emerald-600" : "text-rose-500"
+                      }`}
+                    />
+                    <span>No personal name or email prefix</span>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-2 ${
+                      checks.isDifferentFromCurrent
+                        ? "text-emerald-700 font-semibold"
+                        : "text-rose-600 font-semibold"
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        checks.isDifferentFromCurrent ? "text-emerald-600" : "text-rose-500"
+                      }`}
+                    />
+                    <span>Different from current password</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Action Buttons */}
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <Link
+                  href="/landing"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isLoading || !isFormValid}
+                  className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition-all ${
+                    isLoading || !isFormValid
+                      ? "bg-slate-300 text-slate-500 cursor-not-allowed shadow-none"
+                      : "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 shadow-emerald-600/20 cursor-pointer"
+                  }`}
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Updating Credentials...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Update Password</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Right: Security Advisory & Account Protection */}
+        <div className="lg:col-span-5 space-y-5">
+          {/* Active Session Revocation Card */}
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+            
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h3 className="font-bold text-white text-sm">
+                Session Revocation Notice
+              </h3>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed mb-4">
+              Upon successful password update, all active browser sessions and API refresh tokens across all devices will be automatically revoked.
+            </p>
+
+            <div className="bg-slate-800/80 rounded-xl p-3 border border-slate-700/60 text-[11px] text-slate-300 flex items-start gap-2">
+              <SafetyCertificateOutlined className="text-emerald-400 text-sm shrink-0 mt-0.5" />
+              <span>
+                You will be immediately redirected to the login portal to authenticate with your newly configured master credentials.
+              </span>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading || !isFormValid()}
-            className={`w-full py-3 px-4 text-white font-medium rounded-md transition-all ${
-              isLoading || !isFormValid()
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-            }`}
-          >
-            {isLoading ? "Updating..." : "Update Password"}
-          </button>
-        </form>
+          {/* Security Best Practices Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-3">
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Security Mandates</span>
+            </h4>
+
+            <ul className="space-y-2.5 text-xs text-slate-600">
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                <span>
+                  <strong>Anti-Reuse Policy:</strong> You cannot reuse your previous 3 passwords.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                <span>
+                  <strong>Complexity:</strong> Must contain uppercase, lowercase, numbers, and symbols.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                <span>
+                  <strong>Password Managers:</strong> We recommend 1Password, Bitwarden, or Apple Keychain.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Quick Support / Need Help Card */}
+          <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-4 flex items-center justify-between text-xs">
+            <div>
+              <p className="font-bold text-slate-800">Need Security Assistance?</p>
+              <p className="text-[11px] text-slate-500">Contact Lynchpin Global security team</p>
+            </div>
+            <a
+              href="mailto:support@lynchpin.com"
+              className="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition-colors"
+            >
+              Contact Support
+            </a>
+          </div>
+        </div>
       </div>
-    </div>
+    </Wrapper>
   );
 }
+

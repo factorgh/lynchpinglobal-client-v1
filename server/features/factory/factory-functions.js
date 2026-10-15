@@ -1,6 +1,7 @@
 import APIFeatures from "../../utils/apiFeatures.js";
 import AppError from "../../utils/appError.js";
 import catchAsync from "../error/catch-async-error.js";
+import ActivityLog from "../activity-log/activity.model.js";
 
 export const deleteOne = (Model) =>
   catchAsync(async (req, res, next) => {
@@ -8,6 +9,41 @@ export const deleteOne = (Model) =>
 
     if (!doc) {
       return next(new AppError("No document found with that ID", 404));
+    }
+
+    if (Model.modelName !== "ActivityLog") {
+      try {
+        const modelLabel =
+          Model.modelName === "Assets"
+            ? "Asset Transaction"
+            : Model.modelName === "Loan"
+            ? "Loan"
+            : Model.modelName === "Rental"
+            ? "Rental"
+            : Model.modelName === "User"
+            ? "User"
+            : Model.modelName === "AddOn"
+            ? "Add-on"
+            : Model.modelName;
+
+        const description =
+          doc.name
+            ? `${modelLabel} "${doc.name}" was deleted`
+            : doc.amount
+            ? `${modelLabel} entry with amount GHS ${doc.amount} was deleted`
+            : `${modelLabel} entry with ID ${doc._id} was deleted`;
+
+        const logUser = req.user?._id || doc.user || (Model.modelName === "User" ? doc._id : null);
+        if (logUser) {
+          await ActivityLog.create({
+            user: logUser,
+            activity: `${modelLabel} Deleted`,
+            description,
+          });
+        }
+      } catch (logErr) {
+        console.error("Activity logging failed in deleteOne:", logErr);
+      }
     }
 
     res.status(204).json({

@@ -1,134 +1,173 @@
 "use client";
-import { useEffect, useState } from "react";
 
-const CustomSlider = () => {
-  // Slide index state
+import React, { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, ShieldCheck, TrendingUp, Layers } from "lucide-react";
+import { TrophyOutlined } from "@ant-design/icons";
+
+interface SlideItem {
+  badge: string;
+  badgeColor: string;
+  title: string;
+  description: string;
+  statLabel: string;
+  statValue: string;
+  gradient: string;
+  accentBg: string;
+  icon: any;
+}
+
+const slides: SlideItem[] = [
+  {
+    badge: "PRIVATE MANDATES",
+    badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
+    title: "Institutional Wealth Stewardship",
+    description: "Multi-generational capital preservation with disciplined quarterly compounding and bespoke mandates.",
+    statLabel: "Yield Covenant",
+    statValue: "Contractual",
+    gradient: "from-slate-950 via-emerald-950/80 to-slate-900",
+    accentBg: "bg-emerald-500/10",
+    icon: ShieldCheck,
+  },
+  {
+    badge: "ENERGY & COMMODITIES",
+    badgeColor: "bg-amber-500/20 text-amber-300 border-amber-400/30",
+    title: "Asset-Backed Energy Ventures",
+    description: "Secured participation in verified bulk fuel distribution and midstream oil & gas infrastructure.",
+    statLabel: "Collateral Ratio",
+    statValue: "100% Backed",
+    gradient: "from-slate-950 via-amber-950/70 to-slate-900",
+    accentBg: "bg-amber-500/10",
+    icon: Layers,
+  },
+  {
+    badge: "QUARTERLY YIELDS",
+    badgeColor: "bg-teal-500/20 text-teal-300 border-teal-400/30",
+    title: "Consistent Compounded Accruals",
+    description: "Automated daily interest tracking and quarterly payout disbursements tailored to your mandate.",
+    statLabel: "Disbursement Cycle",
+    statValue: "Quarterly",
+    gradient: "from-slate-950 via-teal-950/80 to-slate-900",
+    accentBg: "bg-teal-500/10",
+    icon: TrendingUp,
+  },
+  {
+    badge: "PERFORMANCE LINKED",
+    badgeColor: "bg-blue-500/20 text-blue-300 border-blue-400/30",
+    title: "Alpha Growth & Special Distributions",
+    description: "Quarterly performance distributions linked to proprietary commodity trade gains and asset rentals.",
+    statLabel: "Capital Standing",
+    statValue: "A-Rated",
+    gradient: "from-slate-950 via-indigo-950/80 to-slate-900",
+    accentBg: "bg-blue-500/10",
+    icon: TrophyOutlined,
+  },
+];
+
+const CustomSlider: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-  // Slides content with image paths
-  const slides = [
-    {
-      backgroundImage: "/showcase.png",
-      title: "Slide 1",
-      description: "Description for Slide 1",
-    },
-    {
-      backgroundImage: "/showcase2.png",
-      title: "Slide 2",
-      description: "Description for Slide 2",
-    },
-    {
-      backgroundImage: "/showcase3.png",
-      title: "Slide 3",
-      description: "Description for Slide 3",
-    },
-    {
-      backgroundImage: "/showcase4.png",
-      title: "Slide 4",
-      description: "Description for Slide 4",
-    },
-    {
-      backgroundImage: "/showcase5.png",
-      title: "Slide 4",
-      description: "Description for Slide 4",
-    },
-    {
-      backgroundImage: "/showcase6.png",
-      title: "Slide 4",
-      description: "Description for Slide 4",
-    },
-    {
-      backgroundImage: "/showcase7.png",
-      title: "Slide 4",
-      description: "Description for Slide 4",
-    },
-  ];
-
-  // Automatic slide change every 3 seconds
   useEffect(() => {
+    if (isPaused) return;
     const timer = setInterval(() => {
-      setActiveIndex((prevIndex) => (prevIndex + 1) % slides.length);
-    }, 3000);
-    return () => clearInterval(timer); // Clean up on unmount
-  }, []);
+      setActiveIndex((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [isPaused]);
 
-  // Go to the previous slide
   const goToPrevious = () => {
-    setActiveIndex(
-      (prevIndex) => (prevIndex - 1 + slides.length) % slides.length,
-    );
+    setActiveIndex((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
-  // Go to the next slide
   const goToNext = () => {
-    setActiveIndex((prevIndex) => (prevIndex + 1) % slides.length);
+    setActiveIndex((prev) => (prev + 1) % slides.length);
   };
+
+  const currentSlide = slides[activeIndex];
+  const IconComponent = currentSlide.icon;
 
   return (
-    <div className="relative overflow-hidden w-full h-full min-h-[220px] sm:min-h-[260px] bg-white rounded-2xl shadow-sm border border-slate-200/80">
-      {/* Slider container */}
+    <div
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      className="relative overflow-hidden w-full h-full min-h-[220px] sm:min-h-[260px] rounded-2xl shadow-lg border border-slate-700/50 flex flex-col justify-between p-5 sm:p-6 transition-all duration-700 select-none bg-gradient-to-br"
+      style={{
+        backgroundImage: `radial-gradient(circle at top right, rgba(255,255,255,0.06), transparent 50%), linear-gradient(to bottom right, var(--tw-gradient-stops))`,
+      }}
+    >
+      {/* Background Gradient Layer */}
       <div
-        className="absolute inset-0 transition-all duration-500 ease-in-out"
-        style={{
-          width: "100%",
-          height: "100%",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          className="flex h-full"
-          style={{
-            transform: `translateX(-${activeIndex * 100}%)`,
-            transition: "transform 0.5s ease-in-out",
-          }}
+        className={`absolute inset-0 bg-gradient-to-br ${currentSlide.gradient} transition-colors duration-1000 -z-10`}
+      />
+
+      {/* Decorative Glow */}
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+
+      {/* Slide Header: Badge + Navigation Arrows */}
+      <div className="flex items-center justify-between gap-2 z-10">
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider border backdrop-blur-md ${currentSlide.badgeColor}`}
         >
-          {slides.map((slide, index) => (
-            <div
-              key={index}
-              className="flex-shrink-0 w-full h-full bg-cover bg-center"
-              style={{
-                backgroundImage: `url(${slide.backgroundImage})`, // Set the background image correctly
-                backgroundSize: "cover", // Prevent stretching
-              }}
-            >
-              {/* Optional content for each slide */}
-              {/* <div className="absolute inset-0 bg-black opacity-40"></div>
-              <div className="absolute inset-0 flex items-center justify-center text-center text-white p-8">
-                <h3 className="text-3xl font-bold">{slide.title}</h3>
-                <p>{slide.description}</p>
-              </div> */}
-            </div>
-          ))}
+          <IconComponent className="w-3 h-3" />
+          {currentSlide.badge}
+        </span>
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={goToPrevious}
+            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-md"
+            aria-label="Previous Slide"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={goToNext}
+            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-md"
+            aria-label="Next Slide"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* Navigation buttons */}
-      {/* Optional: Add navigation buttons for manual slide change */}
-      {/* <button
-        onClick={goToPrevious}
-        className="absolute top-1/2 left-4 transform -translate-y-1/2 text-white bg-opacity-50 bg-black p-2 rounded-full hover:bg-opacity-75 transition"
-      >
-        &lt;
-      </button>
+      {/* Slide Body: Title & Description */}
+      <div className="my-auto py-2 z-10">
+        <h3 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug drop-shadow-sm">
+          {currentSlide.title}
+        </h3>
+        <p className="text-xs text-white/75 font-normal mt-1.5 leading-relaxed line-clamp-2 sm:line-clamp-3">
+          {currentSlide.description}
+        </p>
+      </div>
 
-      <button
-        onClick={goToNext}
-        className="absolute top-1/2 right-4 transform -translate-y-1/2 text-white bg-opacity-50 bg-black p-2 rounded-full hover:bg-opacity-75 transition"
-      >
-        &gt;
-      </button> */}
+      {/* Slide Footer: Metric Highlight & Dots */}
+      <div className="flex items-center justify-between pt-3 border-t border-white/10 z-10">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-white/60 font-medium">
+            {currentSlide.statLabel}:
+          </span>
+          <span className="text-xs font-bold text-emerald-400 font-mono tracking-tight">
+            {currentSlide.statValue}
+          </span>
+        </div>
 
-      {/* Slide indicators */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setActiveIndex(index)}
-            className={`w-3 h-3 rounded-full bg-white opacity-50 hover:opacity-75 transition ${
-              activeIndex === index ? "opacity-100" : ""
-            }`}
-          ></button>
-        ))}
+        {/* Slide Indicators */}
+        <div className="flex items-center gap-1.5">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveIndex(index)}
+              className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                activeIndex === index
+                  ? "w-5 bg-emerald-400"
+                  : "w-1.5 bg-white/30 hover:bg-white/50"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

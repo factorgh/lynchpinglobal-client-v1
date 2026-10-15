@@ -57,6 +57,14 @@ const InvestmentSchema = new mongoose.Schema(
       default: 0,
       min: [0, "Cannot be negative"],
     },
+    lockedPrincipalProfit: {
+      type: Number,
+      default: 0,
+      min: [0, "Cannot be negative"],
+    },
+    lastPrincipalAdjustmentDate: {
+      type: Date,
+    },
     addOnAccruedReturn: {
       type: Number,
       default: 0,

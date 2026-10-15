@@ -9,6 +9,7 @@ import { calculateDynamicAccruedReturn } from "../../../utils/handle_dynamic_rat
 import User from "../../auth/models/user.model.js";
 import catchAsync from "../../error/catch-async-error.js";
 import Investment from "../model/investment.model.js";
+import ActivityLog from "../../activity-log/activity.model.js";
 import { recalculateInvestment } from "../../../utils/recalculate.js";
 
 export const createInvestment = catchAsync(async (req, res, next) => {
@@ -367,6 +368,20 @@ export const deleteInvestment = catchAsync(async (req, res, nex) => {
       .status(404)
       .json({ status: "fail", message: "Investment not found" });
   }
+
+  try {
+    const logUser = req.user?._id || existing.userId || existing.owners?.[0]?.user?._id || existing.owners?.[0]?.user;
+    if (logUser) {
+      await ActivityLog.create({
+        user: logUser,
+        activity: "Mandate Deleted",
+        description: `A mandate with ID ${id} (Principal: GHS ${existing.principal || 0}) was deleted`,
+      });
+    }
+  } catch (logErr) {
+    console.error("Activity logging failed in deleteInvestment:", logErr);
+  }
+
   res.status(204).json({ status: "success", data: null });
 });
 

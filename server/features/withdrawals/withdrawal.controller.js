@@ -24,18 +24,26 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("Insufficient funds for withdrawal.", 400)); // Handle insufficient funds
   }
 
+  // Step 2.5: Snapshot and lock the accrued profit accumulated prior to this withdrawal
+  await recalculateInvestment(investment._id);
+  const refreshedInvestment = await Investment.findById(investment._id);
+
+  // Preserve previously accrued principal profit so withdrawal never erases earned profits
+  refreshedInvestment.lockedPrincipalProfit = (refreshedInvestment.lockedPrincipalProfit || 0) + (refreshedInvestment.principalAccruedReturn || 0);
+  refreshedInvestment.lastPrincipalAdjustmentDate = new Date();
+
   // Step 3: Deduct the withdrawal amount from the principal
-  const newPrincipal = investment.principal - amount;
+  const newPrincipal = Math.max(0, refreshedInvestment.principal - amount);
 
   // Step 4: Update the user's investment principal
-  investment.principal = newPrincipal;
-  await investment.save();
+  refreshedInvestment.principal = newPrincipal;
+  await refreshedInvestment.save();
 
   // Step 5: Create the withdrawal record
   const doc = await WithdrawalModel.create(req.body);
 
-  // Step 6: Trigger recalculation
-  await recalculateInvestment(investment._id);
+  // Step 6: Trigger recalculation with preserved profits
+  await recalculateInvestment(refreshedInvestment._id);
 
   // Step 7: Log activity
   try {

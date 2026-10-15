@@ -162,9 +162,9 @@ export default function DashboardPage() {
         data-tour="portfolio-summary"
       >
         <DashboardCard
-          title="Assets & Wealth"
+          title="Capital & Mandates"
           value={formatPriceGHS(Number(assetsUnderMgt))}
-          subtitle="Total assets"
+          subtitle="Total mandate capital"
           icon={FileText}
         />
         <DashboardCard
@@ -191,7 +191,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         {/* Statistics Chart */}
         <div className="lg:col-span-7 xl:col-span-8" data-tour="statistics">
-          <Statistics />
+          <Statistics investments={userInvestments?.data} />
         </div>
 
         {/* Recent Clients List */}

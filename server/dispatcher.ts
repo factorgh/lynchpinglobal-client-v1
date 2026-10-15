@@ -236,13 +236,13 @@ export async function dispatchApiRequest(
       params.id = segs[2];
       if (method === "GET") return runHandlerChain(webReq, params, [getUser]);
       if (method === "PUT") return runHandlerChain(webReq, params, [updateUser]);
-      if (method === "DELETE") return runHandlerChain(webReq, params, [deleteUser]);
+      if (method === "DELETE") return runHandlerChain(webReq, params, [verifyToken, deleteUser]);
     }
     if (segs.length === 2 && segs[1]) {
       params.id = segs[1];
       if (method === "GET") return runHandlerChain(webReq, params, [getUser]);
       if (method === "PATCH" || method === "PUT") return runHandlerChain(webReq, params, [updateUser]);
-      if (method === "DELETE") return runHandlerChain(webReq, params, [deleteUser]);
+      if (method === "DELETE") return runHandlerChain(webReq, params, [verifyToken, deleteUser]);
     }
   }
 
@@ -303,7 +303,7 @@ export async function dispatchApiRequest(
     if (segs[1] === "single" && segs[2]) {
       params.id = segs[2];
       if (method === "PUT") return runHandlerChain(webReq, params, [updateAddOnStatus]);
-      if (method === "DELETE") return runHandlerChain(webReq, params, [deleteAddOn]);
+      if (method === "DELETE") return runHandlerChain(webReq, params, [verifyToken, deleteAddOn]);
     }
   }
 
@@ -327,7 +327,7 @@ export async function dispatchApiRequest(
       params.id = segs[2];
       if (method === "GET") return runHandlerChain(webReq, params, [getAsset]);
       if (method === "PUT") return runHandlerChain(webReq, params, [updateAsset]);
-      if (method === "DELETE") return runHandlerChain(webReq, params, [deleteAsset]);
+      if (method === "DELETE") return runHandlerChain(webReq, params, [verifyToken, deleteAsset]);
     }
   }
 
@@ -344,7 +344,7 @@ export async function dispatchApiRequest(
       params.id = segs[2];
       if (method === "GET") return runHandlerChain(webReq, params, [getLoan]);
       if (method === "PUT") return runHandlerChain(webReq, params, [updateLoan]);
-      if (method === "DELETE") return runHandlerChain(webReq, params, [deleteLoan]);
+      if (method === "DELETE") return runHandlerChain(webReq, params, [verifyToken, deleteLoan]);
     }
   }
 
@@ -361,7 +361,7 @@ export async function dispatchApiRequest(
       params.id = segs[2];
       if (method === "GET") return runHandlerChain(webReq, params, [getRental]);
       if (method === "PUT") return runHandlerChain(webReq, params, [updateRental]);
-      if (method === "DELETE") return runHandlerChain(webReq, params, [deleteRental]);
+      if (method === "DELETE") return runHandlerChain(webReq, params, [verifyToken, deleteRental]);
     }
   }
 
@@ -422,13 +422,13 @@ export async function dispatchApiRequest(
   if (prefix === "activity-logs") {
     if (segs.length === 1) {
       if (method === "GET") return runHandlerChain(webReq, params, [getAllActivityLogs]);
-      if (method === "POST") return runHandlerChain(webReq, params, [createActivityLog]);
+      if (method === "POST") return runHandlerChain(webReq, params, [verifyToken, createActivityLog]);
     }
     if (segs.length === 2 && segs[1]) {
       params.id = segs[1];
       if (method === "GET") return runHandlerChain(webReq, params, [getActivityLog]);
       if (method === "PATCH") return runHandlerChain(webReq, params, [updateActivityLog]);
-      if (method === "DELETE") return runHandlerChain(webReq, params, [deleteActivityLog]);
+      if (method === "DELETE") return runHandlerChain(webReq, params, [verifyToken, deleteActivityLog]);
     }
   }
 

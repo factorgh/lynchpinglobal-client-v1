@@ -260,7 +260,7 @@ const InvestmentDetailDrawer = ({
       render: (date: Date) => moment(date).format("YYYY-MM-DD"),
     },
     {
-      title: "Accrued Interest",
+      title: "Accrued Yield",
       dataIndex: "accruedInterest",
       key: "accruedInterest",
       render: (value: number) => formatPriceGHS(value || 0),

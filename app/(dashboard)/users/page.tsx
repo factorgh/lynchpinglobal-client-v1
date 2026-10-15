@@ -25,10 +25,12 @@ import React, { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import Wrapper from "../wealth/_components/wapper";
+import ProfileImageUpload from "@/app/(components)/ProfileUpload/ProfileImageUpload";
 
 const Users = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const { data: dataSource, isFetching } = useGetAllUsersQuery(null);
   const [deleteUser] = useDeleteUserMutation();
   const [updateUser] = useUpdateUserMutation();
@@ -79,6 +81,7 @@ const Users = () => {
 
   const handleEditUser = (user: any) => {
     setSelectedUser(user);
+    setUserPhoto(user.photo || null);
     form.setFieldsValue(user);
     setDrawerVisible(true);
   };
@@ -114,7 +117,13 @@ const Users = () => {
   const handleFormSubmit = async (values: any) => {
     try {
       if (selectedUser) {
-        await updateUser({ id: selectedUser._id, data: values }).unwrap();
+        await updateUser({
+          id: selectedUser._id,
+          data: {
+            ...values,
+            photo: userPhoto || "",
+          },
+        }).unwrap();
         if (loggedInUser._id) {
           await createActivity({
             activity: "User Updated",
@@ -125,6 +134,7 @@ const Users = () => {
         toast.success("User updated successfully");
       }
       setSelectedUser(null);
+      setUserPhoto(null);
       setDrawerVisible(false);
     } catch (error: any) {
       toast.error(error?.data?.message || error?.message || "Failed to update user");
@@ -250,8 +260,16 @@ const Users = () => {
                         {/* User / Avatar */}
                         <TableCell className="py-3.5 px-4 font-medium text-slate-900">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-xs flex items-center justify-center shrink-0">
-                              {getInitials(user.name)}
+                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-xs flex items-center justify-center shrink-0 overflow-hidden">
+                              {user.photo ? (
+                                <img
+                                  src={user.photo}
+                                  alt={user.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                getInitials(user.name)
+                              )}
                             </div>
                             <div>
                               <span className="text-xs font-semibold text-slate-900 block">
@@ -415,6 +433,15 @@ const Users = () => {
         }
       >
         <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
+          <div className="mb-4">
+            <ProfileImageUpload
+              value={userPhoto}
+              onChange={setUserPhoto}
+              label="User Profile Picture"
+              initialsFallback={selectedUser?.name || "US"}
+            />
+          </div>
+
           <Form.Item
             name="name"
             label="Username / Full Name"

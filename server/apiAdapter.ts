@@ -43,12 +43,18 @@ export async function runHandlerChain(
       json(data: any) {
         if (isEnded) return;
         isEnded = true;
-        resolve(NextResponse.json(data, { status: currentStatusCode, headers: responseHeaders }));
+        if (currentStatusCode === 204 || currentStatusCode === 205 || currentStatusCode === 304) {
+          resolve(new NextResponse(null, { status: currentStatusCode, headers: responseHeaders }));
+        } else {
+          resolve(NextResponse.json(data, { status: currentStatusCode, headers: responseHeaders }));
+        }
       },
       send(data: any) {
         if (isEnded) return;
         isEnded = true;
-        if (typeof data === "object") {
+        if (currentStatusCode === 204 || currentStatusCode === 205 || currentStatusCode === 304) {
+          resolve(new NextResponse(null, { status: currentStatusCode, headers: responseHeaders }));
+        } else if (typeof data === "object") {
           resolve(NextResponse.json(data, { status: currentStatusCode, headers: responseHeaders }));
         } else {
           resolve(new NextResponse(data, { status: currentStatusCode, headers: responseHeaders }));

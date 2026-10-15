@@ -12,7 +12,7 @@ const sampleData = [
   {
     key: 1,
     id: 1,
-    name: "Investment A",
+    name: "Mandate Allocation A",
     amount: 10000,
     date: "2024-11-01",
     status: "Active",
@@ -20,7 +20,7 @@ const sampleData = [
   {
     key: 2,
     id: 2,
-    name: "Investment B",
+    name: "Mandate Allocation B",
     amount: 15000,
     date: "2024-11-15",
     status: "Closed",
@@ -28,7 +28,7 @@ const sampleData = [
   {
     key: 3,
     id: 3,
-    name: "Investment C",
+    name: "Mandate Allocation C",
     amount: 7500,
     date: "2024-12-01",
     status: "Closed",

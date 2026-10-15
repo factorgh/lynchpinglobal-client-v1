@@ -506,7 +506,7 @@ const RegisterForm = () => {
                 4. Compliance with Regulatory & Financial Standards
               </h4>
               <p className="leading-relaxed text-[11px]">
-                Users agree to comply with Know Your Customer (KYC) requirements and certify that all funds, contributions, and transactions originate from lawful, verifiable sources in full compliance with domestic and international financial regulations.
+                Users agree to comply with Know Your Customer (KYC) requirements and certify that all capital, contributions, and transactions originate from lawful, verifiable sources in full compliance with domestic and international financial regulations.
               </p>
             </div>
           </div>

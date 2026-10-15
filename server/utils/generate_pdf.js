@@ -7,7 +7,7 @@ const generatePDF = (investment) => {
 
   doc.pipe(fs.createWriteStream(filePath));
 
-  doc.fontSize(16).text(`Investment Summary`, { align: "center" });
+  doc.fontSize(16).text(`Mandate Portfolio Summary`, { align: "center" });
   doc.moveDown();
   doc.text(`Name: ${investment.name}`);
   doc.text(`Email: ${investment.email}`);

@@ -227,6 +227,51 @@ const WealthTable = ({
     }
   };
 
+  const handleToggleMandateStatus = async (record: any) => {
+    const isCurrentlyActive = !record.archived;
+    const targetStatus = isCurrentlyActive ? "Inactive" : "Active";
+    const customerName =
+      record.userId?.displayName ||
+      record.userId?.name ||
+      record.name ||
+      "Mandate";
+
+    const result = await Swal.fire({
+      title: `Set Mandate to ${targetStatus}?`,
+      text: `Do you want to switch ${customerName}'s mandate to ${targetStatus}?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: isCurrentlyActive ? "#e11d48" : "#059669",
+      confirmButtonText: `Yes, make ${targetStatus}`,
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await updateInvestment({
+          id: record._id,
+          data: {
+            archived: isCurrentlyActive,
+            active: !isCurrentlyActive,
+          },
+        }).unwrap();
+
+        await createActivity({
+          activity: `Mandate Marked ${targetStatus}`,
+          description: `Mandate ${record._id} for ${customerName} was marked ${targetStatus}`,
+          user: loggedInUser._id,
+        }).unwrap();
+
+        toast.success(`Mandate successfully marked as ${targetStatus}`);
+      } catch (err: any) {
+        toast.error(
+          "Failed to update mandate status: " +
+            (err?.data?.message || err?.message)
+        );
+      }
+    }
+  };
+
   const handleFormSubmit = async (values: any) => {
     try {
       if (isAddOnDrawerVisible) {
@@ -412,6 +457,9 @@ const WealthTable = ({
                   Total Disbursements
                 </TableHead>
                 <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-center">
+                  Status
+                </TableHead>
+                <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-center">
                   Action
                 </TableHead>
               </TableRow>
@@ -498,6 +546,27 @@ const WealthTable = ({
                       {/* Total Disbursements */}
                       <TableCell className="py-3.5 text-right font-bold text-emerald-700 text-xs">
                         {formatPriceGHS(record.totalAccruedReturn || 0)}
+                      </TableCell>
+
+                      {/* Active / Inactive Status Toggle Button (Green/Red) */}
+                      <TableCell className="py-3.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleMandateStatus(record)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95 ${
+                            !record.archived
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                              : "bg-rose-50 text-rose-700 border-rose-300 hover:bg-rose-100"
+                          }`}
+                          title={`Click to set mandate as ${!record.archived ? "Inactive" : "Active"}`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              !record.archived ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
+                            }`}
+                          />
+                          <span>{!record.archived ? "Active" : "Inactive"}</span>
+                        </button>
                       </TableCell>
 
                       {/* Action Dropdown */}

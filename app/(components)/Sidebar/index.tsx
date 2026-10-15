@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LucideIcon,
   RefreshCw,
+  UserCheck,
   Users,
   Wallet,
   X,
@@ -147,6 +148,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
                 href="/dashboard"
                 icon={LayoutDashboard}
                 label="Dashboard"
+                onClick={onCloseMobile}
+              />
+              <SidebarLink
+                href="/clients"
+                icon={UserCheck}
+                label="Clients"
                 onClick={onCloseMobile}
               />
               <SidebarLink

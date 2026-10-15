@@ -1,6 +1,7 @@
 import AppError from "../../../utils/appError.js";
 import catchAsync from "../../error/catch-async-error.js";
 import User from "../models/user.model.js";
+import ActivityLog from "../../activity-log/activity.model.js";
 
 const filteredObj = (obj, ...allowedFields) => {
   let newObj = {};
@@ -18,7 +19,17 @@ export const updateMe = catchAsync(async (req, res, next) => {
   }
 
   // Filter object to limit updating fields
-  const filteredBody = filteredObj(req.body, "name", "email");
+  const filteredBody = filteredObj(
+    req.body,
+    "name",
+    "email",
+    "displayName",
+    "phone",
+    "photo",
+    "agreedToTerms",
+    "agreedToTermsAt",
+    "mustChangePassword"
+  );
 
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
@@ -49,6 +60,8 @@ export const createUser = catchAsync(async (req, res, next) => {
     license,
     role = "user",
     designation,
+    phone,
+    photo,
   } = req.body;
 
   if (!name || !email || !password) {
@@ -84,6 +97,8 @@ export const createUser = catchAsync(async (req, res, next) => {
     passwordConfirm: effectivePasswordConfirm,
     role,
     designation: designation ? String(designation).trim() : undefined,
+    phone: phone ? String(phone).trim() : undefined,
+    photo: photo ? String(photo).trim() : undefined,
     mustChangePassword: true,
     agreedToTerms: false,
   };
@@ -131,7 +146,19 @@ export const getUser = catchAsync(async (req, res, next) => {
 
 // Delete a user
 export const deleteUser = catchAsync(async (req, res, next) => {
-  await User.findByIdAndDelete(req.params.id);
+  const doc = await User.findByIdAndDelete(req.params.id);
+
+  if (doc) {
+    try {
+      await ActivityLog.create({
+        user: req.user?._id || doc._id,
+        activity: "User Deleted",
+        description: `User "${doc.name || doc.displayName || doc.email}" (${doc.license || doc._id}) was deleted`,
+      });
+    } catch (err) {
+      console.error("Activity logging failed in deleteUser:", err);
+    }
+  }
 
   res.status(204).json({
     status: "success",

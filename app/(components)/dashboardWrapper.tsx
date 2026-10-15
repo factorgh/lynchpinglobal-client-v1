@@ -3,6 +3,7 @@
 import Navbar from "@/app/(components)/Navbar";
 import Sidebar from "@/app/(components)/Sidebar";
 import AppTour from "@/lib/tour/AppTour";
+import ClientOnboardingModal from "@/app/(components)/ClientOnboardingModal";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -75,6 +76,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                 }
               />
               <div className="flex-1 overflow-y-auto min-w-0 max-w-full">{children}</div>
+              <ClientOnboardingModal />
               {user && (
                 <AppTour 
                   persona={user.role === "admin" || user.role === "superadmin" ? "admin" : "client"} 

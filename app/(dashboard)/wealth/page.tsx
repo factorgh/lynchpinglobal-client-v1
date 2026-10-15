@@ -24,7 +24,7 @@ const Wealth = () => {
               Mandate Management
             </h1>
             <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
-              Review and manage all client investment mandates
+              Review and manage all client capital mandates
             </p>
           </div>
 

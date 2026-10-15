@@ -172,7 +172,7 @@ const CustomerLanding = () => {
       render: (date: any) => (date ? moment(date).format("YYYY-MM-DD") : "—"),
     },
     {
-      title: "Accrued Interest",
+      title: "Accrued Yield",
       dataIndex: "accruedAddOnInterest",
       key: "accruedAddOnInterest",
       render: (value: number, record: any) =>
@@ -205,7 +205,7 @@ const CustomerLanding = () => {
             <div>
               <div className="flex justify-between items-center">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  TOTAL BALANCE
+                  TOTAL CAPITAL ALLOCATION
                 </span>
                 <div className="p-2 rounded-xl bg-sky-50 text-sky-600">
                   <LucideCreditCard className="w-5 h-5" />

@@ -25,14 +25,24 @@ export const recalculateInvestment = async (investmentId) => {
     );
 
     // ----- Principal Return Calculation -----
-    let principalReturn = 0;
-    if (daysSinceStart > 0) {
+    let principalReturn = round2(investment.lockedPrincipalProfit || 0);
+    const effectiveStartDate = investment.lastPrincipalAdjustmentDate
+      ? moment(investment.lastPrincipalAdjustmentDate)
+      : moment(investment.startDate);
+
+    const activeDaysSinceAdjustment = Math.max(
+      0,
+      calculationEndDate.diff(effectiveStartDate, "days")
+    );
+
+    if (activeDaysSinceAdjustment > 0 && investment.principal > 0) {
       const principalDailyReturn = calculateDailyRate(
         investment.principal,
         investment.guaranteedRate,
         quarterDays
       );
-      principalReturn = round2(principalDailyReturn * daysSinceStart);
+      const newAccrual = round2(principalDailyReturn * activeDaysSinceAdjustment);
+      principalReturn = round2(principalReturn + newAccrual);
     }
     investment.principalAccruedReturn = principalReturn;
 

@@ -5,9 +5,11 @@ import {
   useReadAllNotificationsMutation,
 } from "@/services/notifications";
 import { BellAlertIcon } from "@heroicons/react/24/outline";
-import { Badge } from "antd";
+import { Badge, Dropdown } from "antd";
 import { Inbox, Menu, User } from "lucide-react";
+import { DownOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import InboxForm from "./_components/inboxForm";
 import NotificationModal from "./_components/notificationModal";
 import GlobalSearch from "./_components/GlobalSearch";
@@ -113,10 +115,82 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
           </div>
         )}
 
-        {/* Profile Avatar */}
-        <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-semibold text-xs shadow-xs">
-          <User className="w-4 h-4 text-slate-500" />
-        </div>
+        {/* Profile Avatar & Interactive Menu */}
+        <Dropdown
+          trigger={["click"]}
+          placement="bottomRight"
+          menu={{
+            items: [
+              {
+                key: "profile-info",
+                label: (
+                  <div className="px-2 py-1.5 border-b border-slate-100 min-w-[190px]">
+                    <p className="font-bold text-xs text-slate-900 leading-tight">{displayName}</p>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">{user?.email}</p>
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {user?.role || "Member"}
+                    </span>
+                  </div>
+                ),
+                disabled: true,
+              },
+              ...(user?.role === "admin" || user?.role === "superadmin"
+                ? [
+                    {
+                      key: "clients",
+                      label: <Link href="/clients" className="text-xs font-medium text-slate-700">Clients Directory</Link>,
+                    },
+                    {
+                      key: "users",
+                      label: <Link href="/users" className="text-xs font-medium text-slate-700">User Management</Link>,
+                    },
+                  ]
+                : []),
+              {
+                key: "password",
+                label: <Link href="/users/change-password" className="text-xs font-medium text-slate-700">Change Password</Link>,
+              },
+              {
+                type: "divider",
+              },
+              {
+                key: "logout",
+                danger: true,
+                label: (
+                  <span
+                    onClick={() => {
+                      localStorage.clear();
+                      sessionStorage.clear();
+                      window.location.href = "/login";
+                    }}
+                    className="text-xs font-semibold text-rose-600 block cursor-pointer"
+                  >
+                    Sign Out
+                  </span>
+                ),
+              },
+            ],
+          }}
+        >
+          <button
+            type="button"
+            className="flex items-center gap-1.5 p-0.5 rounded-full hover:ring-2 hover:ring-emerald-400/50 transition-all cursor-pointer bg-white/60 shadow-xs"
+            aria-label="User Account Menu"
+          >
+            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-semibold text-xs shadow-xs overflow-hidden">
+              {user?.photo ? (
+                <img
+                  src={user.photo}
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-4 h-4 text-slate-500" />
+              )}
+            </div>
+            <DownOutlined className="text-[10px] text-slate-400 mr-1 hidden sm:block" />
+          </button>
+        </Dropdown>
 
         {showInboxForm && (
           <InboxForm
