@@ -92,6 +92,10 @@ export const handleUploads = async (req: any, res: any) => {
 
     // Persist to MongoDB
     try {
+      const docType = (req.body?.docType || "general").toString();
+      const note = (req.body?.note || "").toString();
+      const targetUser = req.user?._id || req.body?.user || req.body?.userId;
+
       const docs = uploads.map((u) => ({
         key: u.key,
         url: u.url,
@@ -100,7 +104,9 @@ export const handleUploads = async (req: any, res: any) => {
         contentType: u.contentType,
         category: folder,
         provider: "r2",
-        user: req.user?._id,
+        user: targetUser,
+        docType,
+        note,
       }));
       if (docs.length) {
         await Upload.insertMany(docs);
@@ -134,17 +140,30 @@ export const listStoredUploadsDb = async (req: any, res: any) => {
   try {
     const category = (req.query?.category || "uploads").toString();
     const provider = (req.query?.provider || "").toString();
-    const query: Record<string, any> = {
-      category: new RegExp(
+    const user = req.query?.user || req.query?.userId;
+
+    const query: Record<string, any> = {};
+
+    if (category && category !== "any" && category !== "all") {
+      query.category = new RegExp(
         `^${category.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
         "i"
-      ),
-    };
+      );
+    }
+
     if (provider && provider !== "any") {
       query.provider = provider;
     }
 
-    const docs = await Upload.find(query).sort({ createdAt: -1 }).lean();
+    if (user) {
+      query.user = user;
+    }
+
+    const docs = await Upload.find(query)
+      .populate("user", "name email displayName photo license")
+      .sort({ createdAt: -1 })
+      .lean();
+
     const files = (docs || []).map((d: any) => ({
       url: d.url,
       public_id: d.key,
@@ -153,6 +172,10 @@ export const listStoredUploadsDb = async (req: any, res: any) => {
       bytes: d.bytes,
       created_at: d.createdAt,
       filename: d.filename,
+      category: d.category,
+      docType: d.docType || "general",
+      note: d.note || "",
+      user: d.user,
     }));
     return res.json({ success: true, files });
   } catch (error: any) {

@@ -10,6 +10,8 @@ const uploadSchema = new mongoose.Schema(
     category: { type: String, index: true },
     provider: { type: String, enum: ["r2", "cloudinary"], default: "r2" },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    docType: { type: String, default: "general" },
+    note: { type: String, default: "" },
   },
   { timestamps: true }
 );

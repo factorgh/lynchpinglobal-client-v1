@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -42,6 +42,9 @@ import {
   LockOutlined,
   IdcardOutlined,
   SafetyCertificateOutlined,
+  FilePdfOutlined,
+  DownloadOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 import { Drawer, Form, Input, Button, Skeleton, Tag, Tooltip } from "antd";
 import { toast } from "react-toastify";
@@ -70,6 +73,21 @@ export default function ClientsPage() {
   const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [clientUploadedFiles, setClientUploadedFiles] = useState<any[]>([]);
+  const [isClientFilesLoading, setIsClientFilesLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedClient?._id) {
+      setIsClientFilesLoading(true);
+      fetch(`/api/v1/uploads/db?category=client-documents&user=${selectedClient._id}`)
+        .then((res) => (res.ok ? res.json() : { files: [] }))
+        .then((data) => setClientUploadedFiles(data.files || []))
+        .catch(() => setClientUploadedFiles([]))
+        .finally(() => setIsClientFilesLoading(false));
+    } else {
+      setClientUploadedFiles([]);
+    }
+  }, [selectedClient]);
 
   // Profile picture states
   const [createPhoto, setCreatePhoto] = useState<string | null>(null);
@@ -1170,6 +1188,56 @@ export default function ClientsPage() {
               ) : (
                 <div className="text-center py-6 text-slate-400 text-xs">
                   This client currently has no recorded capital mandates.
+                </div>
+              )}
+            </div>
+
+            {/* Client Uploaded Documents Section */}
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Documents Uploaded by Client ({clientUploadedFiles.length})
+                </h4>
+                <span className="text-[11px] text-slate-400">Vault Submissions</span>
+              </div>
+
+              {isClientFilesLoading ? (
+                <div className="py-4 text-center text-xs text-slate-400">Loading files...</div>
+              ) : clientUploadedFiles.length > 0 ? (
+                <div className="space-y-2 max-h-56 overflow-y-auto">
+                  {clientUploadedFiles.map((file: any, i: number) => (
+                    <div
+                      key={file.public_id || i}
+                      className="p-2.5 rounded-lg border border-slate-100 hover:bg-slate-50 flex items-center justify-between text-xs"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-bold text-slate-800 truncate">{file.filename || file.name}</p>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">
+                            {file.docType || "Document"}
+                          </span>
+                        </div>
+                        {file.note && <p className="text-[11px] text-slate-500 italic mt-0.5 truncate">“{file.note}”</p>}
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {moment(file.created_at).format("MMM D, YYYY")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-colors"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-slate-400 text-xs">
+                  No documents uploaded by this client yet.
                 </div>
               )}
             </div>
