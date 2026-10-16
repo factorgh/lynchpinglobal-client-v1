@@ -3,13 +3,13 @@ import { calculateDailyAccruals } from "../features/investment/controller/invest
 
 /**
  * Daily Accrued Return Job
- * Runs internal cron at midnight (00:00 every day) for standalone server deployments.
+ * Runs internal cron at 4:00 PM (16:00 every day) for standalone server deployments.
  * Reuses the central calculateDailyAccruals calculation engine.
  */
 const dailyAccruedReturnJob = () => {
-  cron.schedule("0 0 * * *", async () => {
+  cron.schedule("0 16 * * *", async () => {
     console.log(
-      "[AccruedReturnJob] Starting automated daily accruals calculation at midnight..."
+      "[AccruedReturnJob] Starting automated daily accruals calculation at 4:00 PM (16:00)..."
     );
 
     try {

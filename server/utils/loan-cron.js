@@ -11,12 +11,12 @@ const calculateOverdueFee = (amount, rate, days) => {
 };
 
 /**
- * Scheduled job to process overdue loans daily at 6 AM.
+ * Scheduled job to process overdue loans daily at 4 PM (16:00).
  */
 const dailyLoanDeductions = () => {
-  cron.schedule("0 6 * * *", async () => {
+  cron.schedule("0 16 * * *", async () => {
     const today = moment().startOf("day").toDate();
-    console.log("[Loan Job] Running overdue loan processor...");
+    console.log("[Loan Job] Running overdue loan processor at 4:00 PM...");
 
     try {
       const overdueLoans = await Loan.find({

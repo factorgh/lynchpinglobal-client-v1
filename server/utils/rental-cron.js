@@ -14,12 +14,12 @@ const calculateOverdueFee = (amount, dailyRate, days) => {
 };
 
 /**
- * Scheduled job to process overdue rentals daily at 6 AM.
+ * Scheduled job to process overdue rentals daily at 4 PM (16:00).
  */
 const dailyRentalUpdates = () => {
-  cron.schedule("0 6 * * *", async () => {
+  cron.schedule("0 16 * * *", async () => {
     const today = moment().startOf("day").toDate();
-    console.log("[Rental Job] Starting daily overdue rental processing...");
+    console.log("[Rental Job] Starting daily overdue rental processing at 4:00 PM...");
 
     try {
       const overdueRentals = await Rental.find({
