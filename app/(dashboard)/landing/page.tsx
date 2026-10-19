@@ -74,7 +74,12 @@ const CustomerLanding = () => {
       activeInvestments.forEach((investment: any) => {
         totalPrincipal = round2(totalPrincipal + Number(investment.principal || 0));
         totalAccruedInterest = round2(
-          totalAccruedInterest + Number(investment.totalAccruedReturn || 0)
+          totalAccruedInterest +
+            Number(
+              investment.principalAccruedReturn !== undefined
+                ? investment.principalAccruedReturn
+                : investment.totalAccruedReturn || 0
+            )
         );
         const addOnSum = (investment.addOns || []).reduce(
           (sum: any, addOn: any) => round2(sum + Number(addOn.amount || 0)),
@@ -203,15 +208,15 @@ const CustomerLanding = () => {
           {/* first card */}
           <Card className="p-5 sm:p-6 flex flex-col justify-between col-span-1 md:col-span-12 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow border border-slate-200/80 rounded-2xl bg-white/95 backdrop-blur-xs">
             <div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <div className="flex justify-between items-start gap-2">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 leading-tight">
                   TOTAL CAPITAL ALLOCATION
                 </span>
-                <div className="p-2 rounded-xl bg-sky-50 text-sky-600">
+                <div className="p-2 rounded-xl bg-sky-50 text-sky-600 shrink-0">
                   <LucideCreditCard className="w-5 h-5" />
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-4 tracking-tight truncate">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-4 tracking-tight break-words">
                 {formatPriceGHS(totalBalance)}
               </p>
               <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
@@ -277,24 +282,28 @@ const CustomerLanding = () => {
               title="ONE-OFF DISBURSEMENT"
               amount={formatPriceGHS(oneOffs)}
               color={oneOffs > 0 ? "bg-emerald-400" : "bg-sky-400"}
+              subtitle="Non-recurring yield"
             />
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="PERFORMANCE-LINKED DISBURSEMENT"
               amount={formatPriceGHS(performanceYield)}
               color={performanceYield > 0 ? "bg-emerald-400" : "bg-sky-400"}
+              subtitle="Quarterly performance yield"
             />
             <CustomCard
               icon={<MinusCircleOutlined />}
               title="SERVICE FEE"
               amount={formatPriceGHS(managementFee)}
               color="bg-rose-500"
+              subtitle="Advisory deduction"
             />
             <CustomCard
               icon={<MinusCircleOutlined />}
               title="OPERATIONAL CHARGE"
               amount={formatPriceGHS(operationalCost)}
               color="bg-rose-400"
+              subtitle="Operational deduction"
             />
           </div>
           <div data-tour="assets-under" className="h-full">

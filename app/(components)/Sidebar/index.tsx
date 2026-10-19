@@ -8,6 +8,7 @@ import {
   Banknote,
   Compass,
   FileUp,
+  FolderArchive,
   Handshake,
   LayoutDashboard,
   LucideIcon,
@@ -154,6 +155,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
                 href="/clients"
                 icon={UserCheck}
                 label="Clients"
+                onClick={onCloseMobile}
+              />
+              <SidebarLink
+                href="/vault"
+                icon={FolderArchive}
+                label="Client Uploads"
                 onClick={onCloseMobile}
               />
               <SidebarLink

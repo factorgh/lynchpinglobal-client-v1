@@ -200,9 +200,15 @@ const TermsPage = () => {
       formData.append("files", selectedFile);
 
       const authToken = getStoredToken();
+      const bearerHeader = authToken
+        ? authToken.startsWith("Bearer ")
+          ? authToken
+          : `Bearer ${authToken}`
+        : undefined;
+
       const res = await fetch(`${API_BASE}/uploads`, {
         method: "POST",
-        headers: authToken ? { Authorization: authToken } : undefined,
+        headers: bearerHeader ? { Authorization: bearerHeader } : undefined,
         body: formData,
       });
 
@@ -210,6 +216,37 @@ const TermsPage = () => {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || "Failed to upload document");
       }
+
+      // Log activity and notify admin in the background
+      try {
+        const clientLabel = user?.displayName || user?.name || "A client";
+        if (bearerHeader) {
+          fetch(`${API_BASE}/activity-logs`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: bearerHeader,
+            },
+            body: JSON.stringify({
+              activity: "Client Document Uploaded",
+              description: `${clientLabel} uploaded ${docType} ("${selectedFile.name}") to the document vault.`,
+              user: user?._id || user?.id,
+            }),
+          }).catch(() => {});
+
+          fetch(`${API_BASE}/notifications`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: bearerHeader,
+            },
+            body: JSON.stringify({
+              title: "New Client Document Submitted",
+              message: `${clientLabel} submitted a ${docType} ("${selectedFile.name}") for administrative review.`,
+            }),
+          }).catch(() => {});
+        }
+      } catch {}
 
       Swal.fire({
         icon: "success",

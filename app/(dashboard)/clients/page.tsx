@@ -28,6 +28,7 @@ import {
   ChevronRight,
   ShieldCheck,
   Calendar,
+  FolderArchive,
 } from "lucide-react";
 import {
   MailOutlined as Mail,
@@ -331,6 +332,13 @@ export default function ClientsPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/vault"
+              className="flex items-center gap-2 px-4 py-2.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold rounded-xl shadow-lg backdrop-blur-md transition-all active:scale-95"
+            >
+              <FolderArchive className="w-4 h-4" />
+              <span>Client Uploads Vault</span>
+            </Link>
             <button
               onClick={() => setIsAddDrawerOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-950/20 transition-all active:scale-95 cursor-pointer"

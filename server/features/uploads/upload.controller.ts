@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-s3";
 import Upload from "./upload.model.js";
 import cloudinary from "../../utils/cloudinary.js";
+import mongoose from "mongoose";
 
 // Helper to sanitize R2 endpoint (remove trailing bucket segment if present)
 const getCleanR2Endpoint = (endpoint: string, bucket: string): string => {
@@ -94,7 +95,10 @@ export const handleUploads = async (req: any, res: any) => {
     try {
       const docType = (req.body?.docType || "general").toString();
       const note = (req.body?.note || "").toString();
-      const targetUser = req.user?._id || req.body?.user || req.body?.userId;
+      let targetUser = req.user?._id || req.body?.user || req.body?.userId;
+      if (targetUser && !mongoose.isValidObjectId(targetUser)) {
+        targetUser = null;
+      }
 
       const docs = uploads.map((u) => ({
         key: u.key,
@@ -104,7 +108,7 @@ export const handleUploads = async (req: any, res: any) => {
         contentType: u.contentType,
         category: folder,
         provider: "r2",
-        user: targetUser,
+        user: targetUser || null,
         docType,
         note,
       }));
@@ -155,7 +159,7 @@ export const listStoredUploadsDb = async (req: any, res: any) => {
       query.provider = provider;
     }
 
-    if (user) {
+    if (user && mongoose.isValidObjectId(user)) {
       query.user = user;
     }
 

@@ -58,6 +58,19 @@ declare module "lucide-react" {
   export const Sparkles: LucideIcon;
   export const SlidersHorizontal: LucideIcon;
   export const RotateCcw: LucideIcon;
+  export const FolderArchive: LucideIcon;
+  export const FolderDown: LucideIcon;
+  export const FolderOpen: LucideIcon;
+  export const Folder: LucideIcon;
+  export const Download: LucideIcon;
+  export const Eye: LucideIcon;
+  export const Trash2: LucideIcon;
+  export const ExternalLink: LucideIcon;
+  export const Filter: LucideIcon;
+  export const CheckCircle: LucideIcon;
+  export const Grid: LucideIcon;
+  export const List: LucideIcon;
+  export const ShieldAlert: LucideIcon;
 }
 
 

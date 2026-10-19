@@ -8,6 +8,7 @@ interface DashboardCardProps {
   color?: string;
   percentageChange?: string;
   trendColor?: string;
+  subtitle?: string;
 }
 
 const CustomCard: React.FC<DashboardCardProps> = ({
@@ -15,6 +16,7 @@ const CustomCard: React.FC<DashboardCardProps> = ({
   title,
   amount,
   color,
+  subtitle,
 }) => {
   return (
     <Card
@@ -29,32 +31,38 @@ const CustomCard: React.FC<DashboardCardProps> = ({
         },
       }}
     >
-      <div>
-        {/* Row: Icon and Title */}
-        <div className="flex items-center justify-between gap-2">
+      <div className="flex-1 flex flex-col justify-between">
+        {/* Row: Title and Icon */}
+        <div className="flex items-start justify-between gap-2">
           <span
-            className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 line-clamp-1"
+            className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 leading-snug line-clamp-2 min-h-[30px] sm:min-h-[32px] flex items-center"
             title={title}
           >
             {title}
           </span>
-          <div className="text-base sm:text-lg text-slate-600 p-1.5 rounded-lg bg-slate-100 flex-shrink-0">
+          <div className="text-base sm:text-lg text-slate-600 p-1.5 rounded-lg bg-slate-100 flex-shrink-0 shrink-0">
             {icon}
           </div>
         </div>
 
-        {/* Amount */}
-        <div className="flex items-baseline justify-between mt-2.5">
-          <span className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+        {/* Amount & Subtitle in middle of tall card */}
+        <div className="flex-1 flex flex-col justify-center my-2 sm:my-3">
+          <span className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 tracking-tight break-words">
             {amount}
           </span>
+          {subtitle && (
+            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 mt-0.5 line-clamp-1">
+              {subtitle}
+            </span>
+          )}
         </div>
       </div>
 
       {/* Accent Indicator */}
-      <div className={`mt-3 h-1 w-full rounded-full ${color || "bg-slate-400"}`}></div>
+      <div className={`mt-auto h-1 w-full rounded-full ${color || "bg-slate-400"}`}></div>
     </Card>
   );
 };
 
 export default CustomCard;
+
