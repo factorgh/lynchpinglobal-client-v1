@@ -34,9 +34,14 @@ const storage = {
 interface AppTourProps {
   persona?: TourPersona;
   autoStart?: boolean;
+  showFloatingButton?: boolean;
 }
 
-const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = true }) => {
+const AppTour: React.FC<AppTourProps> = ({
+  persona: propPersona,
+  autoStart = true,
+  showFloatingButton = false,
+}) => {
   const pathname = usePathname() || "/";
   const { user, setUser } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -411,11 +416,13 @@ const AppTour: React.FC<AppTourProps> = ({ persona: propPersona, autoStart = tru
       `}</style>
 
       {/* Floating Help Button */}
-      <TourFloatingButton
-        onStart={startTour}
-        onRestart={restartTour}
-        onDismissAll={dismissAllTours}
-      />
+      {showFloatingButton && (
+        <TourFloatingButton
+          onStart={startTour}
+          onRestart={restartTour}
+          onDismissAll={dismissAllTours}
+        />
+      )}
     </>
   );
 };
