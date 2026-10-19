@@ -8,11 +8,11 @@ import WithdrawalModel from "./withdrawal.model.js";
 import ActivityLog from "../activity-log/activity.model.js";
 import { recalculateInvestment } from "../../utils/recalculate.js";
 
-// Helper to determine if a status is terminal / inactive (meaning amount should not be deducted from principal)
-const isInactiveStatus = (status) => {
+// Helper to determine if a status is approved / active deduction (meaning amount should be deducted from principal)
+const isApprovedStatus = (status) => {
   if (!status) return false;
   const s = String(status).trim().toLowerCase();
-  return s === "cancelled" || s === "rejected";
+  return s === "approved" || s === "processing";
 };
 
 // Create withdrawal handler
@@ -26,10 +26,10 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("Investment not found for this user.", 404)); // Handle case when investment is not found
   }
 
-  const isInactive = isInactiveStatus(status);
+  const isApproved = isApprovedStatus(status);
 
-  // Step 2: Only deduct from principal if the withdrawal is active (Pending, Approved, Processing)
-  if (!isInactive) {
+  // Step 2: ONLY deduct from principal if the withdrawal is explicitly APPROVED
+  if (isApproved) {
     if (amount > investment.principal) {
       return next(new AppError("Insufficient funds for withdrawal.", 400)); // Handle insufficient funds
     }
@@ -63,7 +63,9 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     await ActivityLog.create({
       user: req.user?._id || user,
       activity: "Withdrawal Created",
-      description: `A withdrawal entry of GHS ${amount} was created for user ${user}${isInactive ? ` (Status: ${status})` : ""}.`,
+      description: `A withdrawal entry of GHS ${amount} was created for user ${user} (Status: ${status || "Pending"}${
+        isApproved ? " - Principal Deducted" : " - Awaiting Approval, Principal Not Deducted"
+      }).`,
     });
   } catch (err) {
     console.error("Activity logging failed:", err);
@@ -98,9 +100,9 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("No document found with that ID", 404));
   }
 
-  // Adjust principal and recalculate only if the withdrawal was active (not already cancelled/rejected)
-  const wasActive = !isInactiveStatus(doc.status);
-  if (wasActive) {
+  // Adjust principal and recalculate only if the withdrawal was approved and deducted
+  const wasApproved = isApprovedStatus(doc.status);
+  if (wasApproved) {
     const investment = await Investment.findOne({ userId: doc.user });
     if (investment) {
       investment.principal += doc.amount;
@@ -115,9 +117,9 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
       user: req.user?._id || doc.user,
       activity: "Withdrawal Deleted",
       description: `A withdrawal entry of GHS ${doc.amount} was deleted for user ${doc.user}.${
-        wasActive
+        wasApproved
           ? " Principal restored."
-          : " No principal adjustment needed (was already cancelled/rejected)."
+          : " No principal adjustment needed (was unapproved/pending)."
       }`,
     });
   } catch (err) {
@@ -141,27 +143,41 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
     runValidators: true,
   });
 
-  const wasActive = !isInactiveStatus(oldDoc.status);
-  const isActive = !isInactiveStatus(doc.status);
+  const wasApproved = isApprovedStatus(oldDoc.status);
+  const isApproved = isApprovedStatus(doc.status);
 
   const oldAmount = Number(oldDoc.amount) || 0;
   const newAmount = Number(doc.amount) || 0;
 
-  // What was previously deducted from principal
-  const prevDeduction = wasActive ? oldAmount : 0;
-  // What should currently be deducted from principal
-  const nextDeduction = isActive ? newAmount : 0;
+  // What was previously deducted from principal (only approved withdrawals were deducted)
+  const prevDeduction = wasApproved ? oldAmount : 0;
+  // What should currently be deducted from principal (only approved withdrawals are deducted)
+  const nextDeduction = isApproved ? newAmount : 0;
 
-  // principalDelta > 0: refund back to user principal
-  // principalDelta < 0: deduct from user principal
+  // principalDelta > 0: refund back to user principal (e.g. from Approved to Cancelled/Rejected/Pending)
+  // principalDelta < 0: deduct from user principal (e.g. from Pending to Approved)
   const principalDelta = prevDeduction - nextDeduction;
 
   if (principalDelta !== 0) {
     const investment = await Investment.findOne({ userId: doc.user });
     if (investment) {
-      investment.principal = Math.max(0, (investment.principal || 0) + principalDelta);
-      await investment.save();
-      await recalculateInvestment(investment._id);
+      if (principalDelta < 0) {
+        // Approving/increasing deduction: snapshot and lock profit prior to deduction
+        await recalculateInvestment(investment._id);
+        const refreshedInvestment = await Investment.findById(investment._id);
+        refreshedInvestment.lockedPrincipalProfit =
+          (refreshedInvestment.lockedPrincipalProfit || 0) +
+          (refreshedInvestment.principalAccruedReturn || 0);
+        refreshedInvestment.lastPrincipalAdjustmentDate = new Date();
+        refreshedInvestment.principal = Math.max(0, (refreshedInvestment.principal || 0) + principalDelta);
+        await refreshedInvestment.save();
+        await recalculateInvestment(refreshedInvestment._id);
+      } else {
+        // Refunding back to principal (e.g. rejection/cancellation of approved withdrawal)
+        investment.principal = Math.max(0, (investment.principal || 0) + principalDelta);
+        await investment.save();
+        await recalculateInvestment(investment._id);
+      }
     }
   }
 
@@ -186,6 +202,7 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
   } catch (err) {
     console.error("Activity logging failed:", err);
   }
+
 
   res.status(200).json({
     status: "success",

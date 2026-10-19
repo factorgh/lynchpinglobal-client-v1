@@ -267,9 +267,10 @@ const CustomerLanding = () => {
             />
           </div>
 
-          <div className="col-span-1 md:col-span-12 lg:col-span-4 h-full min-h-[220px]">
+          <div className="col-span-1 md:col-span-12 lg:col-span-4 h-full min-h-[220px] px-0.5 sm:px-1">
             <CustomSlider />
           </div>
+
         </div>
         <Divider className="bg-white/40 my-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mt-6 mb-10 items-stretch">

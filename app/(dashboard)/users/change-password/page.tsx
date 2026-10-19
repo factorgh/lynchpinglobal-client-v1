@@ -811,15 +811,16 @@ export default function ChangePasswordPage() {
           <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-4 flex items-center justify-between text-xs">
             <div>
               <p className="font-bold text-slate-800">Need Security Assistance?</p>
-              <p className="text-[11px] text-slate-500">Contact Lynchpin Global security team</p>
+              <p className="text-[11px] text-slate-500">Contact Lynchpin Global security team (info@lynchpinglobal.com)</p>
             </div>
             <a
-              href="mailto:support@lynchpin.com"
+              href="mailto:info@lynchpinglobal.com"
               className="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition-colors"
             >
               Contact Support
             </a>
           </div>
+
         </div>
       </div>
     </Wrapper>

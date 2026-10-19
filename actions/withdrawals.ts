@@ -63,10 +63,10 @@ export async function createWithdrawalAction(data: {
 }
 
 
-const isInactiveStatus = (status: any) => {
+const isApprovedStatus = (status: any) => {
   if (!status) return false;
   const s = String(status).trim().toLowerCase();
-  return s === "cancelled" || s === "rejected";
+  return s === "approved" || s === "processing";
 };
 
 export async function updateWithdrawalAction(id: string, data: any) {
@@ -86,23 +86,39 @@ export async function updateWithdrawalAction(id: string, data: any) {
       return { success: false, error: "Withdrawal not found" };
     }
 
-    const wasActive = !isInactiveStatus(oldDoc.status);
-    const isActive = !isInactiveStatus(updated.status);
+    const wasApproved = isApprovedStatus(oldDoc.status);
+    const isApproved = isApprovedStatus(updated.status);
 
     const oldAmount = Number(oldDoc.amount) || 0;
     const newAmount = Number(updated.amount) || 0;
 
-    const prevDeduction = wasActive ? oldAmount : 0;
-    const nextDeduction = isActive ? newAmount : 0;
+    const prevDeduction = wasApproved ? oldAmount : 0;
+    const nextDeduction = isApproved ? newAmount : 0;
 
     const principalDelta = prevDeduction - nextDeduction;
 
     if (principalDelta !== 0) {
       const investment = await Investment.findOne({ userId: updated.user || updated.userId });
       if (investment) {
-        investment.principal = Math.max(0, (investment.principal || 0) + principalDelta);
-        await investment.save();
-        await recalculateInvestment(investment._id);
+        if (principalDelta < 0) {
+          // Approving/increasing deduction: snapshot and lock profit
+          await recalculateInvestment(investment._id);
+          const refreshedInvestment = await Investment.findById(investment._id);
+          if (refreshedInvestment) {
+            refreshedInvestment.lockedPrincipalProfit =
+              (refreshedInvestment.lockedPrincipalProfit || 0) +
+              (refreshedInvestment.principalAccruedReturn || 0);
+            refreshedInvestment.lastPrincipalAdjustmentDate = new Date();
+            refreshedInvestment.principal = Math.max(0, (refreshedInvestment.principal || 0) + principalDelta);
+            await refreshedInvestment.save();
+            await recalculateInvestment(refreshedInvestment._id);
+          }
+        } else {
+          // Refunding back to principal
+          investment.principal = Math.max(0, (investment.principal || 0) + principalDelta);
+          await investment.save();
+          await recalculateInvestment(investment._id);
+        }
       }
     }
 
@@ -122,8 +138,8 @@ export async function deleteWithdrawalAction(id: string) {
       return { success: false, error: "Withdrawal not found" };
     }
 
-    const wasActive = !isInactiveStatus(doc.status);
-    if (wasActive) {
+    const wasApproved = isApprovedStatus(doc.status);
+    if (wasApproved) {
       const investment = await Investment.findOne({ userId: doc.user || doc.userId });
       if (investment) {
         investment.principal += doc.amount;

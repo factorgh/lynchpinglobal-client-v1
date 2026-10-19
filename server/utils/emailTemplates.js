@@ -125,7 +125,8 @@ export const getPasswordResetTemplate = (
 
             <p class="warning">⚠️ <strong>Important:</strong> This link will expire in ${expiryHours} hour(s) for your security. After that, you'll need to request a new password reset.</p>
 
-            <p>If you didn't request this password reset, please contact our support team immediately at <a href="mailto:support@lynchpinglobal.com">support@lynchpinglobal.com</a>.</p>
+            <p>If you didn't request this password reset, please contact our support team immediately at <a href="mailto:info@lynchpinglobal.com">info@lynchpinglobal.com</a>.</p>
+
         </div>
 
         <div class="footer">

@@ -16,7 +16,9 @@ import {
   Wallet,
   X,
   ChevronRight,
+  Mail,
 } from "lucide-react";
+
 import { useGetAllInvestmentsQuery, useGetUserInvestmentsQuery } from "@/services/investment";
 import { useGetAllAssetssQuery, useGetUserAssetsQuery } from "@/services/assets";
 import { useGetLoansQuery } from "@/services/loan";
@@ -145,6 +147,15 @@ export const GlobalSearch: React.FC = () => {
           icon: FileUp,
           color: "text-cyan-600 bg-cyan-50",
         },
+        {
+          id: "action-contact-support",
+          title: "Contact Support (info@lynchpinglobal.com)",
+          subtitle: "Get assistance from Lynchpin Global support team",
+          category: "Page",
+          href: "mailto:info@lynchpinglobal.com",
+          icon: Mail,
+          color: "text-blue-600 bg-blue-50",
+        },
       ];
     } else {
       return [
@@ -184,9 +195,19 @@ export const GlobalSearch: React.FC = () => {
           icon: Handshake,
           color: "text-slate-600 bg-slate-100",
         },
+        {
+          id: "action-contact-support-client",
+          title: "Contact Support (info@lynchpinglobal.com)",
+          subtitle: "Get assistance from Lynchpin Global support team",
+          category: "Page",
+          href: "mailto:info@lynchpinglobal.com",
+          icon: Mail,
+          color: "text-blue-600 bg-blue-50",
+        },
       ];
     }
   }, [isAdmin]);
+
 
   // 2. Mandates / Investments
   const mandateResults: SearchResultItem[] = useMemo(() => {
@@ -360,8 +381,13 @@ export const GlobalSearch: React.FC = () => {
 
   const handleSelect = (item: SearchResultItem) => {
     setIsOpen(false);
-    router.push(item.href);
+    if (item.href.startsWith("mailto:")) {
+      window.location.href = item.href;
+    } else {
+      router.push(item.href);
+    }
   };
+
 
   const categories = isAdmin
     ? ["All", "Page", "Mandate", "Asset", "Loan", "User", "Disbursement"]
