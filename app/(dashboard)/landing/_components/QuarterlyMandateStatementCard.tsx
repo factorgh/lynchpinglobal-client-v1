@@ -136,24 +136,16 @@ export const QuarterlyMandateStatementCard: React.FC<
                 <h3 className="text-base font-bold text-gray-900 leading-tight">
                   End-Of-Quarter Report
                 </h3>
-                <p className="text-xs text-blue-700 font-medium mt-0.5">
-                  Quarterly Mandate Statement ({quarter} {year})
-                </p>
               </div>
             </div>
 
-            {isClosed ? (
+            {isClosed && (
               <Tag
                 color="success"
                 className="px-2.5 py-0.5 rounded-full text-xs font-semibold m-0"
               >
                 <CheckCircleFilled className="mr-1" /> Ready
               </Tag>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
-                Accruing Daily
-              </span>
             )}
           </div>
 

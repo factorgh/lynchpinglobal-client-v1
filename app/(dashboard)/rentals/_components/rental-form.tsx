@@ -25,7 +25,7 @@ const RentalForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [createRental, { isLoading }] = useCreateRentalMutation();
   const { data, isFetching } = useGetUsersQuery(null);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [form] = Form.useForm();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   const [createActivity] = useCreateActivityLogMutation();
@@ -97,11 +97,24 @@ const RentalForm: React.FC = () => {
     };
     try {
       await createRental(formattedValues).unwrap();
-      await createActivity({
-        activity: "Rental Created",
-        description: "A new rental was created",
-        user: loggedInUser._id,
-      }).unwrap();
+
+      const targetUserObj: any = (users as any[]).find((u: any) => u._id === values.user);
+      const clientName = targetUserObj?.displayName || targetUserObj?.name || "Client";
+      const clientLicense = targetUserObj?.license || "";
+
+      if (loggedInUser._id) {
+        await createActivity({
+          activity: "Rental Created",
+          description: `Rental entry created for ${clientName}${clientLicense ? ` (${clientLicense})` : ""}. Cost: GHS ${Number(values.rentalCost || 0).toLocaleString()}`,
+          user: loggedInUser._id,
+          targetUser: values.user,
+          targetName: clientName,
+          targetLicense: clientLicense,
+          targetAccount: `Rental (${values.rentalName || "Account"})`,
+          entityType: "Rental",
+          amount: Number(values.rentalCost || 0),
+        }).unwrap();
+      }
       toast.success("Rental created successfully");
       setUploading({
         agreements: false,

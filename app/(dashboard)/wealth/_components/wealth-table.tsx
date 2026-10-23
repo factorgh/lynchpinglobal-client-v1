@@ -202,12 +202,25 @@ const WealthTable = ({
       });
 
       if (result.isConfirmed) {
+        const targetRecord = investmentData?.data?.find((item: any) => item._id === id);
+        const clientName = targetRecord?.userId?.displayName || targetRecord?.userId?.name || targetRecord?.name || "Client";
+        const clientLicense = targetRecord?.userId?.license || "";
+
         await deleteInvestment(id).unwrap();
-        await createActivity({
-          activity: "Mandate Deleted",
-          description: `A mandate with id ${id} was deleted`,
-          user: loggedInUser._id,
-        }).unwrap();
+        if (loggedInUser._id) {
+          await createActivity({
+            activity: "Mandate Deleted",
+            description: `Mandate for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} (Principal: GHS ${Number(targetRecord?.principal || 0).toLocaleString()}) was deleted`,
+            user: loggedInUser._id,
+            targetUser: targetRecord?.userId?._id || targetRecord?.userId,
+            targetName: clientName,
+            targetLicense: clientLicense,
+            targetAccount: `Mandate #${String(id).slice(-6).toUpperCase()}`,
+            entityType: "Mandate",
+            entityId: String(id),
+            amount: Number(targetRecord?.principal || 0),
+          }).unwrap();
+        }
         toast.success("Entry deleted successfully");
       }
     } catch (error: any) {
@@ -244,11 +257,20 @@ const WealthTable = ({
           },
         }).unwrap();
 
-        await createActivity({
-          activity: `Mandate Marked ${targetStatus}`,
-          description: `Mandate ${record._id} for ${customerName} was marked ${targetStatus}`,
-          user: loggedInUser._id,
-        }).unwrap();
+        if (loggedInUser._id) {
+          await createActivity({
+            activity: `Mandate Marked ${targetStatus}`,
+            description: `Mandate for ${customerName}${record.userId?.license ? ` (${record.userId.license})` : ""} was marked as ${targetStatus} (Principal: GHS ${Number(record.principal || 0).toLocaleString()})`,
+            user: loggedInUser._id,
+            targetUser: record.userId?._id || record.userId,
+            targetName: customerName,
+            targetLicense: record.userId?.license,
+            targetAccount: `Mandate #${String(record._id).slice(-6).toUpperCase()}`,
+            entityType: "Mandate",
+            entityId: String(record._id),
+            amount: Number(record.principal || 0),
+          }).unwrap();
+        }
 
         toast.success(`Mandate successfully marked as ${targetStatus}`);
       } catch (err: any) {
@@ -269,11 +291,23 @@ const WealthTable = ({
           investmentId: editRentalId,
         });
 
-        await createActivity({
-          activity: "New Add On",
-          description: "A new addon was added",
-          user: loggedInUser._id,
-        }).unwrap();
+        const targetRecord = investmentData?.data?.find((item: any) => item._id === editRentalId);
+        const clientName = targetRecord?.userId?.displayName || targetRecord?.userId?.name || targetRecord?.name || "Client";
+
+        if (loggedInUser._id) {
+          await createActivity({
+            activity: "Mandate Add-On Created",
+            description: `Add-on of GHS ${Number(values.amount).toLocaleString()} added to ${clientName}'s mandate`,
+            user: loggedInUser._id,
+            targetUser: targetRecord?.userId?._id || targetRecord?.userId,
+            targetName: clientName,
+            targetLicense: targetRecord?.userId?.license,
+            targetAccount: `Mandate #${String(editRentalId).slice(-6).toUpperCase()}`,
+            entityType: "Mandate",
+            entityId: String(editRentalId),
+            amount: Number(values.amount),
+          }).unwrap();
+        }
 
         closeAddOnDrawer();
         toast.success("Add On has been created successfully");
@@ -297,19 +331,37 @@ const WealthTable = ({
             data: formattedValues,
           }).unwrap();
 
-          await createActivity({
-            activity: "Mandate Updated",
-            description: `A mandate was updated with ID ${editRentalId}`,
-            user: loggedInUser._id,
-          }).unwrap();
+          const targetRecord = investmentData?.data?.find((item: any) => item._id === editRentalId);
+          const clientName = targetRecord?.userId?.displayName || targetRecord?.userId?.name || targetRecord?.name || values.name || "Client";
+
+          if (loggedInUser._id) {
+            await createActivity({
+              activity: "Mandate Updated",
+              description: `Mandate details updated for ${clientName}. Principal: GHS ${Number(values.principal || targetRecord?.principal || 0).toLocaleString()}, ROI: ${values.returns || targetRecord?.returns || 0}%`,
+              user: loggedInUser._id,
+              targetUser: targetRecord?.userId?._id || targetRecord?.userId,
+              targetName: clientName,
+              targetLicense: targetRecord?.userId?.license,
+              targetAccount: `Mandate #${String(editRentalId).slice(-6).toUpperCase()}`,
+              entityType: "Mandate",
+              entityId: String(editRentalId),
+              amount: Number(values.principal || targetRecord?.principal || 0),
+            }).unwrap();
+          }
 
           toast.success("Mandate updated successfully");
         } else {
-          await createActivity({
-            activity: "New Mandate",
-            description: "A new mandate was created",
-            user: loggedInUser._id,
-          }).unwrap();
+          if (loggedInUser._id) {
+            await createActivity({
+              activity: "New Mandate Created",
+              description: `New mandate created for client "${values.name || 'Client'}" with initial principal GHS ${Number(values.principal || 0).toLocaleString()}`,
+              user: loggedInUser._id,
+              targetName: values.name,
+              targetAccount: "New Mandate",
+              entityType: "Mandate",
+              amount: Number(values.principal || 0),
+            }).unwrap();
+          }
 
           toast.success("New mandate added successfully");
         }

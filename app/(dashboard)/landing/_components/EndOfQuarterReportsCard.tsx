@@ -142,18 +142,13 @@ export const EndOfQuarterReportsCard: React.FC<EndOfQuarterReportsCardProps> = (
               </div>
             </div>
 
-            {isClosed ? (
+            {isClosed && (
               <Tag
                 color="success"
                 className="px-3 py-1 rounded-full text-xs font-semibold"
               >
                 <CheckCircleFilled className="mr-1" /> Reports Finalized
               </Tag>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Accruing Daily
-              </span>
             )}
           </div>
 

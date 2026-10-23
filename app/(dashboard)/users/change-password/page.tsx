@@ -37,6 +37,7 @@ export default function ChangePasswordPage() {
   // Profile Form States
   const [profileName, setProfileName] = useState("");
   const [profileDisplayName, setProfileDisplayName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
@@ -60,6 +61,7 @@ export default function ChangePasswordPage() {
         setUserInfo(parsed);
         setProfileName(parsed.name || "");
         setProfileDisplayName(parsed.displayName || parsed.name || "");
+        setProfileEmail(parsed.email || "");
         setProfilePhone(parsed.phone || "");
         setProfilePhoto(parsed.photo || null);
       }
@@ -75,7 +77,11 @@ export default function ChangePasswordPage() {
       return;
     }
     if (!profileDisplayName.trim()) {
-      toast.error("Display Name is required");
+      toast.error("Full Name / Display Name is required");
+      return;
+    }
+    if (!profileEmail.trim()) {
+      toast.error("Email address is required");
       return;
     }
 
@@ -98,6 +104,7 @@ export default function ChangePasswordPage() {
         body: JSON.stringify({
           name: profileName.trim(),
           displayName: profileDisplayName.trim(),
+          email: profileEmail.trim().toLowerCase(),
           phone: profilePhone.trim() || undefined,
           photo: profilePhoto || undefined,
         }),
@@ -112,6 +119,7 @@ export default function ChangePasswordPage() {
         ...userInfo,
         name: profileName.trim(),
         displayName: profileDisplayName.trim(),
+        email: profileEmail.trim().toLowerCase(),
         phone: profilePhone.trim(),
         photo: profilePhoto,
       };
@@ -119,7 +127,7 @@ export default function ChangePasswordPage() {
       localStorage.setItem("user", JSON.stringify(updated));
       setUserInfo(updated);
       window.dispatchEvent(new Event("user-profile-updated"));
-      toast.success("Profile information and photo updated successfully");
+      toast.success("Profile credentials (username, email, name) and photo updated successfully");
     } catch (err: any) {
       toast.error(err.message || "Failed to update profile");
     } finally {
@@ -423,10 +431,10 @@ export default function ChangePasswordPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Email (Read-only) */}
+                  {/* Email (Editable by client) */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Primary Email
+                      Primary Email (Login Access) <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -434,13 +442,15 @@ export default function ChangePasswordPage() {
                       </div>
                       <input
                         type="email"
-                        disabled
-                        value={userInfo?.email || ""}
-                        className="w-full pl-10 pr-3 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed font-medium"
+                        required
+                        value={profileEmail}
+                        onChange={(e) => setProfileEmail(e.target.value)}
+                        placeholder="your.email@example.com"
+                        className="w-full pl-10 pr-3 py-2.5 text-xs bg-slate-50/60 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all font-medium"
                       />
                     </div>
                     <span className="text-[10px] text-slate-400 mt-1 block">
-                      Contact administrator to modify primary email
+                      Used to sign in and receive security alerts
                     </span>
                   </div>
 

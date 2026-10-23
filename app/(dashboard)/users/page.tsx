@@ -22,7 +22,9 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Button, Drawer, Form, Input, Select, Skeleton } from "antd";
+import Link from "next/link";
 import {
+  ArrowRight,
   ChevronLeft,
   ChevronRight,
   Search,
@@ -50,8 +52,8 @@ const Users = () => {
   );
 
   const [searchTerm, setSearchTerm] = useState("");
-  // roleFilter can be: 'all' | 'clients' | 'admins'
-  const [roleFilter, setRoleFilter] = useState<"all" | "clients" | "admins">("all");
+  // roleFilter can be: 'admins' (default - User Mgt focuses on system staff) | 'clients' | 'all'
+  const [roleFilter, setRoleFilter] = useState<"admins" | "clients" | "all">("admins");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -138,10 +140,18 @@ const Users = () => {
       if (result.isConfirmed) {
         await deleteUser(id).unwrap();
         if (loggedInUser._id) {
+          const targetU = allUsers.find((u: any) => u._id === id);
+          const uName = targetU?.displayName || targetU?.name || name || "User";
           await createActivity({
-            activity: "User Deleted",
-            description: `A user with id ${id} was deleted`,
+            activity: "User Account Deleted",
+            description: `User account "${uName}" (@${targetU?.name || 'user'}, ${targetU?.license || id}) with role "${targetU?.role || 'user'}" was deleted`,
             user: loggedInUser._id,
+            targetUser: id,
+            targetName: uName,
+            targetLicense: targetU?.license,
+            targetAccount: `@${targetU?.name || 'user'}`,
+            entityType: "User",
+            entityId: String(id),
           }).unwrap();
         }
         toast.success("User deleted successfully");
@@ -154,8 +164,15 @@ const Users = () => {
   const handleFormSubmit = async (values: any) => {
     try {
       if (selectedUser) {
-        // Strip out name (username) so it can never be altered from admin side
-        const { name: _ignoredUsername, ...safeValues } = values;
+        // Access credentials (username, email, password) are strictly changeable by client only
+        const {
+          name: _ignoredUsername,
+          username: _ignoredUname,
+          email: _ignoredEmail,
+          password: _ignoredPassword,
+          passwordConfirm: _ignoredConfirm,
+          ...safeValues
+        } = values;
 
         await updateUser({
           id: selectedUser._id,
@@ -166,10 +183,17 @@ const Users = () => {
         }).unwrap();
 
         if (loggedInUser._id) {
+          const uName = selectedUser.displayName || selectedUser.name;
           await createActivity({
-            activity: "User Updated",
-            description: `User "${selectedUser.displayName || selectedUser.name}" (${selectedUser._id}) was updated`,
+            activity: "User Profile Updated",
+            description: `User "${uName}" (@${selectedUser.name}, ${selectedUser.license || selectedUser._id}) profile was updated (Role: ${values.role || selectedUser.role})`,
             user: loggedInUser._id,
+            targetUser: selectedUser._id,
+            targetName: uName,
+            targetLicense: selectedUser.license,
+            targetAccount: `@${selectedUser.name}`,
+            entityType: "User",
+            entityId: String(selectedUser._id),
           }).unwrap();
         }
         toast.success("User updated successfully");
@@ -213,7 +237,10 @@ const Users = () => {
           <TableHeader>
             <TableRow className="bg-slate-50/80 hover:bg-slate-50/80 border-b border-slate-200">
               <TableHead className="py-3 px-4 font-semibold text-slate-700 text-xs">
-                User & Handle
+                Full Name
+              </TableHead>
+              <TableHead className="py-3 px-4 font-semibold text-slate-700 text-xs">
+                Username (Login ID)
               </TableHead>
               <TableHead className="py-3 px-4 font-semibold text-slate-700 text-xs">
                 Email Address
@@ -222,7 +249,7 @@ const Users = () => {
                 License Code
               </TableHead>
               <TableHead className="py-3 px-4 font-semibold text-slate-700 text-xs">
-                Role & Classification
+                System Role
               </TableHead>
               <TableHead className="py-3 px-4 font-semibold text-slate-700 text-xs text-right">
                 Actions
@@ -241,7 +268,7 @@ const Users = () => {
                   key={user._id}
                   className="hover:bg-slate-50/70 border-b border-slate-100 transition-colors"
                 >
-                  {/* User / Avatar */}
+                  {/* Full Name & Avatar */}
                   <TableCell className="py-3 px-4 font-medium text-slate-900">
                     <div className="flex items-center gap-2.5">
                       <div
@@ -265,17 +292,20 @@ const Users = () => {
                         <span className="text-xs font-semibold text-slate-900 block leading-tight">
                           {user.displayName || user.name || "Unnamed User"}
                         </span>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[11px] font-mono text-slate-500 font-medium flex items-center gap-0.5">
-                            @{user.name || "username"}
+                        {user.designation && (
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                            {user.designation}
                           </span>
-                          <span className="text-[10px] text-slate-300">•</span>
-                          <span className="text-[10px] text-slate-400">
-                            {user.designation || (isClientRole ? "Client" : "Staff")}
-                          </span>
-                        </div>
+                        )}
                       </div>
                     </div>
+                  </TableCell>
+
+                  {/* Username (Login ID) */}
+                  <TableCell className="py-3 px-4 text-xs font-mono">
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                      @{user.name || "username"}
+                    </span>
                   </TableCell>
 
                   {/* Email */}
@@ -309,7 +339,7 @@ const Users = () => {
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                         <UserCheck className="w-3 h-3 text-emerald-600" />
-                        Client Account
+                        Client
                       </span>
                     )}
                   </TableCell>
@@ -354,34 +384,63 @@ const Users = () => {
         </p>
       </div>
 
+      {/* Notice: Clear separation between User Management & Client Management */}
+      <div className="mb-6 p-4 rounded-2xl bg-white/95 backdrop-blur-sm border border-purple-200/80 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 border border-purple-200">
+            <ShieldCheck className="w-5 h-5 text-purple-700" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-slate-900">
+              User Management focuses on System Administrators & Staff
+            </h3>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Investor and client profiles are managed separately in the dedicated <span className="font-semibold text-emerald-700">Client Management</span> section.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/clients"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-colors shrink-0"
+        >
+          <span>Go to Client Management</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
       {/* Role Breakdown Metric KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {/* Total Accounts */}
+        {/* Administrators & Staff (Primary focus for User Mgt) */}
         <div
           onClick={() => {
-            setRoleFilter("all");
+            setRoleFilter("admins");
             setCurrentPage(1);
           }}
           className={`cursor-pointer rounded-2xl p-4 border transition-all shadow-sm ${
-            roleFilter === "all"
-              ? "bg-white/95 border-emerald-500 shadow-md ring-2 ring-emerald-500/20"
+            roleFilter === "admins"
+              ? "bg-white/95 border-purple-600 shadow-md ring-2 ring-purple-500/20"
               : "bg-white/85 hover:bg-white/95 border-white/60"
           }`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                All User Accounts
-              </p>
-              <h3 className="text-2xl font-extrabold text-slate-900 mt-1">
-                {allUsers.length}
+              <div className="flex items-center gap-1.5">
+                <p className="text-[11px] font-bold text-purple-900 uppercase tracking-wider">
+                  Admins & Staff
+                </p>
+                <span className="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded-full">
+                  Internal
+                </span>
+              </div>
+              <h3 className="text-2xl font-extrabold text-purple-800 mt-1">
+                {adminUsers.length}
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Total registered system users
+                System administrators & internal staff
               </p>
             </div>
-            <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
-              <UsersIcon className="w-5 h-5 text-slate-600" />
+            <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-200">
+              <ShieldCheck className="w-5 h-5 text-purple-600" />
             </div>
           </div>
         </div>
@@ -421,37 +480,32 @@ const Users = () => {
           </div>
         </div>
 
-        {/* Administrators & Staff */}
+        {/* Total Accounts */}
         <div
           onClick={() => {
-            setRoleFilter("admins");
+            setRoleFilter("all");
             setCurrentPage(1);
           }}
           className={`cursor-pointer rounded-2xl p-4 border transition-all shadow-sm ${
-            roleFilter === "admins"
-              ? "bg-white/95 border-purple-600 shadow-md ring-2 ring-purple-500/20"
+            roleFilter === "all"
+              ? "bg-white/95 border-slate-500 shadow-md ring-2 ring-slate-500/20"
               : "bg-white/85 hover:bg-white/95 border-white/60"
           }`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-1.5">
-                <p className="text-[11px] font-bold text-purple-900 uppercase tracking-wider">
-                  Admins & Staff
-                </p>
-                <span className="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded-full">
-                  Internal
-                </span>
-              </div>
-              <h3 className="text-2xl font-extrabold text-purple-800 mt-1">
-                {adminUsers.length}
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                All Registered Users
+              </p>
+              <h3 className="text-2xl font-extrabold text-slate-900 mt-1">
+                {allUsers.length}
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                System admins & internal staff
+                Total system & client accounts
               </p>
             </div>
-            <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-200">
-              <ShieldCheck className="w-5 h-5 text-purple-600" />
+            <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 border border-slate-200">
+              <UsersIcon className="w-5 h-5 text-slate-600" />
             </div>
           </div>
         </div>
@@ -464,19 +518,19 @@ const Users = () => {
           <div className="flex items-center gap-1.5 bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 shrink-0">
             <button
               onClick={() => {
-                setRoleFilter("all");
+                setRoleFilter("admins");
                 setCurrentPage(1);
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                roleFilter === "all"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                roleFilter === "admins"
+                  ? "bg-white text-purple-900 shadow-sm ring-1 ring-purple-500/20"
+                  : "text-slate-600 hover:text-purple-800"
               }`}
             >
-              <UsersIcon className="w-3.5 h-3.5 text-slate-500" />
-              <span>All Users</span>
-              <span className="ml-1 text-[10px] font-bold px-1.5 py-0.2 bg-slate-200/80 text-slate-700 rounded-full">
-                {allUsers.length}
+              <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+              <span>Admins & Staff</span>
+              <span className="ml-1 text-[10px] font-bold px-1.5 py-0.2 bg-purple-100 text-purple-800 rounded-full">
+                {adminUsers.length}
               </span>
             </button>
 
@@ -500,19 +554,19 @@ const Users = () => {
 
             <button
               onClick={() => {
-                setRoleFilter("admins");
+                setRoleFilter("all");
                 setCurrentPage(1);
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                roleFilter === "admins"
-                  ? "bg-white text-purple-900 shadow-sm ring-1 ring-purple-500/20"
-                  : "text-slate-600 hover:text-purple-800"
+                roleFilter === "all"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-              <span>Admins & Staff</span>
-              <span className="ml-1 text-[10px] font-bold px-1.5 py-0.2 bg-purple-100 text-purple-800 rounded-full">
-                {adminUsers.length}
+              <UsersIcon className="w-3.5 h-3.5 text-slate-500" />
+              <span>All Users</span>
+              <span className="ml-1 text-[10px] font-bold px-1.5 py-0.2 bg-slate-200/80 text-slate-700 rounded-full">
+                {allUsers.length}
               </span>
             </button>
           </div>
@@ -707,9 +761,9 @@ const Users = () => {
             name="name"
             label={
               <div className="flex items-center justify-between w-full">
-                <span className="font-semibold text-xs text-slate-700">Username</span>
+                <span className="font-semibold text-xs text-slate-700">Username (Login ID)</span>
                 <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium border border-amber-200/80 flex items-center gap-1">
-                  <LockOutlined className="text-[10px]" /> Locked (Permanent)
+                  <LockOutlined className="text-[10px]" /> Changeable by client only
                 </span>
               </div>
             }
@@ -729,15 +783,24 @@ const Users = () => {
             <Input placeholder="e.g. John Mensah" className="rounded-xl py-2 text-xs" />
           </Form.Item>
 
+          {/* Email - STRICTLY LOCKED & READ-ONLY */}
           <Form.Item
             name="email"
-            label={<span className="font-semibold text-xs text-slate-700">Email Address</span>}
-            rules={[
-              { required: true, message: "Please enter the email" },
-              { type: "email", message: "Please enter a valid email" },
-            ]}
+            label={
+              <div className="flex items-center justify-between w-full">
+                <span className="font-semibold text-xs text-slate-700">Email Address (Login)</span>
+                <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium border border-amber-200/80 flex items-center gap-1">
+                  <LockOutlined className="text-[10px]" /> Changeable by client only
+                </span>
+              </div>
+            }
+            tooltip="Login credentials (email, username, password) are strictly changeable by the account holder only."
           >
-            <Input placeholder="e.g. john@example.com" className="rounded-xl py-2 text-xs" />
+            <Input
+              disabled
+              placeholder="e.g. john@example.com"
+              className="rounded-xl py-2 text-xs bg-slate-100 text-slate-500 cursor-not-allowed border border-slate-200"
+            />
           </Form.Item>
 
           <Form.Item
@@ -747,26 +810,24 @@ const Users = () => {
             <Select
               className="rounded-xl"
               options={[
-                { value: "user", label: "Client (Portal Access)" },
                 { value: "admin", label: "Administrator (Staff)" },
                 { value: "superadmin", label: "Super Administrator" },
+                { value: "user", label: "Client (Portal Access)" },
               ]}
             />
           </Form.Item>
 
           <Form.Item
             name="designation"
-            label={<span className="font-semibold text-xs text-slate-700">Designation / Title</span>}
+            label={<span className="font-semibold text-xs text-slate-700">Designation</span>}
+            tooltip="Simplified to Administrator or Client"
           >
             <Select
               allowClear
               placeholder="Select designation"
               options={[
-                { value: "Founder", label: "Founder" },
-                { value: "Director", label: "Director" },
+                { value: "Admin", label: "Administrator" },
                 { value: "Client", label: "Client" },
-                { value: "Admin", label: "Admin" },
-                { value: "Staff", label: "Staff" },
               ]}
             />
           </Form.Item>

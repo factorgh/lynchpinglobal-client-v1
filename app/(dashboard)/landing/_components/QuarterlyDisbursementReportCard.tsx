@@ -186,9 +186,6 @@ export const QuarterlyDisbursementReportCard: React.FC<
                 <h3 className="text-base font-bold text-gray-900 leading-tight">
                   Ledger Report
                 </h3>
-                <p className="text-xs text-emerald-700 font-medium mt-0.5">
-                  Disbursement & Yield Ledger ({quarter} {year})
-                </p>
               </div>
             </div>
 
@@ -206,12 +203,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
               >
                 <CheckCircleFilled className="mr-1" /> Reconciled
               </Tag>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Accruing Daily
-              </span>
-            )}
+            ) : null}
           </div>
 
           {/* Ledger Overview Hero Box */}

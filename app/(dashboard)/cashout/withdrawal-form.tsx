@@ -12,7 +12,7 @@ const WithdrawalForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [createPayment, { isLoading }] = useCreateWithdrawalMutation();
   const { data, isFetching } = useGetUsersQuery(null);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [form] = Form.useForm();
   const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
   const [selectedUser, setSelectedUser] = useState<any[]>([]);
@@ -28,12 +28,23 @@ const WithdrawalForm: React.FC = () => {
 
   const handleFormSubmit = async (values: any) => {
     try {
-      await createPayment(values).unwrap();
-      await createActivity({
-        activity: " Disbursement Entry",
-        description: "A disbursement entry was made successfully",
-        user: loggedInUser._id,
-      }).unwrap();
+      const targetUserObj = users.find((u: any) => u._id === values.user);
+      const clientName = targetUserObj?.displayName || targetUserObj?.name || "Client";
+      const clientLicense = targetUserObj?.license || "";
+
+      if (loggedInUser._id) {
+        await createActivity({
+          activity: "Disbursement Created",
+          description: `Disbursement entry of GHS ${Number(values.amount).toLocaleString()} created for ${clientName}${clientLicense ? ` (${clientLicense})` : ""}. Status: ${values.status || "Pending"}`,
+          user: loggedInUser._id,
+          targetUser: values.user,
+          targetName: clientName,
+          targetLicense: clientLicense,
+          targetAccount: "Disbursement",
+          entityType: "Disbursement",
+          amount: Number(values.amount),
+        }).unwrap();
+      }
       // Send notifications
       await createNotification({
         title: "Disbursement Information",

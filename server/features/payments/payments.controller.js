@@ -108,13 +108,24 @@ export const deletePayment = catchAsync(async (req, res, next) => {
 
   // Log activity
   try {
+    const targetUserDoc = await User.findById(doc.user).select("name displayName license email");
+    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(doc.user).slice(-6)})`;
+    const targetLicense = targetUserDoc?.license || "";
+
     await ActivityLog.create({
       user: req.user?._id || doc.user,
+      targetUser: doc.user,
+      targetName,
+      targetLicense,
+      targetAccount: `Payment #PAY-${String(doc._id).slice(-6).toUpperCase()}`,
+      entityType: "Payment",
+      entityId: String(doc._id),
+      amount: Number(doc.amount),
       activity: "Payment Deleted",
-      description: `A payment entry of GHS ${doc.amount} was deleted for user ${doc.user}.${
-        wasApproved
-          ? " Principal restored."
-          : " No principal adjustment needed (was unapproved/pending)."
+      description: `Payment entry of GHS ${Number(doc.amount).toLocaleString()} for ${targetName}${
+        targetLicense ? ` (${targetLicense})` : ""
+      } was deleted.${
+        wasApproved ? " Principal restored." : " No principal adjustment needed."
       }`,
     });
   } catch (err) {
@@ -175,10 +186,23 @@ export const updatePayment = catchAsync(async (req, res, next) => {
         ? ` Deducted GHS ${Math.abs(principalDelta).toFixed(2)} from principal.`
         : "";
 
+    const targetUserDoc = await User.findById(doc.user).select("name displayName license email");
+    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(doc.user).slice(-6)})`;
+    const targetLicense = targetUserDoc?.license || "";
+
     await ActivityLog.create({
       user: req.user?._id || doc.user,
+      targetUser: doc.user,
+      targetName,
+      targetLicense,
+      targetAccount: `Payment #PAY-${String(doc._id).slice(-6).toUpperCase()}`,
+      entityType: "Payment",
+      entityId: String(doc._id),
+      amount: Number(doc.amount),
       activity: "Payment Updated",
-      description: `A payment entry was updated for user ${doc.user}.${statusNote}${refundNote} Current amount: GHS ${doc.amount}.`,
+      description: `Payment of GHS ${Number(doc.amount).toLocaleString()} for ${targetName}${
+        targetLicense ? ` (${targetLicense})` : ""
+      } was updated.${statusNote}${refundNote}`,
     });
   } catch (err) {
     console.error("Activity logging failed:", err);

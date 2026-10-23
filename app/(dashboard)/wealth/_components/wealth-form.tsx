@@ -28,7 +28,7 @@ const WealthForm: React.FC = () => {
   const [createInvestment, { isLoading }] = useCreateInvestmentMutation();
   const [createActivity] = useCreateActivityLogMutation();
   const { data, isFetching } = useGetUsersQuery(null);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
 
   const [form] = Form.useForm();
   const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -103,11 +103,24 @@ const WealthForm: React.FC = () => {
 
     try {
       await createInvestment(formattedValues).unwrap();
-      await createActivity({
-        activity: "New Mandate",
-        description: "A new mandate was created",
-        user: loggedInUser._id,
-      }).unwrap();
+
+      const targetUserObj: any = (users as any[]).find((u: any) => u._id === values.userId);
+      const clientName = targetUserObj?.displayName || targetUserObj?.name || values.name || "Client";
+      const clientLicense = targetUserObj?.license || "";
+
+      if (loggedInUser._id) {
+        await createActivity({
+          activity: "New Mandate Created",
+          description: `New mandate created for client "${clientName}"${clientLicense ? ` (${clientLicense})` : ""} with initial principal GHS ${Number(values.principal || 0).toLocaleString()}`,
+          user: loggedInUser._id,
+          targetUser: values.userId,
+          targetName: clientName,
+          targetLicense: clientLicense,
+          targetAccount: "New Mandate",
+          entityType: "Mandate",
+          amount: Number(values.principal || 0),
+        }).unwrap();
+      }
 
       toast.success("Mandate created successfully");
       setOpen(false);

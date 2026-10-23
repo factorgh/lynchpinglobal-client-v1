@@ -25,7 +25,7 @@ const AssetForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [createAssets, { isLoading }] = useCreateAssetsMutation();
 
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [form] = Form.useForm();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   const { data, isFetching } = useGetUsersQuery(null);
@@ -214,12 +214,22 @@ const AssetForm: React.FC = () => {
     };
 
     try {
-      await createAssets(formattedValues).unwrap();
-      await createActivity({
-        activity: "Asset Transaction Entry",
-        description: "An asset transaction entry was made successfully",
-        user: loggedInUser._id,
-      }).unwrap();
+      const targetUserObj = users.find((u: any) => u._id === values.user);
+      const clientName = targetUserObj?.displayName || targetUserObj?.name || values.customer || "Client";
+
+      if (loggedInUser._id) {
+        await createActivity({
+          activity: "Asset Created",
+          description: `New asset "${values.assetName || 'Asset'}" (Valued at GHS ${Number(values.assetValue || 0).toLocaleString()}) created for ${clientName}${targetUserObj?.license ? ` (${targetUserObj.license})` : ""}`,
+          user: loggedInUser._id,
+          targetUser: values.user,
+          targetName: clientName,
+          targetLicense: targetUserObj?.license,
+          targetAccount: values.assetName || "New Asset",
+          entityType: "Asset",
+          amount: Number(values.assetValue || 0),
+        }).unwrap();
+      }
       toast.success("Asset Transaction created successfully");
       setOpen(false);
       resetFormState();

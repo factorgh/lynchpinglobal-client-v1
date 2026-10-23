@@ -171,12 +171,15 @@ export const deleteUser = catchAsync(async (req, res, next) => {
   });
 });
 
-// Update a user (Admin update - username/name is immutable)
+// Update a user (Admin update - access credentials username, email, password are changeable by client only)
 export const updateUser = catchAsync(async (req, res, next) => {
   const updateData = { ...req.body };
-  // Username is permanent once assigned and cannot be modified by admin
+  // Access credentials (username, email, password) are strictly changeable by client only
   delete updateData.name;
   delete updateData.username;
+  delete updateData.email;
+  delete updateData.password;
+  delete updateData.passwordConfirm;
 
   const updatedUser = await User.findOneAndUpdate(
     { _id: req.params.id },

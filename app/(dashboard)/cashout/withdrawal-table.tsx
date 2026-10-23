@@ -107,11 +107,23 @@ const WithdrawalTable: React.FC<any> = () => {
         data: values,
       }).unwrap();
 
+      const targetPayment = rawData.find((p: any) => p._id === editRentalId);
+      const targetUserObj = typeof targetPayment?.user === "object" ? targetPayment.user : null;
+      const clientName = targetUserObj?.displayName || targetUserObj?.name || "Client";
+      const clientLicense = targetUserObj?.license || "";
+
       if (loggedInUser._id) {
         await createActivity({
           activity: "Disbursement Updated",
-          description: "A disbursement update was made successfully",
+          description: `Disbursement of GHS ${Number(values.amount || targetPayment?.amount || 0).toLocaleString()} for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} was updated to status "${values.status || targetPayment?.status || 'Pending'}"`,
           user: loggedInUser._id,
+          targetUser: targetUserObj?._id || targetPayment?.user,
+          targetName: clientName,
+          targetLicense: clientLicense,
+          targetAccount: `Disbursement #DISB-${String(editRentalId).slice(-6).toUpperCase()}`,
+          entityType: "Disbursement",
+          entityId: String(editRentalId),
+          amount: Number(values.amount || targetPayment?.amount || 0),
         }).unwrap();
       }
 

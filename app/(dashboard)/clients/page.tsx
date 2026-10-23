@@ -266,12 +266,11 @@ export default function ClientsPage() {
   const handleEditSubmit = async (values: any) => {
     if (!selectedClient?._id) return;
     try {
-      // Username (name) is permanently locked and cannot be edited from admin side
+      // Username and Email are access credentials changeable by client only
       await updateUser({
         id: selectedClient._id,
         data: {
           displayName: values.displayName?.trim() || selectedClient.displayName || selectedClient.name,
-          email: values.email?.trim()?.toLowerCase(),
           phone: values.phone?.trim() || undefined,
           license: values.license?.trim() || undefined,
           photo: editPhoto || "",
@@ -1020,14 +1019,22 @@ export default function ClientsPage() {
               </Form.Item>
 
               <Form.Item
-                label={<span className="font-semibold text-xs text-slate-700">Email Address</span>}
+                label={
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-semibold text-xs text-slate-700">Email Address (Login)</span>
+                    <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium border border-amber-200/80 flex items-center gap-1">
+                      <LockOutlined className="text-[10px]" /> Changeable by client only
+                    </span>
+                  </div>
+                }
                 name="email"
-                rules={[{ required: true, message: "Email is required" }]}
                 className="mb-3"
+                tooltip="Login access credentials (email, username, password) are strictly managed by the account holder."
               >
                 <Input
+                  disabled
                   prefix={<Mail className="text-slate-400 text-xs mr-1" />}
-                  className="rounded-xl py-2 text-xs"
+                  className="rounded-xl py-2 text-xs bg-slate-100 text-slate-500 cursor-not-allowed"
                 />
               </Form.Item>
 

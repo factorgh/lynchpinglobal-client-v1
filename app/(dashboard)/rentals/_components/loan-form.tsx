@@ -24,7 +24,7 @@ const LoanForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [createLoan, { isLoading }] = useCreateLoanMutation();
   const { data, isFetching } = useGetUsersQuery(null);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [form] = Form.useForm();
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   const [createActivity] = useCreateActivityLogMutation();
@@ -102,12 +102,25 @@ const LoanForm: React.FC = () => {
     console.log(formattedValues);
     try {
       await createLoan(formattedValues).unwrap();
-      toast.success("Loan  created successfully");
-      await createActivity({
-        activity: "Loan Created",
-        description: "A new loan was created",
-        user: loggedInUser._id,
-      }).unwrap();
+      toast.success("Loan created successfully");
+
+      const targetUserObj: any = (users as any[]).find((u: any) => u._id === values.user);
+      const clientName = targetUserObj?.displayName || targetUserObj?.name || "Client";
+      const clientLicense = targetUserObj?.license || "";
+
+      if (loggedInUser._id) {
+        await createActivity({
+          activity: "Loan Created",
+          description: `Loan of GHS ${Number(values.amount || 0).toLocaleString()} created for ${clientName}${clientLicense ? ` (${clientLicense})` : ""}`,
+          user: loggedInUser._id,
+          targetUser: values.user,
+          targetName: clientName,
+          targetLicense: clientLicense,
+          targetAccount: `Loan (${values.loanName || values.purpose || "Account"})`,
+          entityType: "Loan",
+          amount: Number(values.amount || 0),
+        }).unwrap();
+      }
       form.resetFields();
       setOpen(false);
     } catch (error: any) {

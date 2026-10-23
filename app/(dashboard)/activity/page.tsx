@@ -96,8 +96,19 @@ const ActivityPage: React.FC = () => {
       filtered = filtered.filter((activity: any) => {
         const title = (activity.activity || "").toLowerCase();
         const desc = (activity.description || "").toLowerCase();
-        const user = (activity.user?.name || activity.user?.displayName || "").toLowerCase();
-        return title.includes(q) || desc.includes(q) || user.includes(q);
+        const actorName = (activity.user?.name || activity.user?.displayName || "").toLowerCase();
+        const targetName = (activity.targetName || activity.targetUser?.name || activity.targetUser?.displayName || "").toLowerCase();
+        const targetLicense = (activity.targetLicense || activity.targetUser?.license || "").toLowerCase();
+        const targetAccount = (activity.targetAccount || "").toLowerCase();
+
+        return (
+          title.includes(q) ||
+          desc.includes(q) ||
+          actorName.includes(q) ||
+          targetName.includes(q) ||
+          targetLicense.includes(q) ||
+          targetAccount.includes(q)
+        );
       });
     }
 
@@ -293,14 +304,20 @@ const ActivityPage: React.FC = () => {
               />
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {paginatedActivities.map((activity: any) => (
                 <TimelineWidget
                   key={activity._id}
                   title={activity.activity}
                   description={activity.description}
-                  user={activity.user?.name || activity.user?.displayName}
-                  timestamp={activity.createdAt}
+                  user={activity.user}
+                  targetUser={activity.targetUser}
+                  targetName={activity.targetName}
+                  targetLicense={activity.targetLicense}
+                  targetAccount={activity.targetAccount}
+                  entityType={activity.entityType}
+                  amount={activity.amount}
+                  timestamp={activity.createdAt || activity.date}
                 />
               ))}
             </div>

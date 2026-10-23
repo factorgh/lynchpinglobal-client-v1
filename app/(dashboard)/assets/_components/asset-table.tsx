@@ -173,10 +173,22 @@ const AssetTransactionTable: React.FC = () => {
         }).unwrap();
         toast.success("Asset transaction updated successfully");
         if (loggedInUser._id) {
+          const targetAsset = rawList.find((item: any) => item._id === editRentalId);
+          const assetTitle = values.assetName || targetAsset?.assetName || targetAsset?.title || "Asset";
+          const targetOwner = targetAsset?.userId || targetAsset?.user;
+          const targetOwnerName = targetOwner?.displayName || targetOwner?.name || targetAsset?.customer || "Client";
+
           await createActivity({
-            activity: "Asset Transaction Updated",
-            description: "An asset transaction entry was updated successfully",
+            activity: "Asset Updated",
+            description: `Asset "${assetTitle}" (Valued at GHS ${Number(values.assetValue || targetAsset?.assetValue || 0).toLocaleString()}) for ${targetOwnerName} was updated`,
             user: loggedInUser._id,
+            targetUser: targetOwner?._id || targetOwner,
+            targetName: targetOwnerName,
+            targetLicense: targetOwner?.license,
+            targetAccount: `Asset #${String(editRentalId).slice(-6).toUpperCase()}`,
+            entityType: "Asset",
+            entityId: String(editRentalId),
+            amount: Number(values.assetValue || targetAsset?.assetValue || 0),
           }).unwrap();
         }
       }
@@ -201,12 +213,24 @@ const AssetTransactionTable: React.FC = () => {
       });
 
       if (result.isConfirmed) {
+        const targetAsset = rawList.find((item: any) => item._id === id);
+        const assetTitle = targetAsset?.assetName || targetAsset?.title || "Asset";
+        const targetOwner = targetAsset?.userId || targetAsset?.user;
+        const targetOwnerName = targetOwner?.displayName || targetOwner?.name || targetAsset?.customer || "Client";
+
         await deleteAsset(id).unwrap();
         if (loggedInUser._id) {
           await createActivity({
-            activity: "Asset Transaction Deleted",
-            description: "An asset transaction entry was deleted successfully",
+            activity: "Asset Deleted",
+            description: `Asset "${assetTitle}" (Valued at GHS ${Number(targetAsset?.assetValue || 0).toLocaleString()}) belonging to ${targetOwnerName} was deleted`,
             user: loggedInUser._id,
+            targetUser: targetOwner?._id || targetOwner,
+            targetName: targetOwnerName,
+            targetLicense: targetOwner?.license,
+            targetAccount: `Asset #${String(id).slice(-6).toUpperCase()}`,
+            entityType: "Asset",
+            entityId: String(id),
+            amount: Number(targetAsset?.assetValue || 0),
           }).unwrap();
         }
         toast.success("Entry deleted successfully");
