@@ -266,11 +266,11 @@ export default function ClientsPage() {
   const handleEditSubmit = async (values: any) => {
     if (!selectedClient?._id) return;
     try {
+      // Username (name) is permanently locked and cannot be edited from admin side
       await updateUser({
         id: selectedClient._id,
         data: {
-          name: values.name?.trim(),
-          displayName: values.displayName?.trim() || values.name?.trim(),
+          displayName: values.displayName?.trim() || selectedClient.displayName || selectedClient.name,
           email: values.email?.trim()?.toLowerCase(),
           phone: values.phone?.trim() || undefined,
           license: values.license?.trim() || undefined,
@@ -989,14 +989,22 @@ export default function ClientsPage() {
 
             <div className="space-y-3">
               <Form.Item
-                label={<span className="font-semibold text-xs text-slate-700">Full Name</span>}
+                label={
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-semibold text-xs text-slate-700">Username</span>
+                    <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium flex items-center gap-1 border border-amber-200/80">
+                      <LockOutlined className="text-[10px]" /> Locked (Client managed)
+                    </span>
+                  </div>
+                }
                 name="name"
-                rules={[{ required: true, message: "Please provide the name" }]}
                 className="mb-3"
+                tooltip="Usernames are unique account handles set by the client and cannot be edited by administrators."
               >
                 <Input
-                  prefix={<UserOutlined className="text-slate-400 text-xs mr-1" />}
-                  className="rounded-xl py-2 text-xs"
+                  disabled
+                  prefix={<span className="text-slate-400 font-mono text-xs mr-1">@</span>}
+                  className="rounded-xl py-2 text-xs bg-slate-100 text-slate-500 cursor-not-allowed"
                 />
               </Form.Item>
 

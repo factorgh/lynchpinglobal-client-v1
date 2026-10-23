@@ -14,10 +14,10 @@ const CashOutPage: React.FC = () => {
       <div className="py-5 text-white mb-6 select-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight drop-shadow-sm">
-            Mandate Disbursements & Withdrawals
+            Mandate Disbursements
           </h1>
           <p className="text-xs text-white/80 font-medium mt-0.5 drop-shadow-xs">
-            Review and execute approved client mandate disbursements and principal withdrawals
+            Review and execute approved client mandate disbursements
           </p>
         </div>
 
@@ -34,7 +34,7 @@ const CashOutPage: React.FC = () => {
             Mandate Disbursement Operations
           </p>
           <p className="text-white/80 leading-relaxed">
-            This module is dedicated exclusively to client withdrawal requests and mandate disbursements.
+            This module is dedicated exclusively to client mandate disbursements.
             To record additional client capital contributions, navigate to the{" "}
             <Link
               href="/wealth"
@@ -55,7 +55,7 @@ const CashOutPage: React.FC = () => {
               Disbursement Requests & History
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Verified client mandate withdrawals and historical settlements
+              Verified client mandate disbursements and historical settlements
             </p>
           </div>
         </div>

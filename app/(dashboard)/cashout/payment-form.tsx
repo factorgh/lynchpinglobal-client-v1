@@ -107,7 +107,7 @@ const PaymentForm: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: `Please input the withdrawal amount!`,
+                message: `Please input the disbursement amount!`,
               },
             ]}
           >
@@ -120,7 +120,7 @@ const PaymentForm: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: `Please select the withdrawal request date!`,
+                message: `Please select the disbursement request date!`,
               },
             ]}
           >
@@ -140,7 +140,7 @@ const PaymentForm: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: `Please select the withdrawal status!`,
+                message: `Please select the disbursement status!`,
               },
             ]}
           >

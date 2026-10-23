@@ -23,7 +23,6 @@ interface EndOfQuarterReportsCardProps {
   accruedInterest: number;
   addOns: number;
   addonAccruedReturn: number;
-  oneOffs: number;
   performanceYield: number;
   managementFee: number;
   operationalCost: number;
@@ -38,7 +37,6 @@ export const EndOfQuarterReportsCard: React.FC<EndOfQuarterReportsCardProps> = (
   accruedInterest,
   addOns,
   addonAccruedReturn,
-  oneOffs,
   performanceYield,
   managementFee,
   operationalCost,
@@ -331,12 +329,6 @@ export const EndOfQuarterReportsCard: React.FC<EndOfQuarterReportsCardProps> = (
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>One-Off Disb.:</span>
-                    <span className="font-semibold text-gray-900">
-                      {formatPriceGHS(oneOffs)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
                     <span>Total Portfolio:</span>
                     <span className="font-bold text-emerald-700">
                       {formatPriceGHS(totalBalance)}
@@ -403,7 +395,6 @@ export const EndOfQuarterReportsCard: React.FC<EndOfQuarterReportsCardProps> = (
           accruedInterest,
           addOns,
           addonAccruedReturn,
-          oneOffs,
           performanceYield,
           managementFee,
           operationalCost,

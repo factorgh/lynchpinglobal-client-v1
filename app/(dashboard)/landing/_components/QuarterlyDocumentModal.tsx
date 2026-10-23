@@ -24,7 +24,6 @@ interface DocumentModalProps {
     accruedInterest: number;
     addOns: number;
     addonAccruedReturn: number;
-    oneOffs: number;
     performanceYield: number;
     managementFee: number;
     operationalCost: number;
@@ -235,16 +234,6 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
                   <td className="py-2.5 px-3.5 text-right text-gray-600">Calculated</td>
                   <td className="py-2.5 px-3.5 text-right text-emerald-700">
                     +{formatPriceGHS(data.addonAccruedReturn)}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-3.5 text-gray-800">
-                    One-Off Disbursements & Yield
-                  </td>
-                  <td className="py-2.5 px-3.5 text-blue-600">Performance One-Off</td>
-                  <td className="py-2.5 px-3.5 text-right text-gray-600">Disbursed</td>
-                  <td className="py-2.5 px-3.5 text-right text-blue-700">
-                    +{formatPriceGHS(data.oneOffs)}
                   </td>
                 </tr>
                 <tr>

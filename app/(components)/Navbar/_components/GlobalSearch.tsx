@@ -113,7 +113,7 @@ export const GlobalSearch: React.FC = () => {
         },
         {
           id: "page-cashout",
-          title: "Disbursements & Withdrawals",
+          title: "Disbursements",
           subtitle: "Review outgoing payments and client disbursement requests",
           category: "Page",
           href: "/cashout",

@@ -810,8 +810,8 @@ export default function ChangePasswordPage() {
           {/* Quick Support / Need Help Card */}
           <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-4 flex items-center justify-between text-xs">
             <div>
-              <p className="font-bold text-slate-800">Need Security Assistance?</p>
-              <p className="text-[11px] text-slate-500">Contact Lynchpin Global security team (info@lynchpinglobal.com)</p>
+              <p className="font-bold text-slate-800">Contact Lynchpin Global Support</p>
+              <p className="text-[11px] text-slate-500">Reach our team directly at info@lynchpinglobal.com</p>
             </div>
             <a
               href="mailto:info@lynchpinglobal.com"

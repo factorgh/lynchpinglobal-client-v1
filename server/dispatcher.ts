@@ -47,7 +47,6 @@ import {
   updateAddOnStatus,
   deleteAddOn,
 } from "./features/investment/controller/add_on_controller.js";
-import { addOneOffsToInvestment } from "./features/investment/controller/one_off.controller.js";
 
 // Assets controllers
 import {
@@ -307,12 +306,6 @@ export async function dispatchApiRequest(
     }
   }
 
-  // 5. ONE-OFF / ADD-OFFS ROUTES
-  if (prefix === "add-offs" || prefix === "one-offs") {
-    if (segs.length === 1 && method === "POST") {
-      return runHandlerChain(webReq, params, [addOneOffsToInvestment]);
-    }
-  }
 
   // 6. ASSETS ROUTES
   if (prefix === "assets") {

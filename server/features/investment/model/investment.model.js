@@ -46,12 +46,6 @@ const InvestmentSchema = new mongoose.Schema(
         ref: "AddOn",
       },
     ],
-    oneOffs: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "OneOff",
-      },
-    ],
     principalAccruedReturn: {
       type: Number,
       default: 0,
@@ -66,11 +60,6 @@ const InvestmentSchema = new mongoose.Schema(
       type: Date,
     },
     addOnAccruedReturn: {
-      type: Number,
-      default: 0,
-      min: [0, "Cannot be negative"],
-    },
-    oneOffAccruedReturn: {
       type: Number,
       default: 0,
       min: [0, "Cannot be negative"],

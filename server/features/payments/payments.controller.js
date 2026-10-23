@@ -5,6 +5,7 @@ import Investment from "../investment/model/investment.model.js";
 
 import PaymentModel from "./payments.model.js";
 
+import User from "../auth/models/user.model.js";
 import ActivityLog from "../activity-log/activity.model.js";
 import { recalculateInvestment } from "../../utils/recalculate.js";
 
@@ -54,12 +55,25 @@ export const createPayment = catchAsync(async (req, res, next) => {
 
   // Step 7: Log activity
   try {
+    const targetUserDoc = await User.findById(user).select("name displayName license email");
+    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(user).slice(-6)})`;
+    const targetLicense = targetUserDoc?.license || "";
+
     await ActivityLog.create({
       user: req.user?._id || user,
+      targetUser: user,
+      targetName,
+      targetLicense,
+      targetAccount: `Payment #PAY-${String(doc._id).slice(-6).toUpperCase()}`,
+      entityType: "Payment",
+      entityId: String(doc._id),
+      amount: Number(amount),
       activity: "Payment Created",
-      description: `A payment entry of GHS ${amount} was created for user ${user} (Status: ${status || "Pending"}${
-        isApproved ? " - Principal Deducted" : " - Awaiting Approval, Principal Not Deducted"
-      }).`,
+      description: `Payment entry of GHS ${Number(amount).toLocaleString()} created for ${targetName}${
+        targetLicense ? ` (${targetLicense})` : ""
+      }. Status: ${status || "Pending"}${
+        isApproved ? " (Principal Deducted)" : " (Awaiting Approval)"
+      }.`,
     });
   } catch (err) {
     console.error("Activity logging failed:", err);

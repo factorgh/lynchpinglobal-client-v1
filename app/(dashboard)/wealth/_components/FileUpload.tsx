@@ -15,7 +15,18 @@ interface FileEntry {
   uploaded?: boolean;
   mimeType?: string;
   name?: string;
+  size?: number;
 }
+
+const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+const MAX_FILE_SIZE_LABEL = "15MB";
+
+const formatFileSize = (bytes?: number) => {
+  if (!bytes && bytes !== 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
 
 interface FileUploadComponentProps {
   onFileUpload: (uploadedFiles: Record<string, string[]>) => void;
@@ -117,9 +128,22 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       const valid =
         file.type === "application/pdf" ||
         file.type.startsWith("image/") ||
-        file.type.startsWith("video/");
-      if (!valid) toast.error("Only PDF, image, or video files are allowed.");
-      return valid;
+        file.type.startsWith("video/") ||
+        /\.(pdf|jpe?g|png|gif|webp|svg|bmp|mp4|mov|avi|webm)$/i.test(file.name);
+
+      if (!valid) {
+        toast.error(`"${file.name}" is not a supported file type. Only PDF, image, or video files are allowed.`);
+        return false;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(
+          `"${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed size of ${MAX_FILE_SIZE_LABEL}. Please choose a file under ${MAX_FILE_SIZE_LABEL}.`
+        );
+        return false;
+      }
+
+      return true;
     });
 
     const newEntries = validFiles.map((file) => ({
@@ -127,6 +151,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       previewUrl: URL.createObjectURL(file),
       mimeType: file.type,
       name: file.name,
+      size: file.size,
     }));
 
     setFileCategories((prev) => ({
@@ -280,6 +305,10 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
         label={<span className="font-semibold text-xs text-slate-800">{CATEGORY_DISPLAY_NAMES[category] || category}</span>}
         className="mb-0"
       >
+        <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
+          <span>Max size: <strong className="text-slate-700 font-semibold">{MAX_FILE_SIZE_LABEL}</strong></span>
+          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">PDF, Image, Video</span>
+        </div>
         <input
           type="file"
           accept="application/pdf,image/*,video/*"
@@ -290,7 +319,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
 
         <ul className="w-full mt-2.5 space-y-1.5">
           {(fileCategories[category] || []).map(
-            ({ previewUrl, mimeType, name }, index) => (
+            ({ previewUrl, mimeType, name, size }, index) => (
               <li
                 key={index}
                 className="flex items-center justify-between gap-2 p-2 rounded-lg border border-slate-100 bg-slate-50/70 hover:border-slate-200 text-xs"
@@ -302,9 +331,16 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
                   className="flex items-center gap-2 min-w-0"
                 >
                   {renderPreview(previewUrl, mimeType)}
-                  <span className="truncate text-xs font-medium text-slate-700 max-w-[120px]">
-                    {name || previewUrl.split("/").pop()}
-                  </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="truncate text-xs font-medium text-slate-700 max-w-[130px]" title={name}>
+                      {name || previewUrl.split("/").pop()}
+                    </span>
+                    {size !== undefined && (
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {formatFileSize(size)}
+                      </span>
+                    )}
+                  </div>
                 </a>
                 <DeleteOutlined
                   className="text-red-500 cursor-pointer hover:text-red-600 p-1"
@@ -330,20 +366,33 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   );
 
   return (
-    <div className="space-y-5 my-4">
-      {/* 1. Client-Facing Documents Section */}
+    <div className="space-y-4 my-4">
+      {/* File Size & Format Limit Indicator Banner */}
+      <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-100/80 border border-slate-200 text-xs text-slate-600">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>
+            Maximum file size: <strong className="font-semibold text-slate-800">{MAX_FILE_SIZE_LABEL}</strong> per file
+          </span>
+        </div>
+        <span className="text-[11px] text-slate-500">
+          PDF, PNG, JPG, WebP, MP4
+        </span>
+      </div>
+
+      {/* 1. User & Mandate Documents (Visible to Both Client & Admin) */}
       <div className="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-200/80">
         <div className="flex items-center justify-between mb-3 pb-2 border-b border-emerald-200/60">
           <div>
             <h4 className="font-bold text-xs text-emerald-900 uppercase tracking-wide">
-              Client Documents Section (Visible to Client)
+              Mandate Documents (Visible to Both Parties)
             </h4>
             <p className="text-[11px] text-emerald-700/80 mt-0.5">
-              These documents are published directly to the client's portfolio vault
+              These user documents are visible to both client and admin in the mandate portal
             </p>
           </div>
           <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-100 text-emerald-800">
-            Client Shared
+            Visible to Both Parties
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -351,19 +400,19 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
         </div>
       </div>
 
-      {/* 2. Admin Documents Section */}
+      {/* 2. Admin Section (Just Backend View or Access) */}
       <div className="p-3.5 rounded-2xl bg-amber-50/40 border border-amber-200/80">
         <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-200/60">
           <div>
             <h4 className="font-bold text-xs text-amber-900 uppercase tracking-wide">
-              Admin Documents Section (Confidential / Internal)
+              Admin Section (Just Backend View or Access)
             </h4>
             <p className="text-[11px] text-amber-700/80 mt-0.5">
-              Strictly internal due diligence checklists and partner contracts (hidden from client)
+              Strictly internal due diligence checklists and partner contracts (backend view only)
             </p>
           </div>
           <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-amber-100 text-amber-800">
-            Admin Only
+            Admin Backend Only
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

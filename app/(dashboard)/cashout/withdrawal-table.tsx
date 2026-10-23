@@ -109,19 +109,19 @@ const WithdrawalTable: React.FC<any> = () => {
 
       if (loggedInUser._id) {
         await createActivity({
-          activity: "Withdrawal Updated",
-          description: "A withdrawal update was made successfully",
+          activity: "Disbursement Updated",
+          description: "A disbursement update was made successfully",
           user: loggedInUser._id,
         }).unwrap();
       }
 
       await createNotification({
-        title: "Withdrawal Information",
-        message: "Withdrawal has been updated successfully",
+        title: "Disbursement Information",
+        message: "Disbursement has been updated successfully",
         users: [selectedUser],
       });
 
-      toast.success("Withdrawal updated successfully");
+      toast.success("Disbursement updated successfully");
       form.resetFields();
       setIsDrawerVisible(false);
     } catch (error: any) {
@@ -137,7 +137,7 @@ const WithdrawalTable: React.FC<any> = () => {
   };
 
   const getInitials = (name: string) => {
-    if (!name || name === "N/A") return "WD";
+    if (!name || name === "N/A") return "DS";
     return name
       .split(" ")
       .map((p) => p[0])
@@ -218,12 +218,12 @@ const WithdrawalTable: React.FC<any> = () => {
               <FolderOpenOutlined className="text-2xl text-slate-400" />
             </div>
             <h3 className="text-sm font-semibold text-slate-900 mb-1">
-              No Withdrawals Found
+              No Disbursements Found
             </h3>
             <p className="text-xs text-slate-500 max-w-sm">
               {searchTerm || statusFilter !== "all"
-                ? "No withdrawal records match your search criteria."
-                : "There are currently no withdrawal requests registered."}
+                ? "No disbursement records match your search criteria."
+                : "There are currently no disbursement requests registered."}
             </p>
           </div>
         ) : (
@@ -312,7 +312,7 @@ const WithdrawalTable: React.FC<any> = () => {
                       <TableCell className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => showEditDrawer(item)}
-                          title="Edit Withdrawal"
+                          title="Edit Disbursement"
                           className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
                         >
                           <EditOutlined className="text-sm" />
@@ -390,7 +390,7 @@ const WithdrawalTable: React.FC<any> = () => {
       </div>
 
       <Drawer
-        title="Edit Withdrawal"
+        title="Edit Disbursement"
         placement="right"
         width={400}
         onClose={handleCloseDrawer}
@@ -408,7 +408,7 @@ const WithdrawalTable: React.FC<any> = () => {
             rules={[
               {
                 required: true,
-                message: "Please input the withdrawal amount!",
+                message: "Please input the disbursement amount!",
               },
             ]}
           >
@@ -421,7 +421,7 @@ const WithdrawalTable: React.FC<any> = () => {
             rules={[
               {
                 required: true,
-                message: "Please select the withdrawal approval date!",
+                message: "Please select the disbursement approval date!",
               },
             ]}
           >
@@ -434,7 +434,7 @@ const WithdrawalTable: React.FC<any> = () => {
             rules={[
               {
                 required: true,
-                message: "Please select the withdrawal status!",
+                message: "Please select the disbursement status!",
               },
             ]}
           >

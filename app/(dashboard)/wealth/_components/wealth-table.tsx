@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/table";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
 import { useCreateActivityLogMutation } from "@/services/activity-logs";
-import { useCreateAddOffMutation } from "@/services/addOff";
 import { useCreateAddOnMutation } from "@/services/addOn";
 import {
   useDeleteInvestmentMutation,
@@ -30,6 +29,7 @@ import {
 import {
   Button,
   Col,
+  DatePicker,
   Drawer,
   Dropdown,
   Form,
@@ -77,10 +77,8 @@ const WealthTable = ({
   const [initialFiles, setInitialFiles] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState<any>({});
 
-  const [createAddOff, { isLoading: addOffLoading }] = useCreateAddOffMutation();
   const [deleteInvestment] = useDeleteInvestmentMutation();
   const [isAddOnDrawerVisible, setIsAddOnDrawerVisible] = useState(false);
-  const [isAddOffDrawerVisible, setIsAddOffDrawerVisible] = useState(false);
 
   const loggedInUser =
     typeof window !== "undefined"
@@ -154,8 +152,8 @@ const WealthTable = ({
       guaranteedRate: investment.guaranteedRate,
       quarter: investment.quarter,
       managementFee: investment.managementFee,
-      operationalCost: investment.operationalCost,
-      startDate: dayjs(investment.startDate),
+      operationalCost: investment.operationalCost ?? 0,
+      startDate: investment.startDate ? dayjs(investment.startDate) : undefined,
     });
 
     setIsDrawerVisible(true);
@@ -166,18 +164,8 @@ const WealthTable = ({
     setIsAddOnDrawerVisible(true);
   };
 
-  const showAddOffDrawer = (investment: any) => {
-    setEditRentalId(investment._id);
-    setIsAddOffDrawerVisible(true);
-  };
-
   const closeAddOnDrawer = () => {
     setIsAddOnDrawerVisible(false);
-    form.resetFields();
-  };
-
-  const closeAddOffDrawer = () => {
-    setIsAddOffDrawerVisible(false);
     form.resetFields();
   };
 
@@ -290,24 +278,6 @@ const WealthTable = ({
         closeAddOnDrawer();
         toast.success("Add On has been created successfully");
         form.resetFields();
-      } else if (isAddOffDrawerVisible) {
-        await createAddOff({
-          amount: values.amount,
-          currency: values.currency,
-          oneOffYield: values.oneOffYield,
-          investmentId: editRentalId,
-          startDate: values.startDate,
-          endDate: values.endDate,
-        });
-
-        await createActivity({
-          activity: "One off Added",
-          description: "A new one-off was added",
-          user: loggedInUser._id,
-        }).unwrap();
-
-        closeAddOffDrawer();
-        toast.success("One Off has been created successfully");
       } else {
         if (isEditMode) {
           const { certificate, mandate, partnerForm, checklist, others } =
@@ -379,14 +349,6 @@ const WealthTable = ({
         className="rounded-lg text-xs font-semibold py-2"
       >
         Add Contribution (Add-On)
-      </Menu.Item>
-      <Menu.Item
-        key="addOff"
-        icon={<PlusCircleOutlined className="text-purple-500" />}
-        onClick={() => showAddOffDrawer(record)}
-        className="rounded-lg text-xs font-semibold py-2"
-      >
-        One-Off Disbursement
       </Menu.Item>
       <Menu.Divider />
       <Menu.Item
@@ -679,6 +641,17 @@ const WealthTable = ({
                 />
               </Form.Item>
             </Col>
+            <Col span={12}>
+              <Form.Item
+                name="startDate"
+                label="Start Date"
+                rules={[
+                  { required: true, message: "Please select a start date" },
+                ]}
+              >
+                <DatePicker style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
           </Row>
 
           <Row gutter={16}>
@@ -746,6 +719,21 @@ const WealthTable = ({
             </Col>
           </Row>
 
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="operationalCost"
+                label="Operational Charge (GHS)"
+              >
+                <InputNumber
+                  placeholder="Enter operational charge"
+                  style={{ width: "100%" }}
+                  min={0}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
           <FileUploadComponent
             onFileUpload={(files) => setUploadedFiles(files)}
             initialFiles={initialFiles}
@@ -798,58 +786,6 @@ const WealthTable = ({
         </Form>
       </Drawer>
 
-      {/* Add-Off Drawer */}
-      <Drawer
-        title="Create One-Off Disbursement"
-        open={isAddOffDrawerVisible}
-        onClose={closeAddOffDrawer}
-        width={450}
-      >
-        <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-          <Form.Item
-            name="amount"
-            label="Disbursement Amount"
-            rules={[{ required: true, message: "Please enter amount" }]}
-          >
-            <InputNumber
-              placeholder="e.g. 1000"
-              style={{ width: "100%" }}
-              min={1}
-            />
-          </Form.Item>
-          <Form.Item
-            name="currency"
-            label="Currency"
-            initialValue="GHS"
-            rules={[{ required: true, message: "Please select currency" }]}
-          >
-            <Select
-              options={[
-                { value: "GHS", label: "GHS (Ghana Cedi)" },
-                { value: "USD", label: "USD (US Dollar)" },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item
-            name="oneOffYield"
-            label="One-Off Yield (%)"
-            rules={[{ required: true, message: "Please enter yield rate" }]}
-          >
-            <InputNumber placeholder="e.g. 5" style={{ width: "100%" }} />
-          </Form.Item>
-          <div className="flex justify-end gap-2 mt-6">
-            <Button onClick={closeAddOffDrawer}>Cancel</Button>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={addOffLoading}
-              className="bg-emerald-600 hover:bg-emerald-700"
-            >
-              Create Disbursement
-            </Button>
-          </div>
-        </Form>
-      </Drawer>
 
       {/* Details Drawer */}
       {(selectedInvestment || selectedInvestmentId) && (

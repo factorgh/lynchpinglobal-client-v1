@@ -59,7 +59,6 @@ export default function DashboardPage() {
       let totalAddOnIneterest = 0;
       let totalAccruedInterest = 0;
       let totalAssets = 0;
-      let totalOneOff = 0;
       let totalPerformanceYield = 0;
 
       // Calculate total assets and outstanding payments
@@ -78,21 +77,6 @@ export default function DashboardPage() {
             0
           )
         );
-        const exchangeRateUSDToGHS = 11;
-
-        // Calculate the total for one-off investments
-        totalOneOff = round2(
-          totalOneOff +
-          (investment.oneOffs || []).reduce((sum: any, oneOff: any) => {
-            if (oneOff.currency === "USD") {
-              return round2(sum + round2((oneOff.yield || 0) * exchangeRateUSDToGHS));
-            } else if (oneOff.currency === "GHS") {
-              return round2(sum + (oneOff.yield || 0));
-            } else {
-              return sum;
-            }
-          }, 0)
-        );
 
         totalAddOnIneterest = round2(totalAddOnIneterest + (investment.addOnAccruedReturn || 0));
         totalPerformanceYield = round2(totalPerformanceYield + (investment.performanceYield || 0));
@@ -104,7 +88,6 @@ export default function DashboardPage() {
       totalOutstandingPayments = round2(
         totalAccruedInterest +
         totalAddOnIneterest +
-        totalOneOff +
         totalPerformanceYield
       );
 

@@ -114,7 +114,7 @@ export const getAllInvestments = catchAsync(async (req, res, next) => {
   // Find user and populate investments, including hidden archive/active fields
   const investments = await Investment.find()
     .select("+archived +active")
-    .populate(["addOns", "oneOffs", "userId", { path: "owners.user" }]);
+    .populate(["addOns", "userId", { path: "owners.user" }]);
   if (!investments) {
     return res.status(404).json({ status: "fail", message: "No investments" });
   }
@@ -167,7 +167,7 @@ export const updateInvestment = catchAsync(async (req, res, next) => {
       new: true,
       runValidators: true,
     },
-  ).populate([{ path: "owners.user" }, "addOns", "oneOffs", "userId"]);
+  ).populate([{ path: "owners.user" }, "addOns", "userId"]);
 
   if (investment) {
     await recalculateInvestment(investment._id);
@@ -189,7 +189,7 @@ export const getInvestment = catchAsync(async (req, res, next) => {
     $or: [{ "owners.user": userId }, { userId: userId }],
   })
     .select("+archived +active")
-    .populate(["addOns", "oneOffs", { path: "owners.user" }]);
+    .populate(["addOns", { path: "owners.user" }]);
 
   if (!investment) {
     return res.status(404).json({
@@ -270,7 +270,6 @@ export const rolloverInvestments = async () => {
         certificate: transaction.certificate,
         checklist: transaction.checklist,
         addOns: [],
-        oneOffs: [],
         previousTransactionId: transaction._id, // Link to the archived transaction
         owners: transaction.owners,
         isJoint: transaction.isJoint,
@@ -373,14 +372,21 @@ export const deleteInvestment = catchAsync(async (req, res, nex) => {
   }
 
   try {
-    const logUser = req.user?._id || existing.userId || existing.owners?.[0]?.user?._id || existing.owners?.[0]?.user;
-    if (logUser) {
-      await ActivityLog.create({
-        user: logUser,
-        activity: "Mandate Deleted",
-        description: `A mandate with ID ${id} (Principal: GHS ${existing.principal || 0}) was deleted`,
-      });
-    }
+    const actorUser = req.user?._id;
+    const targetUserId = existing.userId || existing.owners?.[0]?.user?._id || existing.owners?.[0]?.user;
+    const clientName = existing.name || "Client";
+
+    await ActivityLog.create({
+      user: actorUser || targetUserId,
+      targetUser: targetUserId,
+      targetName: clientName,
+      targetAccount: `Mandate #${String(id).slice(-6).toUpperCase()}`,
+      entityType: "Mandate",
+      entityId: String(id),
+      amount: Number(existing.principal || 0),
+      activity: "Mandate Deleted",
+      description: `Mandate for "${clientName}" (Principal: GHS ${Number(existing.principal || 0).toLocaleString()}) was permanently deleted.`,
+    });
   } catch (logErr) {
     console.error("Activity logging failed in deleteInvestment:", logErr);
   }
@@ -420,7 +426,6 @@ export const getRolloverCandidates = catchAsync(async (req, res, next) => {
       { path: "userId", select: "name displayName email license photo" },
       { path: "owners.user", select: "name displayName email license photo" },
       "addOns",
-      "oneOffs",
     ])
     .sort({ createdAt: -1 });
 
@@ -569,7 +574,6 @@ export const executeSingleRollover = catchAsync(async (req, res, next) => {
     checklist: sourceInv.checklist || [],
     others: sourceInv.others || [],
     addOns: [],
-    oneOffs: [],
     previousTransactionId: sourceInv._id,
     owners: sourceInv.owners || [],
     isJoint: sourceInv.isJoint || false,
@@ -676,7 +680,6 @@ export const executeBatchRollover = catchAsync(async (req, res, next) => {
         checklist: sourceInv.checklist || [],
         others: sourceInv.others || [],
         addOns: [],
-        oneOffs: [],
         previousTransactionId: sourceInv._id,
         owners: sourceInv.owners || [],
         isJoint: sourceInv.isJoint || false,
@@ -759,7 +762,7 @@ export const calculateDailyAccruals = async (req, res, next) => {
     const investments = await Investment.find({
       active: true,
       archived: false,
-    }).populate(["addOns", "oneOffs"]);
+    }).populate("addOns");
 
     console.log(
       `[AccrualsEngine] Executing daily calculations for ${investments.length} active mandate(s)...`

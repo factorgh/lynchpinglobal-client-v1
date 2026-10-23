@@ -1,6 +1,5 @@
 import catchAsync from "../error/catch-async-error.js";
 import {
-  createOne,
   deleteOne,
   getOne,
   updateOne,
@@ -21,20 +20,25 @@ export const createActivityLog = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 export const deleteActivityLog = deleteOne(ActivityLog);
 export const updateActivityLog = updateOne(ActivityLog);
-// export const getAllActivityLogs = getAll(ActivityLog);
 
 export const getAllActivityLogs = catchAsync(async (req, res, next) => {
-  const payments = await ActivityLog.find()
+  const logs = await ActivityLog.find()
     .sort({ createdAt: -1 })
-    .populate("user");
+    .populate("user", "name displayName email role license photo designation")
+    .populate("targetUser", "name displayName email role license photo designation");
 
   res.status(200).json({
     status: "success",
     data: {
-      data: payments,
+      data: logs,
     },
   });
 });
-export const getActivityLog = getOne(ActivityLog);
+
+export const getActivityLog = getOne(ActivityLog, [
+  { path: "user", select: "name displayName email role license photo designation" },
+  { path: "targetUser", select: "name displayName email role license photo designation" },
+]);

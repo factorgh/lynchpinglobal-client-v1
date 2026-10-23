@@ -17,7 +17,7 @@ export async function getAllWithdrawalsAction() {
     return { success: true, data: JSON.parse(JSON.stringify(withdrawals)) };
   } catch (error: any) {
     console.error("getAllWithdrawalsAction error:", error);
-    return { success: false, error: error.message || "Failed to fetch withdrawals" };
+    return { success: false, error: error.message || "Failed to fetch disbursements" };
   }
 }
 
@@ -32,7 +32,7 @@ export async function getUserWithdrawalsAction(userId: string) {
     return { success: true, data: JSON.parse(JSON.stringify(withdrawals)) };
   } catch (error: any) {
     console.error("getUserWithdrawalsAction error:", error);
-    return { success: false, error: error.message || "Failed to fetch user withdrawals" };
+    return { success: false, error: error.message || "Failed to fetch user disbursements" };
   }
 }
 
@@ -58,7 +58,7 @@ export async function createWithdrawalAction(data: {
     return { success: true, data: JSON.parse(JSON.stringify(withdrawal)) };
   } catch (error: any) {
     console.error("createWithdrawalAction error:", error);
-    return { success: false, error: error.message || "Failed to create withdrawal" };
+    return { success: false, error: error.message || "Failed to create disbursement" };
   }
 }
 
@@ -74,7 +74,7 @@ export async function updateWithdrawalAction(id: string, data: any) {
     await connectDB();
     const oldDoc = await Withdrawal.findById(id);
     if (!oldDoc) {
-      return { success: false, error: "Withdrawal not found" };
+      return { success: false, error: "Disbursement not found" };
     }
 
     const updated = await Withdrawal.findByIdAndUpdate(id, data, {
@@ -152,6 +152,6 @@ export async function deleteWithdrawalAction(id: string) {
     return { success: true, data: null };
   } catch (error: any) {
     console.error("deleteWithdrawalAction error:", error);
-    return { success: false, error: error.message || "Failed to delete withdrawal" };
+    return { success: false, error: error.message || "Failed to delete disbursement" };
   }
 }

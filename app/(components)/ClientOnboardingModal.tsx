@@ -235,7 +235,7 @@ export default function ClientOnboardingModal() {
               <h2 className="text-base font-bold text-slate-900 leading-tight">
                 {currentStep === "terms"
                   ? "Client Onboarding & Mandate Governance"
-                  : "Security & Profile Preferences"}
+                  : "Account & Profile Preferences"}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Step {currentStep === "terms" ? "1 of 2" : "2 of 2"}:{" "}
@@ -271,10 +271,10 @@ export default function ClientOnboardingModal() {
                   <strong>Quarterly Compounding:</strong> Contractual returns accrue daily and disburse according to designated quarterly mandate schedules (Q1, Q2, Q3, Q4).
                 </li>
                 <li>
-                  <strong>Withdrawals & Disbursements:</strong> Principal adjustments and profit liquidations are processed upon formal request subject to contractual notice.
+                  <strong>Disbursements:</strong> Principal adjustments and profit liquidations are processed upon formal request subject to contractual notice.
                 </li>
                 <li>
-                  <strong>Security & Access:</strong> Clients must maintain confidentiality of their access credentials and comply with KYC/AML protocols.
+                  <strong>Account & Access:</strong> Clients must maintain confidentiality of their access credentials and comply with KYC/AML protocols.
                 </li>
               </ul>
             </div>
@@ -400,7 +400,7 @@ export default function ClientOnboardingModal() {
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
               <span className="text-[11px] text-slate-400">
-                Lynchpin Global Security Standard
+                Lynchpin Global Protection Standard
               </span>
 
               <Button

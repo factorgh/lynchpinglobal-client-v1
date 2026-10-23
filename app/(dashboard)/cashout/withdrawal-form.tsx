@@ -30,17 +30,17 @@ const WithdrawalForm: React.FC = () => {
     try {
       await createPayment(values).unwrap();
       await createActivity({
-        activity: " Withdrawal Entry",
-        description: "A withdrawal entry was made successfully",
+        activity: " Disbursement Entry",
+        description: "A disbursement entry was made successfully",
         user: loggedInUser._id,
       }).unwrap();
       // Send notifications
       await createNotification({
-        title: "Payment Information",
-        message: "Payment has been made successfully",
+        title: "Disbursement Information",
+        message: "Disbursement has been made successfully",
         users: [values.user],
       });
-      toast.success("Withdrawal  made successfully");
+      toast.success("Disbursement made successfully");
       form.resetFields();
       setOpen(false);
     } catch (error: any) {
@@ -104,7 +104,7 @@ const WithdrawalForm: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: `Please input the withdrawal amount!`,
+                message: `Please input the disbursement amount!`,
               },
             ]}
           >
@@ -117,7 +117,7 @@ const WithdrawalForm: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: `Please select the withdrawal request date!`,
+                message: `Please select the disbursement request date!`,
               },
             ]}
           >
@@ -134,7 +134,7 @@ const WithdrawalForm: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: `Please select the withdrawal status!`,
+                message: `Please select the disbursement status!`,
               },
             ]}
           >

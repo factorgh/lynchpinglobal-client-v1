@@ -74,10 +74,10 @@ const WithdrawalPage = () => {
     // If we are editing, update the record, else create a new withdrawal
     if (editingWithdrawal) {
       // Update logic
-      message.success("Withdrawal updated successfully!");
+      message.success("Disbursement updated successfully!");
     } else {
       // Create logic
-      message.success("Withdrawal created successfully!");
+      message.success("Disbursement created successfully!");
     }
     setIsDrawerVisible(false);
     setEditingWithdrawal(null);

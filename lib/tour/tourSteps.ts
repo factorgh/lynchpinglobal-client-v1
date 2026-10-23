@@ -56,7 +56,7 @@ export const clientLandingSteps: DriveStep[] = [
   step(
     '[data-tour="yield-cards"]',
     "📈 Disbursements & Charges",
-    "Track one-off disbursements, performance-linked disbursements, service fees, and operational charges in this section.",
+    "Track performance-linked disbursements, service fees, and operational charges in this section.",
     "top"
   ),
   step(
@@ -176,7 +176,7 @@ export const adminWealthSteps: DriveStep[] = [
   step(
     '[data-tour="wealth-table"]',
     "📊 Mandate Table",
-    "All mandates are listed here. Click any row to expand and see details, add ons, one offs, and documents.",
+    "All mandates are listed here. Click any row to expand and see details, add ons, and documents.",
     "top"
   ),
   welcome(

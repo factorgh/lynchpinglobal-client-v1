@@ -3,7 +3,6 @@
 import connectDB from "@/lib/db";
 import Investment from "@/server/features/investment/model/investment.model.js";
 import { AddOn } from "@/server/features/investment/model/add_on.model.js";
-import { OneOff } from "@/server/features/investment/model/one_off.model.js";
 import User from "@/server/features/auth/models/user.model.js";
 import { generateTransactionId } from "@/server/utils/halper.js";
 import { getQuarterEndDate } from "@/server/utils/handle_date_range.js";
@@ -18,7 +17,6 @@ export async function getAllInvestmentsAction() {
       .populate("userId", "name email phone photo")
       .populate("owners.user", "name email phone photo")
       .populate("addOns")
-      .populate("oneOffs")
       .lean();
 
     return { success: true, data: JSON.parse(JSON.stringify(investments)) };
@@ -37,7 +35,6 @@ export async function getUserInvestmentsAction(userId: string) {
       .populate("userId", "name email phone")
       .populate("owners.user", "name email phone")
       .populate("addOns")
-      .populate("oneOffs")
       .lean();
 
     return { success: true, data: JSON.parse(JSON.stringify(investments)) };
@@ -204,36 +201,3 @@ export async function addAddOnAction(data: {
   }
 }
 
-export async function addOneOffAction(data: {
-  amount: number;
-  oneOffYield: number;
-  currency?: string;
-  investmentId: string;
-}) {
-  try {
-    await connectDB();
-    const investment = await Investment.findById(data.investmentId);
-    if (!investment) {
-      return { success: false, error: "Investment not found" };
-    }
-
-    const createdOneOff = await OneOff.create({
-      amount: data.amount,
-      oneOffYield: data.oneOffYield,
-      dateOfEntry: Date.now(),
-      currency: data.currency || "USD",
-    });
-
-    investment.oneOffs.push(createdOneOff._id);
-    investment.lastModified = new Date();
-    await investment.save();
-
-    await recalculateInvestment(data.investmentId);
-    revalidatePath("/investments");
-
-    return { success: true, data: JSON.parse(JSON.stringify(createdOneOff)) };
-  } catch (error: any) {
-    console.error("addOneOffAction error:", error);
-    return { success: false, error: error.message || "Failed to add one-off" };
-  }
-}

@@ -5,6 +5,7 @@ import { deleteOne, getOne, updateOne } from "../factory/factory-functions.js";
 import Investment from "../investment/model/investment.model.js";
 import WithdrawalModel from "./withdrawal.model.js";
 
+import User from "../auth/models/user.model.js";
 import ActivityLog from "../activity-log/activity.model.js";
 import { recalculateInvestment } from "../../utils/recalculate.js";
 
@@ -31,7 +32,7 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
   // Step 2: ONLY deduct from principal if the withdrawal is explicitly APPROVED
   if (isApproved) {
     if (amount > investment.principal) {
-      return next(new AppError("Insufficient funds for withdrawal.", 400)); // Handle insufficient funds
+      return next(new AppError("Insufficient funds for disbursement.", 400)); // Handle insufficient funds
     }
 
     // Step 2.5: Snapshot and lock the accrued profit accumulated prior to this withdrawal
@@ -58,14 +59,27 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
   // Step 5: Create the withdrawal record
   const doc = await WithdrawalModel.create(req.body);
 
-  // Step 7: Log activity
+  // Step 7: Log activity with full actor and target account details
   try {
+    const targetUserDoc = await User.findById(user).select("name displayName license email");
+    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(user).slice(-6)})`;
+    const targetLicense = targetUserDoc?.license || "";
+
     await ActivityLog.create({
       user: req.user?._id || user,
-      activity: "Withdrawal Created",
-      description: `A withdrawal entry of GHS ${amount} was created for user ${user} (Status: ${status || "Pending"}${
-        isApproved ? " - Principal Deducted" : " - Awaiting Approval, Principal Not Deducted"
-      }).`,
+      targetUser: user,
+      targetName,
+      targetLicense,
+      targetAccount: `Disbursement #DISB-${String(doc._id).slice(-6).toUpperCase()}`,
+      entityType: "Disbursement",
+      entityId: String(doc._id),
+      amount: Number(amount),
+      activity: "Disbursement Created",
+      description: `Disbursement of GHS ${Number(amount).toLocaleString()} created for ${targetName}${
+        targetLicense ? ` (${targetLicense})` : ""
+      }. Status: ${status || "Pending"}${
+        isApproved ? " (Principal Deducted)" : " (Awaiting Approval)"
+      }.`,
     });
   } catch (err) {
     console.error("Activity logging failed:", err);
@@ -113,13 +127,24 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
 
   // Log activity
   try {
+    const targetUserDoc = await User.findById(doc.user).select("name displayName license email");
+    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(doc.user).slice(-6)})`;
+    const targetLicense = targetUserDoc?.license || "";
+
     await ActivityLog.create({
       user: req.user?._id || doc.user,
-      activity: "Withdrawal Deleted",
-      description: `A withdrawal entry of GHS ${doc.amount} was deleted for user ${doc.user}.${
-        wasApproved
-          ? " Principal restored."
-          : " No principal adjustment needed (was unapproved/pending)."
+      targetUser: doc.user,
+      targetName,
+      targetLicense,
+      targetAccount: `Disbursement #DISB-${String(doc._id).slice(-6).toUpperCase()}`,
+      entityType: "Disbursement",
+      entityId: String(doc._id),
+      amount: Number(doc.amount),
+      activity: "Disbursement Deleted",
+      description: `Disbursement entry of GHS ${Number(doc.amount).toLocaleString()} for ${targetName}${
+        targetLicense ? ` (${targetLicense})` : ""
+      } was deleted.${
+        wasApproved ? " Principal restored." : " No principal adjustment needed."
       }`,
     });
   } catch (err) {
@@ -194,10 +219,23 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
         ? ` Deducted GHS ${Math.abs(principalDelta).toFixed(2)} from principal.`
         : "";
 
+    const targetUserDoc = await User.findById(doc.user).select("name displayName license email");
+    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(doc.user).slice(-6)})`;
+    const targetLicense = targetUserDoc?.license || "";
+
     await ActivityLog.create({
       user: req.user?._id || doc.user,
-      activity: "Withdrawal Updated",
-      description: `A withdrawal entry was updated for user ${doc.user}.${statusNote}${refundNote} Current amount: GHS ${doc.amount}.`,
+      targetUser: doc.user,
+      targetName,
+      targetLicense,
+      targetAccount: `Disbursement #DISB-${String(doc._id).slice(-6).toUpperCase()}`,
+      entityType: "Disbursement",
+      entityId: String(doc._id),
+      amount: Number(doc.amount),
+      activity: "Disbursement Updated",
+      description: `Disbursement of GHS ${Number(doc.amount).toLocaleString()} for ${targetName}${
+        targetLicense ? ` (${targetLicense})` : ""
+      } was updated.${statusNote}${refundNote}`,
     });
   } catch (err) {
     console.error("Activity logging failed:", err);

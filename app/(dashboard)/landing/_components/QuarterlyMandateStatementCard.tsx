@@ -19,7 +19,6 @@ interface QuarterlyStatementCardProps {
   accruedInterest: number;
   addOns: number;
   addonAccruedReturn: number;
-  oneOffs: number;
   performanceYield: number;
   managementFee: number;
   operationalCost: number;
@@ -36,7 +35,6 @@ export const QuarterlyMandateStatementCard: React.FC<
   accruedInterest,
   addOns,
   addonAccruedReturn,
-  oneOffs,
   performanceYield,
   managementFee,
   operationalCost,
@@ -256,7 +254,6 @@ export const QuarterlyMandateStatementCard: React.FC<
           accruedInterest,
           addOns,
           addonAccruedReturn,
-          oneOffs,
           performanceYield,
           managementFee,
           operationalCost,

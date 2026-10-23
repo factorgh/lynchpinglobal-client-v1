@@ -23,7 +23,6 @@ interface QuarterlyDisbursementReportCardProps {
   accruedInterest: number;
   addOns: number;
   addonAccruedReturn: number;
-  oneOffs: number;
   performanceYield: number;
   managementFee: number;
   operationalCost: number;
@@ -41,7 +40,6 @@ export const QuarterlyDisbursementReportCard: React.FC<
   accruedInterest,
   addOns,
   addonAccruedReturn,
-  oneOffs,
   performanceYield,
   managementFee,
   operationalCost,
@@ -122,7 +120,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
   });
 
   const totalAccruedDisbursements =
-    accruedInterest + addonAccruedReturn + oneOffs + performanceYield;
+    accruedInterest + addonAccruedReturn + performanceYield;
 
   // Extract all ledger documents attached to the client's mandate records (certificate field)
   const attachedLedgers = useMemo(() => {
@@ -469,7 +467,6 @@ export const QuarterlyDisbursementReportCard: React.FC<
           accruedInterest,
           addOns,
           addonAccruedReturn,
-          oneOffs,
           performanceYield,
           managementFee,
           operationalCost,

@@ -61,6 +61,16 @@ export const handleUploads = async (req: any, res: any) => {
         .json({ success: false, message: "No files provided for upload" });
     }
 
+    const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+    for (const file of fileList) {
+      if (file.size && file.size > MAX_FILE_SIZE) {
+        return res.status(400).json({
+          success: false,
+          message: `File "${file.originalname || "upload"}" exceeds the maximum 15MB size limit.`,
+        });
+      }
+    }
+
     const uploads = await Promise.all(
       fileList.map(async (file: any) => {
         const safeName = (file.originalname || `file-${Date.now()}`).replace(

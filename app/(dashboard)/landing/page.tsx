@@ -32,7 +32,6 @@ const CustomerLanding = () => {
   const [principal, setPrincipal] = useState(0);
   const [accruedInterest, setAccruedInterest] = useState(0);
   const [addOns, setAddOns] = useState(0);
-  const [oneOffs, setOneOffs] = useState(0);
   const [addonAccruedReturn, setAddonAccruedReturn] = useState(0);
   const [managementFee, setManagementFee] = useState(0);
   const [performanceYield, setPerformanceYield] = useState(0);
@@ -64,7 +63,6 @@ const CustomerLanding = () => {
       let totalAddonAccruedReturn = 0;
       let totalManagementFee = 0;
       let totalPerformanceYield = 0;
-      let totalOneOffs = 0;
       let totalOperationalCost = 0;
       let guaranteedRate = 0;
 
@@ -88,19 +86,6 @@ const CustomerLanding = () => {
         totalAddOns = round2(totalAddOns + addOnSum);
         const exchangeRateUSDToGHS = 11; // Replace this with the actual exchange rate
 
-        // Calculate the total for one-off investments
-        const oneOffSum = (investment.oneOffs || []).reduce((sum: any, oneOff: any) => {
-          const yieldAmt = Number(oneOff.oneOffYield || 0);
-          if (oneOff.currency === "USD") {
-            return round2(sum + round2(yieldAmt * exchangeRateUSDToGHS));
-          } else if (oneOff.currency === "GHS") {
-            return round2(sum + yieldAmt);
-          } else {
-            console.warn(`Unhandled currency: ${oneOff.currency}`);
-            return sum;
-          }
-        }, 0);
-        totalOneOffs = round2(totalOneOffs + oneOffSum);
 
         totalAddonAccruedReturn = round2(
           totalAddonAccruedReturn + Number(investment.addOnAccruedReturn || 0)
@@ -124,8 +109,7 @@ const CustomerLanding = () => {
         totalAccruedInterest +
         totalAddOns +
         totalAddonAccruedReturn +
-        totalPerformanceYield +
-        totalOneOffs
+        totalPerformanceYield
       );
 
       const totalDeductions = round2(totalOperationalCost + totalManagementFee);
@@ -144,7 +128,6 @@ const CustomerLanding = () => {
       setOperationalCost(totalOperationalCost);
       setGuaranteedRate(guaranteedRate);
       setQuarter(currentQuarterLabel);
-      setOneOffs(totalOneOffs);
     }
   }, [userInvestments]);
 
@@ -275,16 +258,9 @@ const CustomerLanding = () => {
         <Divider className="bg-white/40 my-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mt-6 mb-10 items-stretch">
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 col-span-1 md:col-span-2 lg:col-span-1"
+            className="flex flex-col gap-3 sm:gap-4 col-span-1 md:col-span-2 lg:col-span-1"
             data-tour="yield-cards"
           >
-            <CustomCard
-              icon={<PlusCircleOutlined />}
-              title="ONE-OFF DISBURSEMENT"
-              amount={formatPriceGHS(oneOffs)}
-              color={oneOffs > 0 ? "bg-emerald-400" : "bg-sky-400"}
-              subtitle="Non-recurring yield"
-            />
             <CustomCard
               icon={<PlusCircleOutlined />}
               title="PERFORMANCE-LINKED DISBURSEMENT"
@@ -315,7 +291,6 @@ const CustomerLanding = () => {
               accruedInterest={accruedInterest}
               addOns={addOns}
               addonAccruedReturn={addonAccruedReturn}
-              oneOffs={oneOffs}
               performanceYield={performanceYield}
               managementFee={managementFee}
               operationalCost={operationalCost}
@@ -331,7 +306,6 @@ const CustomerLanding = () => {
               accruedInterest={accruedInterest}
               addOns={addOns}
               addonAccruedReturn={addonAccruedReturn}
-              oneOffs={oneOffs}
               performanceYield={performanceYield}
               managementFee={managementFee}
               operationalCost={operationalCost}

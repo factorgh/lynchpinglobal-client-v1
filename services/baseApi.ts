@@ -20,7 +20,6 @@ export const baseApi = createApi({
     "Loan",
     "Assets",
     "AddOn",
-    "AddOff",
     "Logs",
     "Notifications",
     "ActivityLogs",

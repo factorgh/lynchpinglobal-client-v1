@@ -5,10 +5,9 @@ import { getQuarterDetails } from "./handle_date_range.js";
 
 export const recalculateInvestment = async (investmentId) => {
   try {
-    const investment = await Investment.findById(investmentId).populate([
-      "addOns",
-      "oneOffs",
-    ]);
+    const investment = await Investment.findById(investmentId).populate(
+      "addOns"
+    );
     if (!investment) {
       console.warn(`[Recalculate] Investment ${investmentId} not found`);
       return;

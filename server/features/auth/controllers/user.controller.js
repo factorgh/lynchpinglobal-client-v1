@@ -120,15 +120,20 @@ export const createUser = catchAsync(async (req, res, next) => {
 });
 
 export const getAll = catchAsync(async (req, res, next) => {
-  const allUsers = await User.find({ role: "user" });
-  console.log("allUsers", allUsers);
+  const query = {};
+  if (req.query?.role && req.query.role !== "all") {
+    query.role = req.query.role;
+  }
+  const allUsers = await User.find(query).sort({ createdAt: -1 });
   res.status(200).json({
     status: "success",
     allUsers,
   });
 });
 export const getAllAdmin = catchAsync(async (req, res, next) => {
-  const users = await User.find({ role: "admin" });
+  const users = await User.find({
+    role: { $in: ["admin", "superadmin"] },
+  }).sort({ createdAt: -1 });
 
   res.status(200).json({
     status: "success",
@@ -166,11 +171,16 @@ export const deleteUser = catchAsync(async (req, res, next) => {
   });
 });
 
-// Update a user
+// Update a user (Admin update - username/name is immutable)
 export const updateUser = catchAsync(async (req, res, next) => {
+  const updateData = { ...req.body };
+  // Username is permanent once assigned and cannot be modified by admin
+  delete updateData.name;
+  delete updateData.username;
+
   const updatedUser = await User.findOneAndUpdate(
     { _id: req.params.id },
-    req.body,
+    updateData,
     {
       new: true,
       runValidators: true,

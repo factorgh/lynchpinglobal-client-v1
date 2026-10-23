@@ -31,7 +31,6 @@ import {
   useGetRolloverCandidatesQuery,
   useExecuteSingleRolloverMutation,
   useExecuteBatchRolloverMutation,
-  useCalculateDailyAccrualsMutation,
 } from "@/services/investment";
 import RolloverEditModal from "./_components/RolloverEditModal";
 import RolloverBatchModal from "./_components/RolloverBatchModal";
@@ -77,8 +76,6 @@ export default function RolloverPage() {
     useExecuteSingleRolloverMutation();
   const [executeBatchRollover, { isLoading: isBatchLoading }] =
     useExecuteBatchRolloverMutation();
-  const [calculateDailyAccruals, { isLoading: isAccrualsLoading }] =
-    useCalculateDailyAccrualsMutation();
 
   const candidatesData = candidatesResponse?.data?.candidates || [];
   const summary = candidatesResponse?.data?.summary || {
@@ -204,22 +201,6 @@ export default function RolloverPage() {
     } catch (err: any) {
       message.error(
         err?.data?.message || err?.message || "Failed to execute batch rollover"
-      );
-    }
-  };
-
-  // Handle run daily accruals
-  const handleCalculateAccruals = async () => {
-    try {
-      const res: any = await calculateDailyAccruals({}).unwrap();
-      message.success(
-        res?.message ||
-          "Daily accruals successfully updated for all active mandates!"
-      );
-      refetch();
-    } catch (err: any) {
-      message.error(
-        err?.data?.message || err?.message || "Failed to calculate daily accruals"
       );
     }
   };
@@ -498,16 +479,6 @@ export default function RolloverPage() {
                 className="font-bold text-emerald-700"
               />
             </div>
-
-            {/* Run Daily Accruals Button (matching Add Client styling) */}
-            <button
-              onClick={handleCalculateAccruals}
-              disabled={isAccrualsLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>{isAccrualsLoading ? "Calculating..." : "Run Daily Accruals"}</span>
-            </button>
 
             {/* Batch Rollover Button (matching Add Client styling) */}
             <button
