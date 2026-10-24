@@ -58,9 +58,14 @@ const WealthForm: React.FC = () => {
     others: false,
   });
 
-  // Update user list when data is fetched
+  // Update user list when data is fetched (clients only)
   useEffect(() => {
-    setUsers(data?.allUsers || []);
+    const clientsOnly = (data?.allUsers || []).filter((u: any) => {
+      const r = (u.role || "").toLowerCase();
+      const d = (u.designation || "").toLowerCase();
+      return r !== "admin" && r !== "superadmin" && d !== "admin" && d !== "administrator";
+    });
+    setUsers(clientsOnly);
   }, [data]);
 
   // Handle file changes for each category

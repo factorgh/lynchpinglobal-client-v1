@@ -97,9 +97,23 @@ export default function ClientsPage() {
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
 
-  // Extract clients (users with role === "user" or from allUsers)
+  // Helper to identify administrative / staff users
+  const isUserAdmin = (user: any) => {
+    const role = (user?.role || "").toLowerCase();
+    const designation = (user?.designation || "").toLowerCase();
+    return (
+      role === "admin" ||
+      role === "superadmin" ||
+      designation === "admin" ||
+      designation === "administrator" ||
+      designation === "staff"
+    );
+  };
+
+  // Extract clients (strictly non-admin client accounts)
   const rawClients: any[] = useMemo(() => {
-    return usersData?.allUsers || [];
+    const all = usersData?.allUsers || [];
+    return all.filter((u: any) => !isUserAdmin(u));
   }, [usersData]);
 
   // Extract investments grouped by user

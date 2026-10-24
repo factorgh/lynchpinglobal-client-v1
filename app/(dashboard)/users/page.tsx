@@ -43,7 +43,7 @@ const Users = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userPhoto, setUserPhoto] = useState<string | null>(null);
-  const { data: dataSource, isFetching } = useGetAllUsersQuery(null);
+  const { data: dataSource, isFetching, refetch: refetchUsers } = useGetAllUsersQuery(null);
   const [deleteUser] = useDeleteUserMutation();
   const [updateUser] = useUpdateUserMutation();
   const [createActivity] = useCreateActivityLogMutation();
@@ -66,7 +66,14 @@ const Users = () => {
 
   const isUserAdmin = (user: any) => {
     const role = (user?.role || "").toLowerCase();
-    return role === "admin" || role === "superadmin";
+    const designation = (user?.designation || "").toLowerCase();
+    return (
+      role === "admin" ||
+      role === "superadmin" ||
+      designation === "admin" ||
+      designation === "administrator" ||
+      designation === "staff"
+    );
   };
 
   const clientUsers = useMemo(() => {
@@ -121,7 +128,12 @@ const Users = () => {
   const handleEditUser = (user: any) => {
     setSelectedUser(user);
     setUserPhoto(user.photo || null);
-    form.setFieldsValue(user);
+    const roleVal = (user?.role || "user").toLowerCase();
+    const normalizedRole = roleVal === "client" ? "user" : roleVal;
+    form.setFieldsValue({
+      ...user,
+      role: normalizedRole,
+    });
     setDrawerVisible(true);
   };
 
@@ -174,6 +186,17 @@ const Users = () => {
           ...safeValues
         } = values;
 
+        // Keep designation in sync with system role
+        if (values.role === "admin" || values.role === "superadmin") {
+          if (!safeValues.designation || safeValues.designation === "Client") {
+            safeValues.designation = "Admin";
+          }
+        } else if (values.role === "user" || values.role === "client") {
+          if (safeValues.designation === "Admin" || safeValues.designation === "Administrator") {
+            safeValues.designation = "Client";
+          }
+        }
+
         await updateUser({
           id: selectedUser._id,
           data: {
@@ -181,6 +204,10 @@ const Users = () => {
             photo: userPhoto || "",
           },
         }).unwrap();
+
+        if (refetchUsers) {
+          refetchUsers();
+        }
 
         if (loggedInUser._id) {
           const uName = selectedUser.displayName || selectedUser.name;
