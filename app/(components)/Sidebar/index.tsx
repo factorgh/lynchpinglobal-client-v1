@@ -222,13 +222,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
           <div className="text-[11px] font-bold tracking-wider text-slate-500 uppercase px-6 mb-1">
             Account
           </div>
-          <a
-            href="mailto:info@lynchpinglobal.com"
-            className="flex items-center mx-3 my-0.5 px-3.5 py-2 gap-3 rounded-xl transition-all duration-200 text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100/70 cursor-pointer"
-          >
-            <Mail className="w-4 h-4 flex-shrink-0 text-slate-600" />
-            <span>Contact Support</span>
-          </a>
+          {roles === "user" && (
+            <a
+              href="mailto:info@lynchpinglobal.com"
+              className="flex items-center mx-3 my-0.5 px-3.5 py-2 gap-3 rounded-xl transition-all duration-200 text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100/70 cursor-pointer"
+            >
+              <Mail className="w-4 h-4 flex-shrink-0 text-slate-600" />
+              <span>Contact Support</span>
+            </a>
+          )}
           <SignOutButton />
         </div>
 

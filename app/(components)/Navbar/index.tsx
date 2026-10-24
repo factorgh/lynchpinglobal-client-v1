@@ -169,18 +169,22 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
                   </Link>
                 ),
               },
-              {
-                key: "support",
-                label: (
-                  <a
-                    href="mailto:info@lynchpinglobal.com"
-                    className="text-xs font-semibold text-slate-700 flex items-center justify-between"
-                  >
-                    <span>Contact Support</span>
-                    <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">Help</span>
-                  </a>
-                ),
-              },
+              ...(user?.role !== "admin" && user?.role !== "superadmin"
+                ? [
+                    {
+                      key: "support",
+                      label: (
+                        <a
+                          href="mailto:info@lynchpinglobal.com"
+                          className="text-xs font-semibold text-slate-700 flex items-center justify-between"
+                        >
+                          <span>Contact Support</span>
+                          <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">Help</span>
+                        </a>
+                      ),
+                    },
+                  ]
+                : []),
               {
                 type: "divider",
               },
