@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { message, Spin } from "antd";
 import Swal from "sweetalert2";
 
@@ -269,6 +270,18 @@ const ConditionsUploader = () => {
           <div className="text-xs text-slate-500 font-medium">
             {files.length} {files.length === 1 ? "document" : "documents"} · PDF only
           </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <p className="text-xs text-slate-600">
+            This page publishes official terms only. Files submitted by clients are in Client Documents.
+          </p>
+          <Link
+            href="/vault"
+            className="text-xs font-bold text-emerald-800 hover:text-emerald-900 whitespace-nowrap"
+          >
+            Open client collections →
+          </Link>
         </div>
 
         {/* Upload Drop Area */}

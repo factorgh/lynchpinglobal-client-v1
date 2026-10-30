@@ -131,7 +131,16 @@ const TermsPage = () => {
         ? `${API_BASE}/uploads/db?category=client-documents&user=${currentUserId}`
         : `${API_BASE}/uploads/db?category=client-documents`;
 
-      const res = await fetch(url);
+      const authToken = getStoredToken();
+      const res = await fetch(url, {
+        headers: authToken
+          ? {
+              Authorization: authToken.startsWith("Bearer ")
+                ? authToken
+                : `Bearer ${authToken}`,
+            }
+          : undefined,
+      });
       if (res.ok) {
         const data = await res.json();
         const items: ClientUploadedDoc[] = (data?.files || []).map((f: any) => ({
@@ -216,37 +225,6 @@ const TermsPage = () => {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || "Failed to upload document");
       }
-
-      // Log activity and notify admin in the background
-      try {
-        const clientLabel = user?.displayName || user?.name || "A client";
-        if (bearerHeader) {
-          fetch(`${API_BASE}/activity-logs`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: bearerHeader,
-            },
-            body: JSON.stringify({
-              activity: "Client Document Uploaded",
-              description: `${clientLabel} uploaded ${docType} ("${selectedFile.name}") to the document vault.`,
-              user: user?._id || user?.id,
-            }),
-          }).catch(() => {});
-
-          fetch(`${API_BASE}/notifications`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: bearerHeader,
-            },
-            body: JSON.stringify({
-              title: "New Client Document Submitted",
-              message: `${clientLabel} submitted a ${docType} ("${selectedFile.name}") for administrative review.`,
-            }),
-          }).catch(() => {});
-        }
-      } catch {}
 
       Swal.fire({
         icon: "success",

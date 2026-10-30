@@ -80,7 +80,12 @@ export default function ClientsPage() {
   useEffect(() => {
     if (selectedClient?._id) {
       setIsClientFilesLoading(true);
-      fetch(`/api/v1/uploads/db?category=client-documents&user=${selectedClient._id}`)
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      fetch(`/api/v1/uploads/db?category=client-documents&user=${selectedClient._id}`, {
+        headers: token
+          ? { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` }
+          : undefined,
+      })
         .then((res) => (res.ok ? res.json() : { files: [] }))
         .then((data) => setClientUploadedFiles(data.files || []))
         .catch(() => setClientUploadedFiles([]))
@@ -350,7 +355,7 @@ export default function ClientsPage() {
               className="flex items-center gap-2 px-4 py-2.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold rounded-xl shadow-lg backdrop-blur-md transition-all active:scale-95"
             >
               <FolderArchive className="w-4 h-4" />
-              <span>Client Uploads Vault</span>
+              <span>Client Documents</span>
             </Link>
             <button
               onClick={() => setIsAddDrawerOpen(true)}

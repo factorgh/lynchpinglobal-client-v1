@@ -14,6 +14,8 @@ import {
   Wallet,
   ShieldCheck,
   CheckCircle,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import {
   EyeOutlined,
@@ -71,15 +73,27 @@ const ClientVaultPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDocType, setSelectedDocType] = useState("All Types");
   const [selectedUserFilter, setSelectedUserFilter] = useState("all");
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  const [viewMode, setViewMode] = useState<"collections" | "table" | "grid">("collections");
+  const [expandedCollections, setExpandedCollections] = useState<string[]>([]);
   const [previewDoc, setPreviewDoc] = useState<ClientUploadItem | null>(null);
 
   const API_BASE = "/api/v1";
 
+  const getAuthHeaders = () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) return {} as Record<string, string>;
+    return {
+      Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}`,
+    };
+  };
+
   const fetchUploads = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/uploads/db?category=client-documents`);
+      const res = await fetch(`${API_BASE}/uploads/db?category=client-documents`, {
+        headers: getAuthHeaders(),
+      });
       if (!res.ok) throw new Error("Failed to fetch client submissions");
       const data = await res.json();
       setUploads(data.files || []);
@@ -105,6 +119,37 @@ const ClientVaultPage: React.FC = () => {
       }
     });
     return Array.from(map.entries()).map(([id, label]) => ({ id, label }));
+  }, [uploads]);
+
+  const clientCollections = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        id: string;
+        client: ClientUploadItem["user"];
+        docs: ClientUploadItem[];
+      }
+    >();
+
+    uploads.forEach((item) => {
+      const id = item.user?._id || "unassigned";
+      const existing = map.get(id);
+      if (existing) {
+        existing.docs.push(item);
+      } else {
+        map.set(id, {
+          id,
+          client: item.user || null,
+          docs: [item],
+        });
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => {
+      const aDate = a.docs[0]?.created_at ? new Date(a.docs[0].created_at).getTime() : 0;
+      const bDate = b.docs[0]?.created_at ? new Date(b.docs[0].created_at).getTime() : 0;
+      return bDate - aDate;
+    });
   }, [uploads]);
 
   // Filtered uploads
@@ -136,6 +181,29 @@ const ClientVaultPage: React.FC = () => {
       return matchesSearch && matchesType && matchesUser;
     });
   }, [uploads, searchTerm, selectedDocType, selectedUserFilter]);
+
+  const filteredCollections = useMemo(() => {
+    return clientCollections
+      .map((collection) => {
+        const docs = collection.docs.filter((item) => filteredUploads.includes(item));
+        return { ...collection, docs };
+      })
+      .filter((collection) => {
+        if (selectedUserFilter !== "all" && collection.id !== selectedUserFilter) {
+          return false;
+        }
+        if (collection.docs.length > 0) return true;
+        const q = searchTerm.toLowerCase().trim();
+        if (!q) return selectedDocType === "All Types";
+        const name = (
+          collection.client?.displayName ||
+          collection.client?.name ||
+          collection.client?.email ||
+          ""
+        ).toLowerCase();
+        return name.includes(q);
+      });
+  }, [clientCollections, filteredUploads, searchTerm, selectedDocType, selectedUserFilter]);
 
   // Summary Metrics
   const stats = useMemo(() => {
@@ -172,19 +240,13 @@ const ClientVaultPage: React.FC = () => {
     if (!result.isConfirmed) return;
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const res = await fetch(`${API_BASE}/uploads`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          key: doc.public_id,
-          provider: "r2",
-          resource_type: "raw",
-        }),
-      });
+      const res = await fetch(
+        `${API_BASE}/uploads?public_id=${encodeURIComponent(doc.public_id)}&provider=r2`,
+        {
+          method: "DELETE",
+          headers: getAuthHeaders(),
+        }
+      );
 
       if (!res.ok) {
         throw new Error("Failed to delete document from storage.");
@@ -267,10 +329,10 @@ const ClientVaultPage: React.FC = () => {
               <span>Administrative Compliance & Document Management</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">
-              Client Document Vault
+              Client Document Collections
             </h1>
             <p className="text-xs sm:text-sm text-white/80 font-medium mt-1">
-              Live repository of signed mandate agreements, identity records, payment receipts, and client filings
+              Files submitted by clients for review, grouped by client collection. Official terms stay on Terms Uploader.
             </p>
           </div>
 
@@ -400,6 +462,15 @@ const ClientVaultPage: React.FC = () => {
               <div className="flex items-center rounded-xl border border-slate-200 bg-slate-100 p-0.5">
                 <button
                   type="button"
+                  onClick={() => setViewMode("collections")}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    viewMode === "collections" ? "bg-white text-emerald-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  Collections
+                </button>
+                <button
+                  type="button"
                   onClick={() => setViewMode("table")}
                   className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     viewMode === "table" ? "bg-white text-emerald-700 shadow-xs" : "text-slate-500 hover:text-slate-800"
@@ -429,15 +500,144 @@ const ClientVaultPage: React.FC = () => {
               <p className="text-sm font-semibold text-slate-700">Loading client submissions...</p>
               <p className="text-xs text-slate-400 mt-1">Fetching records from encrypted storage</p>
             </div>
-          ) : filteredUploads.length === 0 ? (
+          ) : (viewMode === "collections" ? filteredCollections.length === 0 : filteredUploads.length === 0) ? (
             <div className="p-16 text-center">
               <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <h3 className="text-base font-bold text-slate-800">No documents found</h3>
               <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
                 {searchTerm || selectedDocType !== "All Types" || selectedUserFilter !== "all"
                   ? "No client uploads matched your search or filter parameters. Try clearing your filters."
-                  : "No client documents have been submitted to the vault yet. Uploaded files will appear here immediately."}
+                  : "No client documents have been submitted yet. Files uploaded from a client's Terms page will appear here as collections."}
               </p>
+            </div>
+          ) : viewMode === "collections" ? (
+            <div className="divide-y divide-slate-100">
+              {filteredCollections.map((collection) => {
+                const client = collection.client;
+                const clientName = client?.displayName || client?.name || "Unassigned Client";
+                const clientEmail = client?.email || "No email on file";
+                const clientInitials = clientName
+                  .split(" ")
+                  .map((p) => p[0])
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase();
+                const isExpanded = expandedCollections.includes(collection.id);
+                const latest = collection.docs[0]?.created_at;
+
+                return (
+                  <div key={collection.id} className="bg-white">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedCollections((prev) =>
+                          prev.includes(collection.id)
+                            ? prev.filter((id) => id !== collection.id)
+                            : [...prev, collection.id]
+                        )
+                      }
+                      className="w-full flex items-center justify-between gap-4 px-4 sm:px-6 py-4 text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {isExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-emerald-700 shrink-0" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                        )}
+                        {client?.photo ? (
+                          <img
+                            src={client.photo}
+                            alt={clientName}
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs border border-emerald-200">
+                            {clientInitials || "CL"}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm text-slate-900 truncate">{clientName}</p>
+                          <p className="text-[11px] text-slate-500 truncate">{clientEmail}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        {latest && (
+                          <span className="hidden sm:inline text-[11px] text-slate-400 font-medium">
+                            Latest {moment(latest).fromNow()}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold">
+                          <FolderArchive className="w-3 h-3" />
+                          {collection.docs.length} {collection.docs.length === 1 ? "file" : "files"}
+                        </span>
+                      </div>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="px-4 sm:px-6 pb-4">
+                        <div className="rounded-xl border border-slate-200 bg-slate-50/70 divide-y divide-slate-100 overflow-hidden">
+                          {collection.docs.map((item, idx) => (
+                            <div
+                              key={item.public_id || idx}
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white"
+                            >
+                              <div className="flex items-start gap-2.5 min-w-0">
+                                <div className="mt-0.5">{getFileIcon(item.filename, item.format)}</div>
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-xs text-slate-800 truncate" title={item.filename}>
+                                    {item.filename || item.public_id}
+                                  </p>
+                                  {item.note && (
+                                    <p className="text-[11px] text-slate-500 italic mt-0.5 truncate">
+                                      "{item.note}"
+                                    </p>
+                                  )}
+                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                    {getDocTypeBadge(item.docType)}
+                                    <span className="text-[10px] text-slate-400">
+                                      {formatFileSize(item.bytes)}
+                                      {item.created_at
+                                        ? ` · ${moment(item.created_at).format("MMM D, YYYY")}`
+                                        : ""}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="inline-flex items-center gap-1.5 self-end sm:self-auto">
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewDoc(item)}
+                                  className="p-1.5 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                  title="Preview Document"
+                                >
+                                  <EyeOutlined className="text-sm" />
+                                </button>
+                                <a
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 rounded-lg text-slate-600 hover:text-sky-700 hover:bg-sky-50 transition-colors inline-flex items-center"
+                                  title="Open / Download"
+                                >
+                                  <DownloadOutlined className="text-sm" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(item)}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                  title="Delete Submission"
+                                >
+                                  <DeleteOutlined className="text-sm" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : viewMode === "table" ? (
             /* Table View */

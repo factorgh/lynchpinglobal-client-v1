@@ -135,7 +135,7 @@ export const adminDashboardSteps: DriveStep[] = [
   step(
     '[data-tour="admin-menu"]',
     "📍 Admin Navigation",
-    "Your complete admin toolkit: Dashboard, Mandate Management, Assets, Loans & Rentals, Disbursements, User Management, and Activity Logs.",
+    "Your complete admin toolkit: Dashboard, Clients, Client Documents, Mandate Management, Assets, Loans & Rentals, Disbursements, User Management, and Activity Logs.",
     "right"
   ),
   step(

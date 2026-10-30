@@ -4,9 +4,38 @@ import {
   ListObjectsV2Command,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
+import jwt from "jsonwebtoken";
 import Upload from "./upload.model.js";
+import User from "../auth/models/user.model.js";
+import Notification from "../notifications/models/notification.js";
+import ActivityLog from "../activity-log/activity.model.js";
 import cloudinary from "../../utils/cloudinary.js";
 import mongoose from "mongoose";
+
+const getAuthUser = async (req: any) => {
+  try {
+    let token: string | undefined;
+    const authHeader = req.headers?.authorization;
+    if (typeof authHeader === "string" && authHeader.length > 0) {
+      token = authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : authHeader;
+    } else if (req.cookies?.jwt) {
+      token = req.cookies.jwt;
+    }
+    if (!token || !process.env.JWT_SECRET) return null;
+    const decoded: any = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded?.id) return null;
+    return await User.findById(decoded.id);
+  } catch {
+    return null;
+  }
+};
+
+const isAdminUser = (user: any) => {
+  const role = (user?.role || "").toLowerCase();
+  return role === "admin" || role === "superadmin";
+};
 
 // Helper to sanitize R2 endpoint (remove trailing bucket segment if present)
 const getCleanR2Endpoint = (endpoint: string, bucket: string): string => {
@@ -61,7 +90,7 @@ export const handleUploads = async (req: any, res: any) => {
         .json({ success: false, message: "No files provided for upload" });
     }
 
-    const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+    const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
     for (const file of fileList) {
       if (file.size && file.size > MAX_FILE_SIZE) {
         return res.status(400).json({
@@ -125,6 +154,44 @@ export const handleUploads = async (req: any, res: any) => {
       if (docs.length) {
         await Upload.insertMany(docs);
       }
+
+      if (folder.toLowerCase() === "client-documents" && uploads.length) {
+        try {
+          const admins = await User.find({
+            role: { $in: ["admin", "superadmin"] },
+          })
+            .select("_id")
+            .lean();
+          const adminIds = (admins || []).map((a: any) => a._id).filter(Boolean);
+          const actorLabel =
+            req.user?.displayName || req.user?.name || "A client";
+          const fileLabel = uploads
+            .map((u) => u.filename)
+            .filter(Boolean)
+            .join(", ");
+
+          if (adminIds.length) {
+            await Notification.create({
+              title: "New Client Document Submitted",
+              message: `${actorLabel} submitted a ${docType} ("${fileLabel}") for administrative review.`,
+              users: adminIds,
+            });
+          }
+
+          await ActivityLog.create({
+            user: req.user?._id || targetUser || undefined,
+            activity: "Client Document Uploaded",
+            description: `${actorLabel} uploaded ${docType} ("${fileLabel}") to the client document vault.`,
+            targetUser: targetUser || req.user?._id || undefined,
+            entityType: "ClientDocument",
+          });
+        } catch (notifyErr) {
+          console.warn(
+            "[uploads] failed to notify admins of client document:",
+            notifyErr
+          );
+        }
+      }
     } catch (dbErr) {
       console.error("[uploads] failed to persist uploads to database:", dbErr);
     }
@@ -155,6 +222,7 @@ export const listStoredUploadsDb = async (req: any, res: any) => {
     const category = (req.query?.category || "uploads").toString();
     const provider = (req.query?.provider || "").toString();
     const user = req.query?.user || req.query?.userId;
+    const isClientDocs = /^client-documents$/i.test(category);
 
     const query: Record<string, any> = {};
 
@@ -169,7 +237,23 @@ export const listStoredUploadsDb = async (req: any, res: any) => {
       query.provider = provider;
     }
 
-    if (user && mongoose.isValidObjectId(user)) {
+    if (isClientDocs) {
+      const authUser = req.user || (await getAuthUser(req));
+      if (!authUser) {
+        return res.status(401).json({
+          success: false,
+          message: "Please log in to view client documents",
+        });
+      }
+
+      if (isAdminUser(authUser)) {
+        if (user && mongoose.isValidObjectId(user)) {
+          query.user = user;
+        }
+      } else {
+        query.user = authUser._id;
+      }
+    } else if (user && mongoose.isValidObjectId(user)) {
       query.user = user;
     }
 

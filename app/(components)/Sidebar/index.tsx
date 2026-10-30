@@ -162,7 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
               <SidebarLink
                 href="/vault"
                 icon={FolderArchive}
-                label="Client Uploads"
+                label="Client Documents"
                 onClick={onCloseMobile}
               />
               <SidebarLink
