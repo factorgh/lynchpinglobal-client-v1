@@ -5,6 +5,8 @@ import {
   getOne,
   updateOne,
 } from "../../factory/factory-functions.js";
+import ActivityLog from "../../activity-log/activity.model.js";
+import User from "../../auth/models/user.model.js";
 
 import AssetsModel from "../model/assets_model.js";
 
@@ -40,6 +42,35 @@ export const createAsset = catchAsync(async (req, res, next) => {
   });
 
   await doc.save();
+
+  try {
+    const actorUser = req.user?._id || user;
+    let clientName = "Client";
+    let clientLicense = "";
+
+    if (user) {
+      const u = await User.findById(user).select("name displayName license").lean();
+      if (u) {
+        clientName = u.displayName || u.name;
+        clientLicense = u.license || "";
+      }
+    }
+
+    await ActivityLog.create({
+      user: actorUser || undefined,
+      targetUser: user,
+      targetName: clientName,
+      targetLicense: clientLicense,
+      targetAccount: `Asset #${String(doc._id).slice(-6).toUpperCase()}`,
+      entityType: "Asset",
+      entityId: String(doc._id),
+      amount: Number(doc.assetValue || 0),
+      activity: "New Asset Created",
+      description: `Asset "${doc.assetName || 'Asset'}" (Valued at GHS ${Number(doc.assetValue || 0).toLocaleString()}) created for ${clientName}`,
+    });
+  } catch (logErr) {
+    console.error("Activity logging failed in createAsset:", logErr);
+  }
 
   res.status(201).json({
     status: "success",

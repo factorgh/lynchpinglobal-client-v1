@@ -1,5 +1,7 @@
 import { AddOn } from "../model/add_on.model.js";
 import Investment from "../model/investment.model.js";
+import ActivityLog from "../../activity-log/activity.model.js";
+import User from "../../auth/models/user.model.js";
 import { recalculateInvestment } from "../../../utils/recalculate.js";
 
 export const addAddOnToInvestment = async (req, res, next) => {
@@ -31,6 +33,35 @@ export const addAddOnToInvestment = async (req, res, next) => {
 
     await recalculateInvestment(investmentId);
 
+    try {
+      const actorUser = req.user?._id || investment.userId;
+      let clientName = investment.name || "Client";
+      let clientLicense = "";
+
+      if (investment.userId) {
+        const u = await User.findById(investment.userId).select("name displayName license").lean();
+        if (u) {
+          clientName = u.displayName || u.name;
+          clientLicense = u.license || "";
+        }
+      }
+
+      await ActivityLog.create({
+        user: actorUser,
+        targetUser: investment.userId,
+        targetName: clientName,
+        targetLicense: clientLicense,
+        targetAccount: `Mandate #${String(investmentId).slice(-6).toUpperCase()}`,
+        entityType: "AddOn",
+        entityId: String(savedAddOn._id),
+        amount: Number(amount || 0),
+        activity: "Mandate Add-On Created",
+        description: `Add-on of GHS ${Number(amount || 0).toLocaleString()} added to ${clientName}'s mandate`,
+      });
+    } catch (logErr) {
+      console.error("Activity logging failed in addAddOnToInvestment:", logErr);
+    }
+
     res.status(200).json({ status: "success", data: investment });
   } catch (error) {
     next(error);
@@ -55,6 +86,35 @@ export const updateAddOnStatus = async (req, res, next) => {
     const investment = await Investment.findOne({ addOns: id });
     if (investment) {
       await recalculateInvestment(investment._id);
+
+      try {
+        const actorUser = req.user?._id || investment.userId;
+        let clientName = investment.name || "Client";
+        let clientLicense = "";
+
+        if (investment.userId) {
+          const u = await User.findById(investment.userId).select("name displayName license").lean();
+          if (u) {
+            clientName = u.displayName || u.name;
+            clientLicense = u.license || "";
+          }
+        }
+
+        await ActivityLog.create({
+          user: actorUser,
+          targetUser: investment.userId,
+          targetName: clientName,
+          targetLicense: clientLicense,
+          targetAccount: `Mandate #${String(investment._id).slice(-6).toUpperCase()}`,
+          entityType: "AddOn",
+          entityId: String(id),
+          amount: Number(addOn.amount || 0),
+          activity: "Mandate Add-On Updated",
+          description: `Add-on of GHS ${Number(addOn.amount || 0).toLocaleString()} for ${clientName}'s mandate status updated to "${status}"`,
+        });
+      } catch (logErr) {
+        console.error("Activity logging failed in updateAddOnStatus:", logErr);
+      }
     }
 
     res.status(200).json({ status: "success", data: addOn });
@@ -115,6 +175,36 @@ export const deleteAddOn = async (req, res, next) => {
 
     // Delete the addon document
     await AddOn.findByIdAndDelete(id);
+
+    try {
+      const inv = investments[0];
+      const actorUser = req.user?._id || inv?.userId;
+      let clientName = inv?.name || "Client";
+      let clientLicense = "";
+
+      if (inv?.userId) {
+        const u = await User.findById(inv.userId).select("name displayName license").lean();
+        if (u) {
+          clientName = u.displayName || u.name;
+          clientLicense = u.license || "";
+        }
+      }
+
+      await ActivityLog.create({
+        user: actorUser,
+        targetUser: inv?.userId,
+        targetName: clientName,
+        targetLicense: clientLicense,
+        targetAccount: inv ? `Mandate #${String(inv._id).slice(-6).toUpperCase()}` : "Add-on",
+        entityType: "AddOn",
+        entityId: String(id),
+        amount: Number(addOn.amount || 0),
+        activity: "Mandate Add-On Deleted",
+        description: `Add-on of GHS ${Number(addOn.amount || 0).toLocaleString()} for ${clientName}'s mandate was deleted`,
+      });
+    } catch (logErr) {
+      console.error("Activity logging failed in deleteAddOn:", logErr);
+    }
 
     res.status(204).json({ status: "success", data: null });
   } catch (error) {

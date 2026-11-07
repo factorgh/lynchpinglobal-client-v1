@@ -1,5 +1,7 @@
 import catchAsync from "../error/catch-async-error.js";
 import { deleteOne, getOne, updateOne } from "../factory/factory-functions.js";
+import ActivityLog from "../activity-log/activity.model.js";
+import User from "../auth/models/user.model.js";
 
 import LoanModel from "./loans.model.js";
 const popOptions = {
@@ -60,6 +62,36 @@ export const createLoan = catchAsync(async (req, res, next) => {
   });
 
   await doc.save();
+
+  try {
+    const actorUser = req.user?._id || doc.user;
+    let clientName = doc.isExternal ? doc.externalName : "Client";
+    let clientLicense = "";
+
+    if (!doc.isExternal && doc.user) {
+      const u = await User.findById(doc.user).select("name displayName license").lean();
+      if (u) {
+        clientName = u.displayName || u.name;
+        clientLicense = u.license || "";
+      }
+    }
+
+    await ActivityLog.create({
+      user: actorUser || doc.user || undefined,
+      targetUser: doc.isExternal ? undefined : doc.user,
+      targetName: clientName,
+      targetLicense: clientLicense,
+      targetAccount: doc.isExternal ? "External Loan" : `Loan #${String(doc._id).slice(-6).toUpperCase()}`,
+      entityType: "Loan",
+      entityId: String(doc._id),
+      amount: Number(doc.loanAmount || 0),
+      activity: "New Loan Created",
+      description: `New loan of GHS ${Number(doc.loanAmount || 0).toLocaleString()} created for "${clientName}"`,
+    });
+  } catch (logErr) {
+    console.error("Activity logging failed in createLoan:", logErr);
+  }
+
   res.status(201).json({
     status: "success",
     data: {

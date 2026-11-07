@@ -103,6 +103,27 @@ export const createInvestment = catchAsync(async (req, res, next) => {
   const newInvestment = await Investment.create(investmentDetails);
   await recalculateInvestment(newInvestment._id);
 
+  try {
+    const actorUser = req.user?._id || newInvestment.userId;
+    const clientName = user.displayName || user.name || newInvestment.name || "Client";
+    const clientLicense = user.license || "";
+
+    await ActivityLog.create({
+      user: actorUser,
+      targetUser: newInvestment.userId,
+      targetName: clientName,
+      targetLicense: clientLicense,
+      targetAccount: `Mandate #${String(newInvestment._id).slice(-6).toUpperCase()}`,
+      entityType: "Mandate",
+      entityId: String(newInvestment._id),
+      amount: Number(newInvestment.principal || 0),
+      activity: "New Mandate Created",
+      description: `New mandate created for client "${clientName}" with initial principal GHS ${Number(newInvestment.principal || 0).toLocaleString()}`,
+    });
+  } catch (logErr) {
+    console.error("Activity logging failed in createInvestment:", logErr);
+  }
+
   res.status(201).json({
     status: "success",
     data: { investment: newInvestment },
@@ -171,6 +192,29 @@ export const updateInvestment = catchAsync(async (req, res, next) => {
 
   if (investment) {
     await recalculateInvestment(investment._id);
+
+    try {
+      const actorUser = req.user?._id || investment.userId?._id || investment.userId;
+      const targetUserObj = investment.userId;
+      const clientName = targetUserObj?.displayName || targetUserObj?.name || investment.name || "Client";
+      const clientLicense = targetUserObj?.license || "";
+      const principal = Number(investment.principal || 0);
+
+      await ActivityLog.create({
+        user: actorUser,
+        targetUser: targetUserObj?._id || investment.userId,
+        targetName: clientName,
+        targetLicense: clientLicense,
+        targetAccount: `Mandate #${String(investment._id).slice(-6).toUpperCase()}`,
+        entityType: "Mandate",
+        entityId: String(investment._id),
+        amount: principal,
+        activity: "Mandate Updated",
+        description: `Mandate details updated for ${clientName}. Principal: GHS ${principal.toLocaleString()}`,
+      });
+    } catch (logErr) {
+      console.error("Activity logging failed in updateInvestment:", logErr);
+    }
   }
 
   res.status(200).json({
@@ -591,6 +635,29 @@ export const executeSingleRollover = catchAsync(async (req, res, next) => {
     { path: "userId", select: "name displayName email license" },
     { path: "owners.user", select: "name displayName email license" },
   ]);
+
+  try {
+    const actorUser = req.user?._id || sourceInv.userId?._id || sourceInv.userId;
+    const targetUserObj = populatedNewTransaction?.userId || sourceInv.userId;
+    const clientName = targetUserObj?.displayName || targetUserObj?.name || sourceInv.name || "Client";
+    const clientLicense = targetUserObj?.license || "";
+    const rolledPrincipal = Number(newTransaction.principal || 0);
+
+    await ActivityLog.create({
+      user: actorUser,
+      targetUser: targetUserObj?._id || targetUserObj,
+      targetName: clientName,
+      targetLicense: clientLicense,
+      targetAccount: `Mandate #${String(newTransaction._id).slice(-6).toUpperCase()}`,
+      entityType: "Mandate",
+      entityId: String(newTransaction._id),
+      amount: rolledPrincipal,
+      activity: "Mandate Rolled Over",
+      description: `Mandate for ${clientName} rolled over into ${effectiveTargetQuarter} with principal GHS ${rolledPrincipal.toLocaleString()}`,
+    });
+  } catch (logErr) {
+    console.error("Activity logging failed in executeSingleRollover:", logErr);
+  }
 
   res.status(201).json({
     status: "success",
