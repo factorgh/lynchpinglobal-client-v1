@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatPriceGHS } from "@/lib/helper";
-import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useDeleteLoanMutation, useGetLoansQuery } from "@/services/loan";
 import {
   DeleteOutlined,
@@ -27,10 +26,6 @@ import NonClientLoanDrawer from "./non-client-loan-drawer";
 const NonClientLoanTable: React.FC = () => {
   const { data, isFetching } = useGetLoansQuery(null);
   const [deleteLoan] = useDeleteLoanMutation();
-  const [createActivity] = useCreateActivityLogMutation();
-  const loggedInUser = JSON.parse(
-    typeof window !== "undefined" ? localStorage.getItem("user") || "{}" : "{}"
-  );
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -89,13 +84,6 @@ const NonClientLoanTable: React.FC = () => {
 
       if (result.isConfirmed) {
         await deleteLoan(id).unwrap();
-        if (loggedInUser._id) {
-          await createActivity({
-            activity: "External Loan Deleted",
-            description: `A non-client loan with id ${id} was deleted`,
-            user: loggedInUser._id,
-          }).unwrap();
-        }
         toast.success("External loan deleted successfully");
       }
     } catch (e: any) {

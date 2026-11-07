@@ -13,50 +13,90 @@ import Upload from "../uploads/upload.model.js";
 
 const targetProjection = "name displayName license email";
 
+const normalizeEntityType = (log) => {
+  const declaredType = String(log.entityType || "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+  const activityText = `${log.activity || ""} ${log.description || ""}`.toLowerCase();
+
+  if (["user", "client"].includes(declaredType)) return "user";
+  if (["mandate", "investment"].includes(declaredType)) return "mandate";
+  if (["addon", "addons"].includes(declaredType)) return "addon";
+  if (["payment", "payments"].includes(declaredType)) return "payment";
+  if (["disbursement", "withdrawal", "withdrawals"].includes(declaredType)) return "disbursement";
+  if (["asset", "assets", "assettransaction", "assettransactions"].includes(declaredType)) return "asset";
+  if (["loan", "loans"].includes(declaredType)) return "loan";
+  if (["rental", "rentals"].includes(declaredType)) return "rental";
+  if (["clientdocument", "upload", "uploads"].includes(declaredType)) return "upload";
+
+  if (/withdrawal|disbursement/.test(activityText)) return "disbursement";
+  if (/mandate|investment/.test(activityText)) return "mandate";
+  if (/add[- ]?on/.test(activityText)) return "addon";
+  if (/payment/.test(activityText)) return "payment";
+  if (/asset/.test(activityText)) return "asset";
+  if (/loan/.test(activityText)) return "loan";
+  if (/rental/.test(activityText)) return "rental";
+  if (/user|client account|profile/.test(activityText)) return "user";
+  if (/document|upload/.test(activityText)) return "upload";
+  return null;
+};
+
+const getActivityEntityId = (log) => {
+  if (log.entityId) return String(log.entityId);
+  const description = String(log.description || "");
+  const match =
+    description.match(/\b(?:entity\s+)?id\s*[:#]?\s*([a-f\d]{24})\b/i) ||
+    description.match(/\b([a-f\d]{24})\b/i);
+  return match?.[1] || null;
+};
+
 const resolveActivityTarget = async (log) => {
-  const existingTarget = log.targetUser;
-  if (existingTarget && typeof existingTarget === "object" && (existingTarget.name || existingTarget.displayName)) {
-    return existingTarget;
-  }
-
-  if (existingTarget) {
-    const targetUser = await User.findById(existingTarget).select(targetProjection).lean();
-    if (targetUser) return targetUser;
-  }
-
-  if (!log.entityId) return null;
-
-  const type = String(log.entityType || "").toLowerCase().replace(/[^a-z]/g, "");
+  const entityId = getActivityEntityId(log);
+  const entityType = normalizeEntityType(log);
   let entity = null;
   let targetUser = null;
 
-  if (["user", "client"].includes(type)) {
-    return User.findById(log.entityId).select(targetProjection).lean();
-  }
-
-  if (["mandate", "investment"].includes(type)) {
-    entity = await Investment.findById(log.entityId).populate("userId", targetProjection).lean();
+  if (entityId && entityType === "user") {
+    targetUser = await User.findById(entityId).select(targetProjection).lean();
+  } else if (entityId && entityType === "mandate") {
+    entity = await Investment.findById(entityId)
+      .populate("userId", targetProjection)
+      .lean();
     targetUser = entity?.userId;
-  } else if (type === "addon") {
-    entity = await Investment.findOne({ addOns: log.entityId }).populate("userId", targetProjection).lean();
+  } else if (entityId && entityType === "addon") {
+    entity = await Investment.findOne({ addOns: entityId })
+      .populate("userId", targetProjection)
+      .lean();
     targetUser = entity?.userId;
-  } else if (["payment"].includes(type)) {
-    entity = await Payment.findById(log.entityId).populate("user", targetProjection).lean();
+  } else if (entityId && entityType === "payment") {
+    entity = await Payment.findById(entityId)
+      .populate("user", targetProjection)
+      .lean();
     targetUser = entity?.user;
-  } else if (["disbursement", "withdrawal"].includes(type)) {
-    entity = await Withdrawal.findById(log.entityId).populate("user", targetProjection).lean();
+  } else if (entityId && entityType === "disbursement") {
+    entity = await Withdrawal.findById(entityId)
+      .populate("user", targetProjection)
+      .lean();
     targetUser = entity?.user;
-  } else if (["asset", "assettransaction"].includes(type)) {
-    entity = await Assets.findById(log.entityId).populate("user", targetProjection).lean();
+  } else if (entityId && entityType === "asset") {
+    entity = await Assets.findById(entityId)
+      .populate("user", targetProjection)
+      .lean();
     targetUser = entity?.user;
-  } else if (type === "loan") {
-    entity = await Loan.findById(log.entityId).populate("user", targetProjection).lean();
+  } else if (entityId && entityType === "loan") {
+    entity = await Loan.findById(entityId)
+      .populate("user", targetProjection)
+      .lean();
     targetUser = entity?.user;
-  } else if (type === "rental") {
-    entity = await Rental.findById(log.entityId).populate("user", targetProjection).lean();
+  } else if (entityId && entityType === "rental") {
+    entity = await Rental.findById(entityId)
+      .populate("user", targetProjection)
+      .lean();
     targetUser = entity?.user;
-  } else if (["clientdocument", "upload"].includes(type)) {
-    entity = await Upload.findById(log.entityId).populate("user", targetProjection).lean();
+  } else if (entityId && entityType === "upload") {
+    entity = await Upload.findById(entityId)
+      .populate("user", targetProjection)
+      .lean();
     targetUser = entity?.user;
   }
 
@@ -67,8 +107,46 @@ const resolveActivityTarget = async (log) => {
   if (entity?.assetName) {
     return { name: entity.assetName, displayName: entity.assetName };
   }
+  if (entity?.name && entityType === "mandate") {
+    return { name: entity.name, displayName: entity.name };
+  }
+
+  // Legacy logs sometimes stored only the affected user's ID in the description.
+  const descriptionUserId = String(log.description || "").match(
+    /\buser\s+(?:id\s*)?([a-f\d]{24})\b/i,
+  )?.[1];
+  if (descriptionUserId) {
+    targetUser = await User.findById(descriptionUserId)
+      .select(targetProjection)
+      .lean();
+    if (targetUser) return targetUser;
+  }
+
+  const existingTarget = log.targetUser;
+  if (existingTarget && typeof existingTarget === "object") {
+    if (existingTarget.name || existingTarget.displayName) return existingTarget;
+  } else if (existingTarget) {
+    targetUser = await User.findById(existingTarget)
+      .select(targetProjection)
+      .lean();
+    if (targetUser) return targetUser;
+  }
+
+  const existingName = String(log.targetName || "").trim();
+  if (existingName && !isPlaceholderTargetName(existingName)) {
+    return {
+      name: existingName,
+      displayName: existingName,
+      license: log.targetLicense,
+    };
+  }
   return null;
 };
+
+const isPlaceholderTargetName = (name) =>
+  /^(?:system\s*\/\s*master\s*account|client(?:\s*\([^)]*\))?|unknown|n\/a)$/i.test(
+    String(name || "").trim(),
+  );
 
 const enrichActivityTarget = async (log) => {
   const targetUser = await resolveActivityTarget(log);
@@ -77,9 +155,11 @@ const enrichActivityTarget = async (log) => {
   const targetName = targetUser.displayName || targetUser.name;
   return {
     ...log,
-    targetUser: log.targetUser && typeof log.targetUser === "object" ? log.targetUser : targetUser,
+    targetUser,
     targetName: targetName || log.targetName,
     targetLicense: log.targetLicense || targetUser.license,
+    entityId: log.entityId || getActivityEntityId(log) || undefined,
+    entityType: log.entityType || normalizeEntityType(log) || undefined,
   };
 };
 
@@ -119,22 +199,33 @@ export const getAllActivityLogs = catchAsync(async (req, res, next) => {
   // Self-heal / Backfill target person for logs where targetUser or targetName is missing
   const enrichedLogs = await Promise.all(
     logs.map(async (log) => {
-      // If already resolved with a targetUser or specific targetName, return as-is
-      if (
-        (log.targetUser &&
-          (log.targetUser.displayName || log.targetUser.name)) ||
-        (log.targetName &&
-          log.targetName !== "System / Master Account" &&
-          log.targetName !== "Client")
-      ) {
+      const hasResolvedTarget = Boolean(
+        log.targetUser &&
+          typeof log.targetUser === "object" &&
+          (log.targetUser.displayName || log.targetUser.name),
+      );
+      const hasSpecificName = Boolean(
+        log.targetName && !isPlaceholderTargetName(log.targetName),
+      );
+      const hasEntityReference = Boolean(
+        getActivityEntityId(log) && normalizeEntityType(log),
+      );
+
+      // Re-resolve records with an entity reference so stale or generic names are repaired.
+      if (hasSpecificName && !hasEntityReference) {
         return log;
       }
 
       try {
         const generallyEnriched = await enrichActivityTarget(log);
-        if (generallyEnriched.targetName && generallyEnriched.targetName !== "System / Master Account" && generallyEnriched.targetName !== "Client") {
+        if (
+          generallyEnriched.targetName &&
+          !isPlaceholderTargetName(generallyEnriched.targetName)
+        ) {
           return generallyEnriched;
         }
+
+        if (hasResolvedTarget) return log;
 
         const desc = log.description || "";
         const act = log.activity || "";
@@ -313,7 +404,7 @@ export const getAllActivityLogs = catchAsync(async (req, res, next) => {
           }
         }
 
-        // Check if description has 'for <name>' or 'for client "<name>"'
+        // Last-resort fallback for older records with a readable name in the description.
         const forMatch = desc.match(
           /for\s+(?:client\s+)?["']?([A-Za-z0-9\s.-]+?)["']?(?:\s*\(|\s*\.|\s*with|\s*was|$)/i,
         );
