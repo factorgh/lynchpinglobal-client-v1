@@ -138,10 +138,25 @@ const LoanTable: React.FC<LoanTableProps> = ({ external = false }) => {
         }).unwrap();
         toast.success("Loan updated successfully");
         if (loggedInUser._id) {
+          const targetLoan = rawList.find((item: any) => item._id === editRentalId);
+          const loanUser = targetLoan?.user;
+          const clientName = targetLoan?.isExternal
+            ? targetLoan.externalName || "Non-Client"
+            : loanUser?.displayName || loanUser?.name || "Client";
+          const clientLicense = targetLoan?.isExternal ? "" : loanUser?.license;
+          const loanAmt = Number(values.loanAmount || targetLoan?.loanAmount || 0);
+
           await createActivity({
             activity: "Loan Updated",
-            description: "A loan entry was updated successfully",
+            description: `Loan of GHS ${loanAmt.toLocaleString()} for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} was updated`,
             user: loggedInUser._id,
+            targetUser: loanUser?._id || loanUser,
+            targetName: clientName,
+            targetLicense: clientLicense,
+            targetAccount: targetLoan?.isExternal ? "External Loan" : `Loan #${String(editRentalId).slice(-6).toUpperCase()}`,
+            entityType: "Loan",
+            entityId: String(editRentalId),
+            amount: loanAmt,
           }).unwrap();
         }
       }
@@ -166,12 +181,27 @@ const LoanTable: React.FC<LoanTableProps> = ({ external = false }) => {
       });
 
       if (result.isConfirmed) {
+        const targetLoan = rawList.find((item: any) => item._id === id);
+        const loanUser = targetLoan?.user;
+        const clientName = targetLoan?.isExternal
+          ? targetLoan.externalName || "Non-Client"
+          : loanUser?.displayName || loanUser?.name || "Client";
+        const clientLicense = targetLoan?.isExternal ? "" : loanUser?.license;
+        const loanAmt = Number(targetLoan?.loanAmount || 0);
+
         await deleteLoan(id).unwrap();
         if (loggedInUser._id) {
           await createActivity({
             activity: "Loan Deleted",
-            description: "A loan entry was deleted successfully",
+            description: `Loan of GHS ${loanAmt.toLocaleString()} for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} was deleted`,
             user: loggedInUser._id,
+            targetUser: loanUser?._id || loanUser,
+            targetName: clientName,
+            targetLicense: clientLicense,
+            targetAccount: targetLoan?.isExternal ? "External Loan" : `Loan #${String(id).slice(-6).toUpperCase()}`,
+            entityType: "Loan",
+            entityId: String(id),
+            amount: loanAmt,
           }).unwrap();
         }
         toast.success("Loan deleted successfully");

@@ -145,10 +145,23 @@ const RentalTable: React.FC = () => {
           data: formattedValues,
         }).unwrap();
         if (loggedInUser._id) {
+          const targetRental = rawList.find((item: any) => item._id === editRentalId);
+          const rentalUser = targetRental?.user;
+          const clientName = rentalUser?.displayName || rentalUser?.name || "Client";
+          const clientLicense = rentalUser?.license;
+          const rentalAmt = Number(values.principal || targetRental?.principal || targetRental?.amountDue || 0);
+
           await createActivity({
             activity: "Rental Updated",
-            description: "A rental entry was updated successfully",
+            description: `Rental entry for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} was updated`,
             user: loggedInUser._id,
+            targetUser: rentalUser?._id || rentalUser,
+            targetName: clientName,
+            targetLicense: clientLicense,
+            targetAccount: `Rental #${String(editRentalId).slice(-6).toUpperCase()}`,
+            entityType: "Rental",
+            entityId: String(editRentalId),
+            amount: rentalAmt,
           }).unwrap();
         }
         toast.success("Asset Rental updated successfully");
@@ -174,12 +187,25 @@ const RentalTable: React.FC = () => {
       });
 
       if (result.isConfirmed) {
+        const targetRental = rawList.find((item: any) => item._id === id);
+        const rentalUser = targetRental?.user;
+        const clientName = rentalUser?.displayName || rentalUser?.name || "Client";
+        const clientLicense = rentalUser?.license;
+        const rentalAmt = Number(targetRental?.principal || targetRental?.amountDue || 0);
+
         await deleteRental(id).unwrap();
         if (loggedInUser._id) {
           await createActivity({
             activity: "Rental Deleted",
-            description: "A rental entry was deleted successfully",
+            description: `Rental entry for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} was deleted`,
             user: loggedInUser._id,
+            targetUser: rentalUser?._id || rentalUser,
+            targetName: clientName,
+            targetLicense: clientLicense,
+            targetAccount: `Rental #${String(id).slice(-6).toUpperCase()}`,
+            entityType: "Rental",
+            entityId: String(id),
+            amount: rentalAmt,
           }).unwrap();
         }
         toast.success("Rental deleted successfully");

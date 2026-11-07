@@ -34,9 +34,21 @@ export const deleteOne = (Model) =>
             : `${modelLabel} entry with ID ${doc._id} was deleted`;
 
         const logUser = req.user?._id || doc.user || (Model.modelName === "User" ? doc._id : null);
+        const targetUser = doc.user || doc.userId || (Model.modelName === "User" ? doc._id : null);
+        const targetName =
+          doc.displayName ||
+          doc.name ||
+          (doc.user && typeof doc.user === "object" ? doc.user.displayName || doc.user.name : null) ||
+          null;
+
         if (logUser) {
           await ActivityLog.create({
             user: logUser,
+            targetUser: targetUser || undefined,
+            targetName: targetName || undefined,
+            entityType: modelLabel,
+            entityId: String(doc._id),
+            amount: doc.amount || doc.principal || doc.loanAmount || doc.assetValue || undefined,
             activity: `${modelLabel} Deleted`,
             description,
           });

@@ -107,10 +107,23 @@ const PaymentTable: React.FC<any> = () => {
       }).unwrap();
 
       if (loggedInUser._id) {
+        const targetPayment = rawData.find((p: any) => p._id === editRentalId);
+        const targetUserObj = typeof targetPayment?.user === "object" ? targetPayment.user : null;
+        const clientName = targetUserObj?.displayName || targetUserObj?.name || "Client";
+        const clientLicense = targetUserObj?.license || "";
+        const pAmount = Number(values.amount || targetPayment?.amount || 0);
+
         await createActivity({
           activity: "Payment Updated",
-          description: "A payment update was made successfully",
+          description: `Payment of GHS ${pAmount.toLocaleString()} for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} was updated to status "${values.status || targetPayment?.status || 'Pending'}"`,
           user: loggedInUser._id,
+          targetUser: targetUserObj?._id || targetPayment?.user,
+          targetName: clientName,
+          targetLicense: clientLicense,
+          targetAccount: `Payment #${String(editRentalId).slice(-6).toUpperCase()}`,
+          entityType: "Payment",
+          entityId: String(editRentalId),
+          amount: pAmount,
         }).unwrap();
       }
 
