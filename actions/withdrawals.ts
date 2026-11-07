@@ -17,7 +17,10 @@ export async function getAllWithdrawalsAction() {
     return { success: true, data: JSON.parse(JSON.stringify(withdrawals)) };
   } catch (error: any) {
     console.error("getAllWithdrawalsAction error:", error);
-    return { success: false, error: error.message || "Failed to fetch disbursements" };
+    return {
+      success: false,
+      error: error.message || "Failed to fetch disbursements",
+    };
   }
 }
 
@@ -32,7 +35,10 @@ export async function getUserWithdrawalsAction(userId: string) {
     return { success: true, data: JSON.parse(JSON.stringify(withdrawals)) };
   } catch (error: any) {
     console.error("getUserWithdrawalsAction error:", error);
-    return { success: false, error: error.message || "Failed to fetch user disbursements" };
+    return {
+      success: false,
+      error: error.message || "Failed to fetch user disbursements",
+    };
   }
 }
 
@@ -58,10 +64,12 @@ export async function createWithdrawalAction(data: {
     return { success: true, data: JSON.parse(JSON.stringify(withdrawal)) };
   } catch (error: any) {
     console.error("createWithdrawalAction error:", error);
-    return { success: false, error: error.message || "Failed to create disbursement" };
+    return {
+      success: false,
+      error: error.message || "Failed to create disbursement",
+    };
   }
 }
-
 
 const isApprovedStatus = (status: any) => {
   if (!status) return false;
@@ -83,7 +91,7 @@ export async function updateWithdrawalAction(id: string, data: any) {
     });
 
     if (!updated) {
-      return { success: false, error: "Withdrawal not found" };
+      return { success: false, error: "Disbursement not found" };
     }
 
     const wasApproved = isApprovedStatus(oldDoc.status);
@@ -98,7 +106,9 @@ export async function updateWithdrawalAction(id: string, data: any) {
     const principalDelta = prevDeduction - nextDeduction;
 
     if (principalDelta !== 0) {
-      const investment = await Investment.findOne({ userId: updated.user || updated.userId });
+      const investment = await Investment.findOne({
+        userId: updated.user || updated.userId,
+      });
       if (investment) {
         if (principalDelta < 0) {
           // Approving/increasing deduction: snapshot and lock profit
@@ -109,13 +119,19 @@ export async function updateWithdrawalAction(id: string, data: any) {
               (refreshedInvestment.lockedPrincipalProfit || 0) +
               (refreshedInvestment.principalAccruedReturn || 0);
             refreshedInvestment.lastPrincipalAdjustmentDate = new Date();
-            refreshedInvestment.principal = Math.max(0, (refreshedInvestment.principal || 0) + principalDelta);
+            refreshedInvestment.principal = Math.max(
+              0,
+              (refreshedInvestment.principal || 0) + principalDelta,
+            );
             await refreshedInvestment.save();
             await recalculateInvestment(refreshedInvestment._id);
           }
         } else {
           // Refunding back to principal
-          investment.principal = Math.max(0, (investment.principal || 0) + principalDelta);
+          investment.principal = Math.max(
+            0,
+            (investment.principal || 0) + principalDelta,
+          );
           await investment.save();
           await recalculateInvestment(investment._id);
         }
@@ -126,7 +142,10 @@ export async function updateWithdrawalAction(id: string, data: any) {
     return { success: true, data: JSON.parse(JSON.stringify(updated)) };
   } catch (error: any) {
     console.error("updateWithdrawalAction error:", error);
-    return { success: false, error: error.message || "Failed to update withdrawal" };
+    return {
+      success: false,
+      error: error.message || "Failed to update disbursement",
+    };
   }
 }
 
@@ -135,12 +154,14 @@ export async function deleteWithdrawalAction(id: string) {
     await connectDB();
     const doc = await Withdrawal.findByIdAndDelete(id);
     if (!doc) {
-      return { success: false, error: "Withdrawal not found" };
+      return { success: false, error: "Disbursement not found" };
     }
 
     const wasApproved = isApprovedStatus(doc.status);
     if (wasApproved) {
-      const investment = await Investment.findOne({ userId: doc.user || doc.userId });
+      const investment = await Investment.findOne({
+        userId: doc.user || doc.userId,
+      });
       if (investment) {
         investment.principal += doc.amount;
         await investment.save();
@@ -152,6 +173,9 @@ export async function deleteWithdrawalAction(id: string) {
     return { success: true, data: null };
   } catch (error: any) {
     console.error("deleteWithdrawalAction error:", error);
-    return { success: false, error: error.message || "Failed to delete disbursement" };
+    return {
+      success: false,
+      error: error.message || "Failed to delete disbursement",
+    };
   }
 }

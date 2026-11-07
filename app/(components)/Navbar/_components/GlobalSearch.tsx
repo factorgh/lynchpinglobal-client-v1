@@ -21,8 +21,14 @@ import {
   Mail,
 } from "lucide-react";
 
-import { useGetAllInvestmentsQuery, useGetUserInvestmentsQuery } from "@/services/investment";
-import { useGetAllAssetssQuery, useGetUserAssetsQuery } from "@/services/assets";
+import {
+  useGetAllInvestmentsQuery,
+  useGetUserInvestmentsQuery,
+} from "@/services/investment";
+import {
+  useGetAllAssetssQuery,
+  useGetUserAssetsQuery,
+} from "@/services/assets";
 import { useGetLoansQuery } from "@/services/loan";
 import { useGetAllUsersQuery } from "@/services/users";
 import { useGetWithdrawalsQuery } from "@/services/withdrawals";
@@ -65,13 +71,19 @@ export const GlobalSearch: React.FC = () => {
   const isAdmin = userRole === "admin" || userRole === "superadmin";
 
   // Data queries
-  const { data: adminInvestments } = useGetAllInvestmentsQuery(null, { skip: !isAdmin });
-  const { data: clientInvestments } = useGetUserInvestmentsQuery(null, { skip: isAdmin });
+  const { data: adminInvestments } = useGetAllInvestmentsQuery(null, {
+    skip: !isAdmin,
+  });
+  const { data: clientInvestments } = useGetUserInvestmentsQuery(null, {
+    skip: isAdmin,
+  });
   const { data: adminAssets } = useGetAllAssetssQuery(null, { skip: !isAdmin });
   const { data: clientAssets } = useGetUserAssetsQuery(null, { skip: isAdmin });
   const { data: loansData } = useGetLoansQuery(null, { skip: !isAdmin });
   const { data: usersData } = useGetAllUsersQuery(null, { skip: !isAdmin });
-  const { data: withdrawalsData } = useGetWithdrawalsQuery(null, { skip: !isAdmin });
+  const { data: withdrawalsData } = useGetWithdrawalsQuery(null, {
+    skip: !isAdmin,
+  });
 
   // 1. Navigation Pages
   const navigationPages: SearchResultItem[] = useMemo(() => {
@@ -89,7 +101,8 @@ export const GlobalSearch: React.FC = () => {
         {
           id: "page-mandates",
           title: "Mandate Management",
-          subtitle: "View and manage all active client mandates & contributions",
+          subtitle:
+            "View and manage all active client mandates & contributions",
           category: "Page",
           href: "/wealth",
           icon: Compass,
@@ -98,7 +111,8 @@ export const GlobalSearch: React.FC = () => {
         {
           id: "page-assets",
           title: "Asset Transactions",
-          subtitle: "Track registered asset transactions, classes, and quarters",
+          subtitle:
+            "Track registered asset transactions, classes, and quarters",
           category: "Page",
           href: "/assets",
           icon: ArrowLeftRight,
@@ -143,7 +157,8 @@ export const GlobalSearch: React.FC = () => {
         {
           id: "page-users",
           title: "User Management",
-          subtitle: "Client accounts, system administrators, and staff licenses",
+          subtitle:
+            "Client accounts, system administrators, and staff licenses",
           category: "Page",
           href: "/users",
           icon: Users,
@@ -198,7 +213,7 @@ export const GlobalSearch: React.FC = () => {
           color: "text-purple-600 bg-purple-50",
         },
         {
-          id: "page-withdrawal",
+          id: "page-disbursements",
           title: "Disbursements & Requests",
           subtitle: "Request mandate disbursements and check payment history",
           category: "Page",
@@ -227,7 +242,6 @@ export const GlobalSearch: React.FC = () => {
       ];
     }
   }, [isAdmin]);
-
 
   // 2. Mandates / Investments
   const mandateResults: SearchResultItem[] = useMemo(() => {
@@ -267,7 +281,13 @@ export const GlobalSearch: React.FC = () => {
     const rawList = loansData?.data?.data || [];
     return rawList.map((l: any) => ({
       id: `loan-${l._id || l.key}`,
-      title: l.externalName || (l.user ? (typeof l.user === "object" ? l.user.name : l.user) : "Loan Facility"),
+      title:
+        l.externalName ||
+        (l.user
+          ? typeof l.user === "object"
+            ? l.user.name
+            : l.user
+          : "Loan Facility"),
       subtitle: `Loan Facility • ${formatPriceGHS(l.loanAmount || 0)}${l.isExternal ? " • Non-Client" : ""}`,
       category: "Loan" as const,
       href: "/rentals",
@@ -296,7 +316,10 @@ export const GlobalSearch: React.FC = () => {
     if (!isAdmin) return [];
     const rawList = withdrawalsData?.data?.data || [];
     return rawList.map((w: any) => {
-      const uName = typeof w.user === "object" && w.user ? (w.user.name || w.user.displayName) : (w.user || "Client");
+      const uName =
+        typeof w.user === "object" && w.user
+          ? w.user.name || w.user.displayName
+          : w.user || "Client";
       return {
         id: `disbursement-${w._id || w.id}`,
         title: `Disbursement: ${uName}`,
@@ -384,12 +407,12 @@ export const GlobalSearch: React.FC = () => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActiveIndex((prev) =>
-        prev < filteredResults.length - 1 ? prev + 1 : 0
+        prev < filteredResults.length - 1 ? prev + 1 : 0,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setActiveIndex((prev) =>
-        prev > 0 ? prev - 1 : filteredResults.length - 1
+        prev > 0 ? prev - 1 : filteredResults.length - 1,
       );
     } else if (e.key === "Enter") {
       e.preventDefault();
@@ -407,7 +430,6 @@ export const GlobalSearch: React.FC = () => {
       router.push(item.href);
     }
   };
-
 
   const categories = isAdmin
     ? ["All", "Page", "Mandate", "Asset", "Loan", "User", "Disbursement"]
@@ -504,7 +526,8 @@ export const GlobalSearch: React.FC = () => {
                   </h4>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto">
                     We couldn't find any items matching &ldquo;{query}&rdquo;.
-                    Try searching by mandate name, borrower, asset, or page name.
+                    Try searching by mandate name, borrower, asset, or page
+                    name.
                   </p>
                 </div>
               ) : (
@@ -547,14 +570,14 @@ export const GlobalSearch: React.FC = () => {
                                   item.category === "Page"
                                     ? "bg-blue-100 text-blue-800"
                                     : item.category === "Mandate"
-                                    ? "bg-purple-100 text-purple-800"
-                                    : item.category === "Asset"
-                                    ? "bg-emerald-100 text-emerald-800"
-                                    : item.category === "Loan"
-                                    ? "bg-amber-100 text-amber-800"
-                                    : item.category === "User"
-                                    ? "bg-indigo-100 text-indigo-800"
-                                    : "bg-slate-100 text-slate-700"
+                                      ? "bg-purple-100 text-purple-800"
+                                      : item.category === "Asset"
+                                        ? "bg-emerald-100 text-emerald-800"
+                                        : item.category === "Loan"
+                                          ? "bg-amber-100 text-amber-800"
+                                          : item.category === "User"
+                                            ? "bg-indigo-100 text-indigo-800"
+                                            : "bg-slate-100 text-slate-700"
                                 }`}
                               >
                                 {item.category}

@@ -43,11 +43,29 @@ const SidebarLink = ({
   onClick,
 }: SidebarLinkProps) => {
   const pathname = usePathname();
-  const isActive =
-    pathname === href || (pathname === "/" && href === "/dashboard");
+  const [currentUrl, setCurrentUrl] = React.useState(pathname);
+
+  React.useEffect(() => {
+    const updateCurrentUrl = () =>
+      setCurrentUrl(`${window.location.pathname}${window.location.search}`);
+    updateCurrentUrl();
+    window.addEventListener("popstate", updateCurrentUrl);
+    return () => window.removeEventListener("popstate", updateCurrentUrl);
+  }, [pathname]);
+
+  const isActive = href.includes("?")
+    ? currentUrl === href
+    : currentUrl.split("?")[0] === href ||
+      (pathname === "/" && href === "/dashboard");
 
   return (
-    <Link href={href} onClick={onClick}>
+    <Link
+      href={href}
+      onClick={() => {
+        setCurrentUrl(href);
+        onClick?.();
+      }}
+    >
       <div
         className={`cursor-pointer flex items-center mx-3 my-0.5 ${
           isCollapsed ? "justify-center p-2.5" : "justify-start px-3.5 py-2.5"
@@ -142,6 +160,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                 href="/terms"
                 icon={Handshake}
                 label="LP Library"
+                onClick={onCloseMobile}
+              />
+              <SidebarLink
+                href="/terms?view=upload"
+                icon={FileUp}
+                label="My Documents"
                 onClick={onCloseMobile}
               />
             </div>
