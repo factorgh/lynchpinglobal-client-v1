@@ -17,17 +17,25 @@ const normalizeEntityType = (log) => {
   const declaredType = String(log.entityType || "")
     .toLowerCase()
     .replace(/[^a-z]/g, "");
-  const activityText = `${log.activity || ""} ${log.description || ""}`.toLowerCase();
+  const activityText =
+    `${log.activity || ""} ${log.description || ""}`.toLowerCase();
 
   if (["user", "client"].includes(declaredType)) return "user";
   if (["mandate", "investment"].includes(declaredType)) return "mandate";
   if (["addon", "addons"].includes(declaredType)) return "addon";
   if (["payment", "payments"].includes(declaredType)) return "payment";
-  if (["disbursement", "withdrawal", "withdrawals"].includes(declaredType)) return "disbursement";
-  if (["asset", "assets", "assettransaction", "assettransactions"].includes(declaredType)) return "asset";
+  if (["disbursement", "withdrawal", "withdrawals"].includes(declaredType))
+    return "disbursement";
+  if (
+    ["asset", "assets", "assettransaction", "assettransactions"].includes(
+      declaredType,
+    )
+  )
+    return "asset";
   if (["loan", "loans"].includes(declaredType)) return "loan";
   if (["rental", "rentals"].includes(declaredType)) return "rental";
-  if (["clientdocument", "upload", "uploads"].includes(declaredType)) return "upload";
+  if (["clientdocument", "upload", "uploads"].includes(declaredType))
+    return "upload";
 
   if (/withdrawal|disbursement/.test(activityText)) return "disbursement";
   if (/mandate|investment/.test(activityText)) return "mandate";
@@ -124,7 +132,8 @@ const resolveActivityTarget = async (log) => {
 
   const existingTarget = log.targetUser;
   if (existingTarget && typeof existingTarget === "object") {
-    if (existingTarget.name || existingTarget.displayName) return existingTarget;
+    if (existingTarget.name || existingTarget.displayName)
+      return existingTarget;
   } else if (existingTarget) {
     targetUser = await User.findById(existingTarget)
       .select(targetProjection)
@@ -201,8 +210,8 @@ export const getAllActivityLogs = catchAsync(async (req, res, next) => {
     logs.map(async (log) => {
       const hasResolvedTarget = Boolean(
         log.targetUser &&
-          typeof log.targetUser === "object" &&
-          (log.targetUser.displayName || log.targetUser.name),
+        typeof log.targetUser === "object" &&
+        (log.targetUser.displayName || log.targetUser.name),
       );
       const hasSpecificName = Boolean(
         log.targetName && !isPlaceholderTargetName(log.targetName),

@@ -37,7 +37,7 @@ const NonClientLoanTable: React.FC = () => {
 
   const rows = useMemo(
     () => data?.data?.data?.filter((l: any) => Boolean(l?.isExternal)) || [],
-    [data]
+    [data],
   );
 
   const filteredData = useMemo(() => {
@@ -52,7 +52,8 @@ const NonClientLoanTable: React.FC = () => {
 
       const matchStatus =
         statusFilter === "all" ||
-        (item?.status && item.status.toLowerCase() === statusFilter.toLowerCase());
+        (item?.status &&
+          item.status.toLowerCase() === statusFilter.toLowerCase());
 
       return matchSearch && matchStatus;
     });
@@ -301,7 +302,7 @@ const NonClientLoanTable: React.FC = () => {
                 <span className="font-semibold text-slate-900">
                   {Math.min(
                     (currentPage - 1) * pageSize + 1,
-                    filteredData.length
+                    filteredData.length,
                   )}
                 </span>{" "}
                 to{" "}
