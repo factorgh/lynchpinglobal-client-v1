@@ -73,7 +73,10 @@ interface SidebarProps {
   onCloseMobile?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  isOpenMobile = false,
+  onCloseMobile,
+}) => {
   const { roles } = useAuth();
 
   return (
@@ -138,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
               <SidebarLink
                 href="/terms"
                 icon={Handshake}
-                label="Terms & Conditions"
+                label="LP Library"
                 onClick={onCloseMobile}
               />
             </div>
@@ -210,7 +213,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
               <SidebarLink
                 href="/conditions"
                 icon={FileUp}
-                label="Terms Uploader"
+                label="LP Library"
                 onClick={onCloseMobile}
               />
             </div>
@@ -233,7 +236,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile = false, onCloseMobile }
           )}
           <SignOutButton />
         </div>
-
       </aside>
     </>
   );

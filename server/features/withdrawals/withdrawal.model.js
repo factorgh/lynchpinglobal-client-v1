@@ -24,8 +24,9 @@ const withdrawalSchema = new mongoose.Schema(
       default: "Pending",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-const Withdrawal = mongoose.models.Withdrawal || mongoose.model("Withdrawal", withdrawalSchema);
+const Withdrawal =
+  mongoose.models.Withdrawal || mongoose.model("Withdrawal", withdrawalSchema);
 export default Withdrawal;
