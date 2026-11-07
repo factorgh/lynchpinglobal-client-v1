@@ -7,6 +7,7 @@ declare module "lucide-react" {
   export const ChevronsRight: LucideIcon;
   export const ChevronLeft: LucideIcon;
   export const ChevronRight: LucideIcon;
+  export const ChevronDown: LucideIcon;
   export const MoreHorizontal: LucideIcon;
   export const HandCoins: LucideIcon;
   export const LucideCreditCard: LucideIcon;

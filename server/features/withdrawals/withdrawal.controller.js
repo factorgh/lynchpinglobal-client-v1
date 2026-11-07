@@ -9,25 +9,59 @@ import User from "../auth/models/user.model.js";
 import ActivityLog from "../activity-log/activity.model.js";
 import { recalculateInvestment } from "../../utils/recalculate.js";
 
-// Helper to determine if a status is approved / active deduction (meaning amount should be deducted from principal)
-const isApprovedStatus = (status) => {
+const isApprovalLikeStatus = (status) => {
   if (!status) return false;
   const s = String(status).trim().toLowerCase();
   return s === "approved" || s === "processing";
 };
 
-// Create withdrawal handler
-export const createWithdrawal = catchAsync(async (req, res, next) => {
-  const { user, amount, status } = req.body; // Extract userId, withdrawal amount, and status from the request body
-
-  // Step 1: Fetch the user's investment details
-  const investment = await Investment.findOne({ userId: user });
-
-  if (!investment) {
-    return next(new AppError("Investment not found for this user.", 404)); // Handle case when investment is not found
+const hasApprovalDate = (approvedDate) => {
+  if (
+    approvedDate === undefined ||
+    approvedDate === null ||
+    approvedDate === ""
+  ) {
+    return false;
   }
 
-  const isApproved = isApprovedStatus(status);
+  const date = new Date(approvedDate);
+  return !Number.isNaN(date.getTime());
+};
+
+const isApprovedStatus = (status, approvedDate) => {
+  return isApprovalLikeStatus(status) && hasApprovalDate(approvedDate);
+};
+
+const getActiveInvestmentForUser = async (userId) => {
+  if (!userId) return null;
+
+  return Investment.findOne({
+    $or: [{ userId }, { "owners.user": userId }],
+    active: { $ne: false },
+    archived: { $ne: true },
+  }).sort({ createdAt: -1 });
+};
+
+// Create withdrawal handler
+export const createWithdrawal = catchAsync(async (req, res, next) => {
+  const { user, amount, status, approvedDate } = req.body;
+
+  if (isApprovalLikeStatus(status) && !hasApprovalDate(approvedDate)) {
+    return next(
+      new AppError(
+        "Approved or processing disbursements must include an approval date.",
+        400,
+      ),
+    );
+  }
+
+  const investment = await getActiveInvestmentForUser(user);
+
+  if (!investment) {
+    return next(new AppError("Investment not found for this user.", 404));
+  }
+
+  const isApproved = isApprovedStatus(status, approvedDate);
 
   // Step 2: ONLY deduct from principal if the withdrawal is explicitly APPROVED
   if (isApproved) {
@@ -61,8 +95,13 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
 
   // Step 7: Log activity with full actor and target account details
   try {
-    const targetUserDoc = await User.findById(user).select("name displayName license email");
-    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(user).slice(-6)})`;
+    const targetUserDoc = await User.findById(user).select(
+      "name displayName license email",
+    );
+    const targetName =
+      targetUserDoc?.displayName ||
+      targetUserDoc?.name ||
+      `Client (${String(user).slice(-6)})`;
     const targetLicense = targetUserDoc?.license || "";
 
     await ActivityLog.create({
@@ -114,12 +153,14 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("No document found with that ID", 404));
   }
 
-  // Adjust principal and recalculate only if the withdrawal was approved and deducted
-  const wasApproved = isApprovedStatus(doc.status);
+  const wasApproved = isApprovedStatus(doc.status, doc.approvedDate);
   if (wasApproved) {
-    const investment = await Investment.findOne({ userId: doc.user });
+    const investment = await getActiveInvestmentForUser(doc.user);
     if (investment) {
-      investment.principal += doc.amount;
+      investment.principal = Math.max(
+        0,
+        (investment.principal || 0) + Number(doc.amount || 0),
+      );
       await investment.save();
       await recalculateInvestment(investment._id);
     }
@@ -127,8 +168,13 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
 
   // Log activity
   try {
-    const targetUserDoc = await User.findById(doc.user).select("name displayName license email");
-    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(doc.user).slice(-6)})`;
+    const targetUserDoc = await User.findById(doc.user).select(
+      "name displayName license email",
+    );
+    const targetName =
+      targetUserDoc?.displayName ||
+      targetUserDoc?.name ||
+      `Client (${String(doc.user).slice(-6)})`;
     const targetLicense = targetUserDoc?.license || "";
 
     await ActivityLog.create({
@@ -144,7 +190,9 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
       description: `Disbursement entry of GHS ${Number(doc.amount).toLocaleString()} for ${targetName}${
         targetLicense ? ` (${targetLicense})` : ""
       } was deleted.${
-        wasApproved ? " Principal restored." : " No principal adjustment needed."
+        wasApproved
+          ? " Principal restored."
+          : " No principal adjustment needed."
       }`,
     });
   } catch (err) {
@@ -163,43 +211,56 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("No document found with that ID", 404));
   }
 
-  const doc = await WithdrawalModel.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  const nextApprovedDate = req.body.approvedDate ?? oldDoc.approvedDate;
+  if (
+    isApprovalLikeStatus(req.body.status ?? oldDoc.status) &&
+    !hasApprovalDate(nextApprovedDate)
+  ) {
+    return next(
+      new AppError(
+        "Approved or processing disbursements must include an approval date.",
+        400,
+      ),
+    );
+  }
 
-  const wasApproved = isApprovedStatus(oldDoc.status);
-  const isApproved = isApprovedStatus(doc.status);
+  const doc = await WithdrawalModel.findByIdAndUpdate(
+    req.params.id,
+    { ...req.body, approvedDate: nextApprovedDate },
+    { new: true, runValidators: true },
+  );
+
+  const wasApproved = isApprovedStatus(oldDoc.status, oldDoc.approvedDate);
+  const isApproved = isApprovedStatus(doc.status, doc.approvedDate);
 
   const oldAmount = Number(oldDoc.amount) || 0;
   const newAmount = Number(doc.amount) || 0;
 
-  // What was previously deducted from principal (only approved withdrawals were deducted)
   const prevDeduction = wasApproved ? oldAmount : 0;
-  // What should currently be deducted from principal (only approved withdrawals are deducted)
   const nextDeduction = isApproved ? newAmount : 0;
-
-  // principalDelta > 0: refund back to user principal (e.g. from Approved to Cancelled/Rejected/Pending)
-  // principalDelta < 0: deduct from user principal (e.g. from Pending to Approved)
   const principalDelta = prevDeduction - nextDeduction;
 
   if (principalDelta !== 0) {
-    const investment = await Investment.findOne({ userId: doc.user });
+    const investment = await getActiveInvestmentForUser(doc.user);
     if (investment) {
       if (principalDelta < 0) {
-        // Approving/increasing deduction: snapshot and lock profit prior to deduction
         await recalculateInvestment(investment._id);
         const refreshedInvestment = await Investment.findById(investment._id);
         refreshedInvestment.lockedPrincipalProfit =
           (refreshedInvestment.lockedPrincipalProfit || 0) +
           (refreshedInvestment.principalAccruedReturn || 0);
         refreshedInvestment.lastPrincipalAdjustmentDate = new Date();
-        refreshedInvestment.principal = Math.max(0, (refreshedInvestment.principal || 0) + principalDelta);
+        refreshedInvestment.principal = Math.max(
+          0,
+          (refreshedInvestment.principal || 0) + principalDelta,
+        );
         await refreshedInvestment.save();
         await recalculateInvestment(refreshedInvestment._id);
       } else {
-        // Refunding back to principal (e.g. rejection/cancellation of approved withdrawal)
-        investment.principal = Math.max(0, (investment.principal || 0) + principalDelta);
+        investment.principal = Math.max(
+          0,
+          (investment.principal || 0) + principalDelta,
+        );
         await investment.save();
         await recalculateInvestment(investment._id);
       }
@@ -216,11 +277,16 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
       principalDelta > 0
         ? ` Refunded GHS ${principalDelta.toFixed(2)} to principal.`
         : principalDelta < 0
-        ? ` Deducted GHS ${Math.abs(principalDelta).toFixed(2)} from principal.`
-        : "";
+          ? ` Deducted GHS ${Math.abs(principalDelta).toFixed(2)} from principal.`
+          : "";
 
-    const targetUserDoc = await User.findById(doc.user).select("name displayName license email");
-    const targetName = targetUserDoc?.displayName || targetUserDoc?.name || `Client (${String(doc.user).slice(-6)})`;
+    const targetUserDoc = await User.findById(doc.user).select(
+      "name displayName license email",
+    );
+    const targetName =
+      targetUserDoc?.displayName ||
+      targetUserDoc?.name ||
+      `Client (${String(doc.user).slice(-6)})`;
     const targetLicense = targetUserDoc?.license || "";
 
     await ActivityLog.create({
@@ -240,7 +306,6 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
   } catch (err) {
     console.error("Activity logging failed:", err);
   }
-
 
   res.status(200).json({
     status: "success",

@@ -9,16 +9,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatPriceGHS, toTwoDecimalPlaces } from "@/lib/helper";
-import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useCreateNotificationMutation } from "@/services/notifications";
 import {
   useGetWithdrawalsQuery,
   useUpdateWithdrawalMutation,
 } from "@/services/withdrawals";
-import {
-  EditOutlined,
-  FolderOpenOutlined,
-} from "@ant-design/icons";
+import { EditOutlined, FolderOpenOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -39,12 +35,8 @@ const WithdrawalTable: React.FC<any> = () => {
   const [editRentalId, setEditRentalId] = useState<string | null>(null);
   const [form] = Form.useForm();
   const [createNotification] = useCreateNotificationMutation();
-  const [createActivity] = useCreateActivityLogMutation();
 
   const [updatePayment, { isLoading }] = useUpdateWithdrawalMutation();
-  const loggedInUser = JSON.parse(
-    typeof window !== "undefined" ? localStorage.getItem("user") || "{}" : "{}"
-  );
   const [selectedUser, setSelectedUser] = useState<any[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,7 +46,7 @@ const WithdrawalTable: React.FC<any> = () => {
 
   const rawData: any[] = useMemo(
     () => withdrawals?.data?.data || [],
-    [withdrawals]
+    [withdrawals],
   );
 
   const filteredData = useMemo(() => {
@@ -87,7 +79,9 @@ const WithdrawalTable: React.FC<any> = () => {
 
     form.setFieldsValue({
       amount: toTwoDecimalPlaces(payment.amount),
-      approvedDate: payment.approvedDate ? moment(payment.approvedDate) : undefined,
+      approvedDate: payment.approvedDate
+        ? moment(payment.approvedDate)
+        : undefined,
       status: payment.status,
     });
 
@@ -107,26 +101,6 @@ const WithdrawalTable: React.FC<any> = () => {
         data: values,
       }).unwrap();
 
-      const targetPayment = rawData.find((p: any) => p._id === editRentalId);
-      const targetUserObj = typeof targetPayment?.user === "object" ? targetPayment.user : null;
-      const clientName = targetUserObj?.displayName || targetUserObj?.name || "Client";
-      const clientLicense = targetUserObj?.license || "";
-
-      if (loggedInUser._id) {
-        await createActivity({
-          activity: "Disbursement Updated",
-          description: `Disbursement of GHS ${Number(values.amount || targetPayment?.amount || 0).toLocaleString()} for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} was updated to status "${values.status || targetPayment?.status || 'Pending'}"`,
-          user: loggedInUser._id,
-          targetUser: targetUserObj?._id || targetPayment?.user,
-          targetName: clientName,
-          targetLicense: clientLicense,
-          targetAccount: `Disbursement #DISB-${String(editRentalId).slice(-6).toUpperCase()}`,
-          entityType: "Disbursement",
-          entityId: String(editRentalId),
-          amount: Number(values.amount || targetPayment?.amount || 0),
-        }).unwrap();
-      }
-
       await createNotification({
         title: "Disbursement Information",
         message: "Disbursement has been updated successfully",
@@ -137,7 +111,9 @@ const WithdrawalTable: React.FC<any> = () => {
       form.resetFields();
       setIsDrawerVisible(false);
     } catch (error: any) {
-      toast.error(error?.data?.message || error?.message || "An error occurred");
+      toast.error(
+        error?.data?.message || error?.message || "An error occurred",
+      );
     }
   };
 
@@ -361,7 +337,7 @@ const WithdrawalTable: React.FC<any> = () => {
                 <span className="font-semibold text-slate-900">
                   {Math.min(
                     (currentPage - 1) * pageSize + 1,
-                    filteredData.length
+                    filteredData.length,
                   )}
                 </span>{" "}
                 to{" "}

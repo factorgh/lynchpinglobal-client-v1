@@ -29,7 +29,8 @@ const PaymentForm: React.FC = () => {
       await createPayment(values).unwrap();
 
       const targetUserObj: any = users.find((u: any) => u._id === values.user);
-      const clientName = targetUserObj?.displayName || targetUserObj?.name || "Client";
+      const clientName =
+        targetUserObj?.displayName || targetUserObj?.name || "Client";
       const clientLicense = targetUserObj?.license || "";
 
       if (loggedInUser._id) {
@@ -140,7 +141,29 @@ const PaymentForm: React.FC = () => {
             />
           </Form.Item>
 
-          <Form.Item label="Approval Date" name="approvedDate">
+          <Form.Item
+            label="Approval Date"
+            name="approvedDate"
+            dependencies={["status"]}
+            rules={[
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const status = getFieldValue("status");
+                  if (
+                    (status === "Approved" || status === "Processing") &&
+                    !value
+                  ) {
+                    return Promise.reject(
+                      new Error(
+                        "Approval date is required when status is Approved or Processing.",
+                      ),
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
+          >
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
 
@@ -157,6 +180,7 @@ const PaymentForm: React.FC = () => {
             <Select data-tour="payment-status">
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Approved">Approved</Select.Option>
+              <Select.Option value="Processing">Processing</Select.Option>
               <Select.Option value="Rejected">Rejected</Select.Option>
               <Select.Option value="Cancelled">Cancelled</Select.Option>
             </Select>
