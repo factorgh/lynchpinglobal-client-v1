@@ -94,14 +94,14 @@ const CustomerInvestment: React.FC = () => {
 
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedInvestment, setSelectedInvestment] = useState<DataType | null>(
-    null
+    null,
   );
 
   const { data: investments, isFetching } = useGetUserInvestmentsQuery(null);
 
   const rawData: DataType[] = useMemo(
     () => investments?.data || [],
-    [investments]
+    [investments],
   );
 
   const filteredData = useMemo(() => {
@@ -112,13 +112,15 @@ const CustomerInvestment: React.FC = () => {
         (item.name && item.name.toLowerCase().includes(q)) ||
         (item.owners &&
           item.owners.some((o) => {
-            const uName = o.user?.displayName || o.user?.name || o.user?.email || "";
+            const uName =
+              o.user?.displayName || o.user?.name || o.user?.email || "";
             return uName.toLowerCase().includes(q);
           }));
 
       const matchQuarter =
         quarterFilter === "all" ||
-        (item.quarter && item.quarter.toLowerCase() === quarterFilter.toLowerCase());
+        (item.quarter &&
+          item.quarter.toLowerCase() === quarterFilter.toLowerCase());
 
       return matchSearch && matchQuarter;
     });
@@ -140,7 +142,7 @@ const CustomerInvestment: React.FC = () => {
       return JSON.parse(
         typeof window !== "undefined"
           ? localStorage.getItem("user") || "{}"
-          : "{}"
+          : "{}",
       );
     } catch {
       return {};
@@ -160,14 +162,14 @@ const CustomerInvestment: React.FC = () => {
   const isVideoUrl = (url: string) => /\.(mp4|mov|webm|ogg)($|\?)/i.test(url);
 
   const handleClientFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
     if (!file || !selectedInvestment?._id) return;
 
     if (file.size > 15 * 1024 * 1024) {
       toast.error(
-        `File "${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed size of 15MB. Please choose a smaller file.`
+        `File "${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed size of 15MB. Please choose a smaller file.`,
       );
       e.target.value = "";
       return;
@@ -209,10 +211,7 @@ const CustomerInvestment: React.FC = () => {
         throw new Error("No URL returned from storage service");
       }
 
-      const updatedOthers = [
-        ...(selectedInvestment.others || []),
-        uploadedUrl,
-      ];
+      const updatedOthers = [...(selectedInvestment.others || []), uploadedUrl];
 
       await updateInvestment({
         id: selectedInvestment._id,
@@ -220,13 +219,13 @@ const CustomerInvestment: React.FC = () => {
       }).unwrap();
 
       setSelectedInvestment((prev) =>
-        prev ? { ...prev, others: updatedOthers } : null
+        prev ? { ...prev, others: updatedOthers } : null,
       );
       toast.success("Document attached to mandate successfully");
     } catch (err: any) {
       console.error("[ClientDocUpload] Error:", err);
       toast.error(
-        err?.data?.message || err?.message || "Failed to upload document"
+        err?.data?.message || err?.message || "Failed to upload document",
       );
     } finally {
       setIsUploadingDoc(false);
@@ -240,7 +239,7 @@ const CustomerInvestment: React.FC = () => {
     if (!selectedInvestment?._id) return;
     try {
       const updatedOthers = (selectedInvestment.others || []).filter(
-        (u) => u !== urlToDelete
+        (u) => u !== urlToDelete,
       );
       await updateInvestment({
         id: selectedInvestment._id,
@@ -248,12 +247,12 @@ const CustomerInvestment: React.FC = () => {
       }).unwrap();
 
       setSelectedInvestment((prev) =>
-        prev ? { ...prev, others: updatedOthers } : null
+        prev ? { ...prev, others: updatedOthers } : null,
       );
       toast.success("Document removed successfully");
     } catch (err: any) {
       toast.error(
-        err?.data?.message || err?.message || "Failed to remove document"
+        err?.data?.message || err?.message || "Failed to remove document",
       );
     }
   };
@@ -379,7 +378,8 @@ const CustomerInvestment: React.FC = () => {
                       </span>
                       {item.quarterEndDate && (
                         <span className="text-[11px] text-slate-400">
-                          Ends: {moment(item.quarterEndDate).format("DD MMM YYYY")}
+                          Ends:{" "}
+                          {moment(item.quarterEndDate).format("DD MMM YYYY")}
                         </span>
                       )}
                     </TableCell>
@@ -464,7 +464,7 @@ const CustomerInvestment: React.FC = () => {
                 <span className="font-semibold text-slate-900">
                   {Math.min(
                     (currentPage - 1) * pageSize + 1,
-                    filteredData.length
+                    filteredData.length,
                   )}
                 </span>{" "}
                 to{" "}
@@ -561,7 +561,8 @@ const CustomerInvestment: React.FC = () => {
 
             {/* Add-ons */}
             <Card title="Additional Contributions" bordered={false}>
-              {selectedInvestment?.addOns && selectedInvestment.addOns.length > 0 ? (
+              {selectedInvestment?.addOns &&
+              selectedInvestment.addOns.length > 0 ? (
                 <AntdTable
                   rowKey="id"
                   columns={[{ title: "Name", dataIndex: "name", key: "name" }]}
@@ -574,19 +575,16 @@ const CustomerInvestment: React.FC = () => {
               )}
             </Card>
 
-            {/* Mandate Documentation Section: Client-Facing Only */}
+            {/* Unified mandate document collection */}
             <Card
               title={
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <PaperClipOutlined className="text-base text-emerald-600" />
                     <span className="font-bold text-sm text-slate-800">
-                      Mandate Documents (Visible to Both Parties)
+                      Mandate Documents
                     </span>
                   </div>
-                  <Tag color="emerald" className="text-[11px] font-semibold">
-                    Visible to Both Parties
-                  </Tag>
                 </div>
               }
               bordered={false}
@@ -603,7 +601,9 @@ const CustomerInvestment: React.FC = () => {
                       Upload Supporting Document
                     </h5>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Upload signed agreements, payment receipts, or KYC verification files (PDF, PNG, JPG, up to 15MB) — visible to both you and the Lynchpin Global administration team
+                      Upload signed agreements, payment receipts, or KYC
+                      verification files (PDF, PNG, JPG, up to 15MB). Files are
+                      attached to this mandate.
                     </p>
                   </div>
                 </div>
@@ -660,12 +660,17 @@ const CustomerInvestment: React.FC = () => {
                           >
                             <div
                               className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1"
-                              onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })}
+                              onClick={() =>
+                                setPreviewDoc({ url: fileUrl, title: fileName })
+                              }
                               title={`Preview ${fileName}`}
                             >
                               <AiOutlineFilePdf className="text-2xl text-rose-500 shrink-0" />
                               <div className="min-w-0">
-                                <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>
+                                <p
+                                  className="text-xs font-semibold text-slate-800 truncate"
+                                  title={fileName}
+                                >
                                   {fileName}
                                 </p>
                                 <span className="text-[10px] text-slate-400 font-medium">
@@ -677,8 +682,15 @@ const CustomerInvestment: React.FC = () => {
                               <Button
                                 size="small"
                                 type="text"
-                                onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })}
-                                icon={<EyeOutlined className="text-xs text-blue-600" />}
+                                onClick={() =>
+                                  setPreviewDoc({
+                                    url: fileUrl,
+                                    title: fileName,
+                                  })
+                                }
+                                icon={
+                                  <EyeOutlined className="text-xs text-blue-600" />
+                                }
                                 className="shrink-0 hover:bg-blue-50"
                                 title="Preview Document"
                               />
@@ -686,7 +698,9 @@ const CustomerInvestment: React.FC = () => {
                                 size="small"
                                 type="text"
                                 onClick={() => handlePreviewOut(fileUrl)}
-                                icon={<ExportOutlined className="text-xs text-slate-500" />}
+                                icon={
+                                  <ExportOutlined className="text-xs text-slate-500" />
+                                }
                                 className="shrink-0 hover:bg-slate-100"
                                 title="Open in New Tab"
                               />
@@ -705,7 +719,8 @@ const CustomerInvestment: React.FC = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                       <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
-                        Ledger & Certificates ({selectedInvestment.certificate.length})
+                        Ledger & Certificates (
+                        {selectedInvestment.certificate.length})
                       </h4>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -720,12 +735,17 @@ const CustomerInvestment: React.FC = () => {
                           >
                             <div
                               className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1"
-                              onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })}
+                              onClick={() =>
+                                setPreviewDoc({ url: fileUrl, title: fileName })
+                              }
                               title={`Preview ${fileName}`}
                             >
                               <AiOutlineFilePdf className="text-2xl text-emerald-600 shrink-0" />
                               <div className="min-w-0">
-                                <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>
+                                <p
+                                  className="text-xs font-semibold text-slate-800 truncate"
+                                  title={fileName}
+                                >
                                   {fileName}
                                 </p>
                                 <span className="text-[10px] text-slate-400 font-medium">
@@ -737,8 +757,15 @@ const CustomerInvestment: React.FC = () => {
                               <Button
                                 size="small"
                                 type="text"
-                                onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })}
-                                icon={<EyeOutlined className="text-xs text-emerald-600" />}
+                                onClick={() =>
+                                  setPreviewDoc({
+                                    url: fileUrl,
+                                    title: fileName,
+                                  })
+                                }
+                                icon={
+                                  <EyeOutlined className="text-xs text-emerald-600" />
+                                }
                                 className="shrink-0 hover:bg-emerald-50"
                                 title="Preview Document"
                               />
@@ -746,7 +773,9 @@ const CustomerInvestment: React.FC = () => {
                                 size="small"
                                 type="text"
                                 onClick={() => handlePreviewOut(fileUrl)}
-                                icon={<ExportOutlined className="text-xs text-slate-500" />}
+                                icon={
+                                  <ExportOutlined className="text-xs text-slate-500" />
+                                }
                                 className="shrink-0 hover:bg-slate-100"
                                 title="Open in New Tab"
                               />
@@ -765,7 +794,8 @@ const CustomerInvestment: React.FC = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                       <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
-                        Client & Supporting Documents ({selectedInvestment.others.length})
+                        Client & Supporting Documents (
+                        {selectedInvestment.others.length})
                       </h4>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -781,7 +811,10 @@ const CustomerInvestment: React.FC = () => {
                             <div className="flex items-center gap-2.5 min-w-0">
                               <FileText className="w-5 h-5 text-purple-600 shrink-0" />
                               <div className="min-w-0">
-                                <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>
+                                <p
+                                  className="text-xs font-semibold text-slate-800 truncate"
+                                  title={fileName}
+                                >
                                   {fileName}
                                 </p>
                                 <span className="text-[10px] text-slate-400 font-medium">
@@ -793,8 +826,15 @@ const CustomerInvestment: React.FC = () => {
                               <Button
                                 size="small"
                                 type="text"
-                                onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })}
-                                icon={<EyeOutlined className="text-xs text-purple-600" />}
+                                onClick={() =>
+                                  setPreviewDoc({
+                                    url: fileUrl,
+                                    title: fileName,
+                                  })
+                                }
+                                icon={
+                                  <EyeOutlined className="text-xs text-purple-600" />
+                                }
                                 className="hover:bg-purple-50"
                                 title="Preview Document"
                               />
@@ -802,7 +842,9 @@ const CustomerInvestment: React.FC = () => {
                                 size="small"
                                 type="text"
                                 onClick={() => handlePreviewOut(fileUrl)}
-                                icon={<ExportOutlined className="text-xs text-slate-500" />}
+                                icon={
+                                  <ExportOutlined className="text-xs text-slate-500" />
+                                }
                                 className="hover:bg-slate-100"
                                 title="Open in New Tab"
                               />
@@ -823,86 +865,166 @@ const CustomerInvestment: React.FC = () => {
                   </div>
                 )}
 
-              {/* Admin Section (Just Backend View & Access - Only visible if logged in user is admin) */}
+              {/* Internal document categories remain available to admins only. */}
               {isAdmin && (
-                <div className="pt-4 border-t border-slate-200 mt-4">
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-                    <div>
-                      <h4 className="font-bold text-xs text-amber-900 uppercase tracking-wide">
-                        Admin Section (Just Backend View or Access)
-                      </h4>
-                      <p className="text-[11px] text-amber-700/80 mt-0.5">
-                        Strictly internal due diligence checklists and partner contracts (backend view only)
-                      </p>
-                    </div>
-                    <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-amber-100 text-amber-800">
-                      Admin Backend Only
-                    </span>
-                  </div>
-
+                <div className="mt-3">
                   {/* Checklists */}
-                  {selectedInvestment?.checklist && selectedInvestment.checklist.length > 0 && (
-                    <div className="mb-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
-                          Due Diligence Checklists ({selectedInvestment.checklist.length})
-                        </h4>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {selectedInvestment.checklist.map((fileUrl, index) => {
-                          const fileName = fileUrl.split("/").pop()?.split("?")[0] || `Checklist-${index + 1}.pdf`;
-                          return (
-                            <div key={index} className="p-3 rounded-lg border border-amber-200 bg-amber-50/30 hover:border-amber-400 hover:shadow-xs transition-all flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1" onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })}>
-                                <AiOutlineFilePdf className="text-2xl text-amber-600 shrink-0" />
-                                <div className="min-w-0">
-                                  <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>{fileName}</p>
-                                  <span className="text-[10px] text-slate-400 font-medium">Internal Checklist</span>
+                  {selectedInvestment?.checklist &&
+                    selectedInvestment.checklist.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                          <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+                            Due Diligence Checklists (
+                            {selectedInvestment.checklist.length})
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {selectedInvestment.checklist.map(
+                            (fileUrl, index) => {
+                              const fileName =
+                                fileUrl.split("/").pop()?.split("?")[0] ||
+                                `Checklist-${index + 1}.pdf`;
+                              return (
+                                <div
+                                  key={index}
+                                  className="p-3 rounded-lg border border-amber-200 bg-amber-50/30 hover:border-amber-400 hover:shadow-xs transition-all flex items-center justify-between gap-2"
+                                >
+                                  <div
+                                    className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1"
+                                    onClick={() =>
+                                      setPreviewDoc({
+                                        url: fileUrl,
+                                        title: fileName,
+                                      })
+                                    }
+                                  >
+                                    <AiOutlineFilePdf className="text-2xl text-amber-600 shrink-0" />
+                                    <div className="min-w-0">
+                                      <p
+                                        className="text-xs font-semibold text-slate-800 truncate"
+                                        title={fileName}
+                                      >
+                                        {fileName}
+                                      </p>
+                                      <span className="text-[10px] text-slate-400 font-medium">
+                                        Internal Checklist
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <Button
+                                      size="small"
+                                      type="text"
+                                      onClick={() =>
+                                        setPreviewDoc({
+                                          url: fileUrl,
+                                          title: fileName,
+                                        })
+                                      }
+                                      icon={
+                                        <EyeOutlined className="text-xs text-amber-600" />
+                                      }
+                                      className="shrink-0 hover:bg-amber-50"
+                                      title="Preview Document"
+                                    />
+                                    <Button
+                                      size="small"
+                                      type="text"
+                                      onClick={() => handlePreviewOut(fileUrl)}
+                                      icon={
+                                        <ExportOutlined className="text-xs text-slate-500" />
+                                      }
+                                      className="shrink-0 hover:bg-slate-100"
+                                      title="Open in New Tab"
+                                    />
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                <Button size="small" type="text" onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })} icon={<EyeOutlined className="text-xs text-amber-600" />} className="shrink-0 hover:bg-amber-50" title="Preview Document" />
-                                <Button size="small" type="text" onClick={() => handlePreviewOut(fileUrl)} icon={<ExportOutlined className="text-xs text-slate-500" />} className="shrink-0 hover:bg-slate-100" title="Open in New Tab" />
-                              </div>
-                            </div>
-                          );
-                        })}
+                              );
+                            },
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Partner Forms */}
-                  {selectedInvestment?.partnerForm && selectedInvestment.partnerForm.length > 0 && (
-                    <div className="mb-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
-                          Partner Forms ({selectedInvestment.partnerForm.length})
-                        </h4>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {selectedInvestment.partnerForm.map((fileUrl, index) => {
-                          const fileName = fileUrl.split("/").pop()?.split("?")[0] || `PartnerForm-${index + 1}.pdf`;
-                          return (
-                            <div key={index} className="p-3 rounded-lg border border-amber-200 bg-amber-50/30 hover:border-amber-400 hover:shadow-xs transition-all flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1" onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })}>
-                                <AiOutlineFilePdf className="text-2xl text-amber-600 shrink-0" />
-                                <div className="min-w-0">
-                                  <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>{fileName}</p>
-                                  <span className="text-[10px] text-slate-400 font-medium">Internal Partner Form</span>
+                  {selectedInvestment?.partnerForm &&
+                    selectedInvestment.partnerForm.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                          <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">
+                            Partner Forms (
+                            {selectedInvestment.partnerForm.length})
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {selectedInvestment.partnerForm.map(
+                            (fileUrl, index) => {
+                              const fileName =
+                                fileUrl.split("/").pop()?.split("?")[0] ||
+                                `PartnerForm-${index + 1}.pdf`;
+                              return (
+                                <div
+                                  key={index}
+                                  className="p-3 rounded-lg border border-amber-200 bg-amber-50/30 hover:border-amber-400 hover:shadow-xs transition-all flex items-center justify-between gap-2"
+                                >
+                                  <div
+                                    className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1"
+                                    onClick={() =>
+                                      setPreviewDoc({
+                                        url: fileUrl,
+                                        title: fileName,
+                                      })
+                                    }
+                                  >
+                                    <AiOutlineFilePdf className="text-2xl text-amber-600 shrink-0" />
+                                    <div className="min-w-0">
+                                      <p
+                                        className="text-xs font-semibold text-slate-800 truncate"
+                                        title={fileName}
+                                      >
+                                        {fileName}
+                                      </p>
+                                      <span className="text-[10px] text-slate-400 font-medium">
+                                        Internal Partner Form
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <Button
+                                      size="small"
+                                      type="text"
+                                      onClick={() =>
+                                        setPreviewDoc({
+                                          url: fileUrl,
+                                          title: fileName,
+                                        })
+                                      }
+                                      icon={
+                                        <EyeOutlined className="text-xs text-amber-600" />
+                                      }
+                                      className="shrink-0 hover:bg-amber-50"
+                                      title="Preview Document"
+                                    />
+                                    <Button
+                                      size="small"
+                                      type="text"
+                                      onClick={() => handlePreviewOut(fileUrl)}
+                                      icon={
+                                        <ExportOutlined className="text-xs text-slate-500" />
+                                      }
+                                      className="shrink-0 hover:bg-slate-100"
+                                      title="Open in New Tab"
+                                    />
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                <Button size="small" type="text" onClick={() => setPreviewDoc({ url: fileUrl, title: fileName })} icon={<EyeOutlined className="text-xs text-amber-600" />} className="shrink-0 hover:bg-amber-50" title="Preview Document" />
-                                <Button size="small" type="text" onClick={() => handlePreviewOut(fileUrl)} icon={<ExportOutlined className="text-xs text-slate-500" />} className="shrink-0 hover:bg-slate-100" title="Open in New Tab" />
-                              </div>
-                            </div>
-                          );
-                        })}
+                              );
+                            },
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
 
@@ -910,14 +1032,17 @@ const CustomerInvestment: React.FC = () => {
               {!selectedInvestment?.certificate?.length &&
                 !selectedInvestment?.mandate?.length &&
                 !selectedInvestment?.others?.length &&
-                (!isAdmin || (!selectedInvestment?.checklist?.length && !selectedInvestment?.partnerForm?.length)) && (
+                (!isAdmin ||
+                  (!selectedInvestment?.checklist?.length &&
+                    !selectedInvestment?.partnerForm?.length)) && (
                   <div className="text-center py-6 border border-slate-100 rounded-xl bg-slate-50/50">
                     <PaperClipOutlined className="text-3xl text-slate-300 mx-auto mb-2 block" />
                     <p className="text-xs font-semibold text-slate-600">
                       No client documents attached yet
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Use the "Attach Document" button above to upload signed mandates or receipts
+                      Use the "Attach Document" button above to upload signed
+                      mandates or receipts
                     </p>
                   </div>
                 )}
@@ -988,7 +1113,8 @@ const CustomerInvestment: React.FC = () => {
                   {previewDoc.title}
                 </p>
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
-                  This document format cannot be rendered inline in the browser. You can open it in a separate tab or download it directly.
+                  This document format cannot be rendered inline in the browser.
+                  You can open it in a separate tab or download it directly.
                 </p>
                 <Button
                   type="primary"

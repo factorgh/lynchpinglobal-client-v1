@@ -101,7 +101,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     }
 
     const formatted = Object.entries(
-      initialFiles as Record<string, string[]>
+      initialFiles as Record<string, string[]>,
     ).reduce<Record<string, FileEntry[]>>((acc, [category, urls]) => {
       acc[category] = (urls || []).map((url) => ({
         previewUrl: url,
@@ -110,7 +110,10 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
       }));
       return acc;
     }, {});
-    console.log("[FileUpload] formatted state set to fileCategories:", formatted);
+    console.log(
+      "[FileUpload] formatted state set to fileCategories:",
+      formatted,
+    );
     setFileCategories(formatted);
     propagateToParent(formatted);
     prevInitialStrRef.current = currStr;
@@ -119,7 +122,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
   /** File validation and state update */
   const handleFileChange = (
     category: string,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const selectedFiles = Array.from(e.target.files || []);
     if (!selectedFiles.length) return;
@@ -132,13 +135,15 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
         /\.(pdf|jpe?g|png|gif|webp|svg|bmp|mp4|mov|avi|webm)$/i.test(file.name);
 
       if (!valid) {
-        toast.error(`"${file.name}" is not a supported file type. Only PDF, image, or video files are allowed.`);
+        toast.error(
+          `"${file.name}" is not a supported file type. Only PDF, image, or video files are allowed.`,
+        );
         return false;
       }
 
       if (file.size > MAX_FILE_SIZE) {
         toast.error(
-          `"${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed size of ${MAX_FILE_SIZE_LABEL}. Please choose a file under ${MAX_FILE_SIZE_LABEL}.`
+          `"${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed size of ${MAX_FILE_SIZE_LABEL}. Please choose a file under ${MAX_FILE_SIZE_LABEL}.`,
         );
         return false;
       }
@@ -296,18 +301,29 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     return <UploadOutlined />;
   };
 
-  const CLIENT_CATEGORIES = ["mandate", "certificate", "others"] as const;
-  const ADMIN_CATEGORIES = ["checklist", "partnerForm"] as const;
-
   const renderCategoryField = (category: string) => (
-    <div key={category} className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs">
+    <div
+      key={category}
+      className="p-3 rounded-xl border border-slate-200 bg-white shadow-2xs"
+    >
       <Form.Item
-        label={<span className="font-semibold text-xs text-slate-800">{CATEGORY_DISPLAY_NAMES[category] || category}</span>}
+        label={
+          <span className="font-semibold text-xs text-slate-800">
+            {CATEGORY_DISPLAY_NAMES[category] || category}
+          </span>
+        }
         className="mb-0"
       >
         <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1.5">
-          <span>Max size: <strong className="text-slate-700 font-semibold">{MAX_FILE_SIZE_LABEL}</strong></span>
-          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">PDF, Image, Video</span>
+          <span>
+            Max size:{" "}
+            <strong className="text-slate-700 font-semibold">
+              {MAX_FILE_SIZE_LABEL}
+            </strong>
+          </span>
+          <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+            PDF, Image, Video
+          </span>
         </div>
         <input
           type="file"
@@ -332,7 +348,10 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
                 >
                   {renderPreview(previewUrl, mimeType)}
                   <div className="flex flex-col min-w-0">
-                    <span className="truncate text-xs font-medium text-slate-700 max-w-[130px]" title={name}>
+                    <span
+                      className="truncate text-xs font-medium text-slate-700 max-w-[130px]"
+                      title={name}
+                    >
                       {name || previewUrl.split("/").pop()}
                     </span>
                     {size !== undefined && (
@@ -347,7 +366,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
                   onClick={() => handleFileDelete(category, index)}
                 />
               </li>
-            )
+            ),
           )}
         </ul>
 
@@ -359,7 +378,9 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
           onClick={() => handleUpload(category)}
           disabled={uploading[category]}
         >
-          {uploading[category] ? "Uploading to Cloud..." : `Save ${CATEGORY_DISPLAY_NAMES[category]}`}
+          {uploading[category]
+            ? "Uploading to Cloud..."
+            : `Save ${CATEGORY_DISPLAY_NAMES[category]}`}
         </Button>
       </Form.Item>
     </div>
@@ -372,7 +393,11 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>
-            Maximum file size: <strong className="font-semibold text-slate-800">{MAX_FILE_SIZE_LABEL}</strong> per file
+            Maximum file size:{" "}
+            <strong className="font-semibold text-slate-800">
+              {MAX_FILE_SIZE_LABEL}
+            </strong>{" "}
+            per file
           </span>
         </div>
         <span className="text-[11px] text-slate-500">
@@ -380,43 +405,12 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
         </span>
       </div>
 
-      {/* 1. User & Mandate Documents (Visible to Both Client & Admin) */}
-      <div className="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-200/80">
-        <div className="flex items-center justify-between mb-3 pb-2 border-b border-emerald-200/60">
-          <div>
-            <h4 className="font-bold text-xs text-emerald-900 uppercase tracking-wide">
-              Mandate Documents (Visible to Both Parties)
-            </h4>
-            <p className="text-[11px] text-emerald-700/80 mt-0.5">
-              These user documents are visible to both client and admin in the mandate portal
-            </p>
-          </div>
-          <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-100 text-emerald-800">
-            Visible to Both Parties
-          </span>
-        </div>
+      <div className="p-3.5 rounded-2xl bg-white border border-slate-200">
+        <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wide mb-3 pb-2 border-b border-slate-100">
+          Mandate Documents
+        </h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {CLIENT_CATEGORIES.map(renderCategoryField)}
-        </div>
-      </div>
-
-      {/* 2. Admin Section (Just Backend View or Access) */}
-      <div className="p-3.5 rounded-2xl bg-amber-50/40 border border-amber-200/80">
-        <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-200/60">
-          <div>
-            <h4 className="font-bold text-xs text-amber-900 uppercase tracking-wide">
-              Admin Section (Just Backend View or Access)
-            </h4>
-            <p className="text-[11px] text-amber-700/80 mt-0.5">
-              Strictly internal due diligence checklists and partner contracts (backend view only)
-            </p>
-          </div>
-          <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-amber-100 text-amber-800">
-            Admin Backend Only
-          </span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {ADMIN_CATEGORIES.map(renderCategoryField)}
+          {FILE_CATEGORIES.map(renderCategoryField)}
         </div>
       </div>
     </div>

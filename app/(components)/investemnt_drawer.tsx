@@ -132,7 +132,9 @@ const InvestmentDetailDrawer = ({
     if (result.isConfirmed) {
       try {
         const currentList = investment[categoryKey] || [];
-        const updatedList = currentList.filter((u: string) => u !== urlToDelete);
+        const updatedList = currentList.filter(
+          (u: string) => u !== urlToDelete,
+        );
         await updateInvestment({
           id: investment._id,
           data: { [categoryKey]: updatedList },
@@ -140,7 +142,7 @@ const InvestmentDetailDrawer = ({
         message.success("Document removed successfully");
       } catch (err: any) {
         message.error(
-          err?.data?.message || err?.message || "Failed to remove document"
+          err?.data?.message || err?.message || "Failed to remove document",
         );
       }
     }
@@ -197,7 +199,7 @@ const InvestmentDetailDrawer = ({
       setUploadFile(null);
     } catch (err: any) {
       message.error(
-        err?.data?.message || err?.message || "Failed to upload document"
+        err?.data?.message || err?.message || "Failed to upload document",
       );
     } finally {
       setIsUploading(false);
@@ -300,14 +302,17 @@ const InvestmentDetailDrawer = ({
   const renderDocSection = (
     title: string,
     list?: string[],
-    categoryKey?: string
+    categoryKey?: string,
   ) => {
     if (!Array.isArray(list) || list.length === 0) return null;
     return (
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2.5">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <Title level={5} className="!mb-0 !text-xs !font-bold text-slate-800 uppercase tracking-wider">
+          <Title
+            level={5}
+            className="!mb-0 !text-xs !font-bold text-slate-800 uppercase tracking-wider"
+          >
             {title} ({list.length})
           </Title>
         </div>
@@ -377,11 +382,20 @@ const InvestmentDetailDrawer = ({
                   {/* Document Info & Actions */}
                   <div className="p-2.5 flex items-center justify-between gap-1.5 bg-white">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-slate-800 truncate" title={fileName}>
+                      <p
+                        className="text-xs font-semibold text-slate-800 truncate"
+                        title={fileName}
+                      >
                         {fileName}
                       </p>
                       <span className="text-[10px] text-slate-400 font-medium">
-                        {isPdf ? "PDF" : isImg ? "Image" : isVid ? "Video" : "File"}
+                        {isPdf
+                          ? "PDF"
+                          : isImg
+                            ? "Image"
+                            : isVid
+                              ? "Video"
+                              : "File"}
                       </span>
                     </div>
 
@@ -470,7 +484,6 @@ const InvestmentDetailDrawer = ({
       ),
     },
   ];
-
 
   return (
     <>
@@ -581,49 +594,36 @@ const InvestmentDetailDrawer = ({
           bordered={false}
           className="shadow-xs rounded-xl"
         >
-          {/* Section 1: User & Mandate Documents (Visible to Both Client & Admin) */}
-          <div className="mb-5">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-              <div>
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded">
-                  Mandate Documents (Visible to Both Client & Admin)
-                </span>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  User docs synchronized and visible to both parties for this mandate
-                </p>
-              </div>
-              <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-100 text-emerald-800">
-                Visible to Both
-              </span>
-            </div>
+          <div className="mb-3">
+            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+              Mandate Documents
+            </p>
             {renderDocSection("Mandates", investment?.mandate, "mandate")}
-            {renderDocSection("Ledger & Certificate", investment?.certificate, "certificate")}
-            {renderDocSection("Client & Supporting Documents (Others)", investment?.others, "others")}
-            {!investment?.mandate?.length && !investment?.certificate?.length && !investment?.others?.length && (
-              <p className="text-xs text-slate-400 italic py-2">No user mandate documents attached yet.</p>
+            {renderDocSection(
+              "Ledger & Certificate",
+              investment?.certificate,
+              "certificate",
             )}
-          </div>
-
-          {/* Section 2: Admin Section (Just Backend View & Access) */}
-          <div className="pt-4 border-t border-slate-200">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-              <div>
-                <span className="text-xs font-bold text-amber-800 uppercase tracking-wider bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded">
-                  Admin Section (Just Backend View or Access)
-                </span>
-                <p className="text-[11px] text-amber-700/80 mt-1">
-                  Strictly internal due diligence checklists and partner contracts (backend view only)
-                </p>
-              </div>
-              <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-amber-100 text-amber-800">
-                Admin Backend Only
-              </span>
-            </div>
+            {renderDocSection(
+              "Client & Supporting Documents (Others)",
+              investment?.others,
+              "others",
+            )}
             {renderDocSection("Checklists", investment?.checklist, "checklist")}
-            {renderDocSection("Partner Forms", investment?.partnerForm, "partnerForm")}
-            {!investment?.checklist?.length && !investment?.partnerForm?.length && (
-              <p className="text-xs text-slate-400 italic py-2">No backend admin documents attached yet.</p>
+            {renderDocSection(
+              "Partner Forms",
+              investment?.partnerForm,
+              "partnerForm",
             )}
+            {!investment?.mandate?.length &&
+              !investment?.certificate?.length &&
+              !investment?.others?.length &&
+              !investment?.checklist?.length &&
+              !investment?.partnerForm?.length && (
+                <p className="text-xs text-slate-400 italic py-2">
+                  No mandate documents attached yet.
+                </p>
+              )}
           </div>
         </Card>
       </Drawer>
@@ -675,21 +675,14 @@ const InvestmentDetailDrawer = ({
               onChange={(val) => setUploadCategory(val)}
               className="w-full text-xs"
               options={[
+                { label: "Mandate Agreement", value: "mandate" },
+                { label: "Ledger & Certificate", value: "certificate" },
                 {
-                  label: "Mandate Documents (Visible to Both Parties)",
-                  options: [
-                    { label: "Mandate Agreement", value: "mandate" },
-                    { label: "Ledger & Certificate", value: "certificate" },
-                    { label: "Client & Supporting Documents (Others)", value: "others" },
-                  ],
+                  label: "Client & Supporting Documents (Others)",
+                  value: "others",
                 },
-                {
-                  label: "Admin Section (Just Backend View / Access)",
-                  options: [
-                    { label: "Checklist (Internal)", value: "checklist" },
-                    { label: "Partner Form (Internal)", value: "partnerForm" },
-                  ],
-                },
+                { label: "Checklist", value: "checklist" },
+                { label: "Partner Form", value: "partnerForm" },
               ]}
             />
           </div>
@@ -715,7 +708,8 @@ const InvestmentDetailDrawer = ({
             />
             {uploadFile && (
               <p className="text-[11px] text-emerald-700 mt-1 font-medium">
-                Selected: {uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)
+                Selected: {uploadFile.name} (
+                {(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)
               </p>
             )}
           </div>
@@ -807,7 +801,8 @@ const InvestmentDetailDrawer = ({
                   {previewDoc.title}
                 </p>
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
-                  This document format cannot be rendered inline in the browser. You can open it in a separate tab or download it directly.
+                  This document format cannot be rendered inline in the browser.
+                  You can open it in a separate tab or download it directly.
                 </p>
                 <Button
                   type="primary"
