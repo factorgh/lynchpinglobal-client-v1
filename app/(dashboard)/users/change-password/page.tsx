@@ -29,6 +29,14 @@ import {
   SaveOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
+import { getPasswordChecks } from "@/lib/passwordPolicy";
+import { signOutAndRedirect } from "@/lib/session";
+import {
+  OFFICE_EMAIL,
+  OFFICE_PHONE_INTL,
+  OFFICE_PHONE_LOCAL,
+  OFFICE_PHONE_TEL,
+} from "@/lib/contact";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -77,7 +85,7 @@ export default function ChangePasswordPage() {
       return;
     }
     if (!profileDisplayName.trim()) {
-      toast.error("Full Name / Display Name is required");
+      toast.error("Full Name is required");
       return;
     }
     if (!profileEmail.trim()) {
@@ -135,35 +143,17 @@ export default function ChangePasswordPage() {
     }
   };
 
-  // Validation checks
+  // Validation checks (same rules as self-registration and the temporary password form)
   const checks = useMemo(() => {
-    const hasMinLength = newPassword.length >= 12;
-    const hasUpper = /[A-Z]/.test(newPassword);
-    const hasLower = /[a-z]/.test(newPassword);
-    const hasNumber = /\d/.test(newPassword);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
-
-    // Personal info checks
-    let hasNoPersonalInfo = true;
-    if (userInfo && newPassword) {
-      const userEmail = (userInfo.email || "").toLowerCase();
-      const userName = (userInfo.name || "").toLowerCase();
-      const displayName = (userInfo.displayName || "").toLowerCase();
-      const lower = newPassword.toLowerCase();
-
-      if (userEmail && userEmail.includes("@")) {
-        const prefix = userEmail.split("@")[0];
-        if (prefix.length >= 3 && lower.includes(prefix)) {
-          hasNoPersonalInfo = false;
-        }
-      }
-      if (userName && userName.length >= 3 && lower.includes(userName)) {
-        hasNoPersonalInfo = false;
-      }
-      if (displayName && displayName.length >= 3 && lower.includes(displayName)) {
-        hasNoPersonalInfo = false;
-      }
-    }
+    const policy = Object.fromEntries(
+      getPasswordChecks(newPassword).map((c: any) => [c.id, c.met])
+    );
+    const hasMinLength = Boolean(policy.length);
+    const hasUpper = Boolean(policy.upper);
+    const hasLower = Boolean(policy.lower);
+    const hasNumber = Boolean(policy.number);
+    const hasSpecial = Boolean(policy.special);
+    const hasNoPersonalInfo = true;
 
     const isDifferentFromCurrent =
       !currentPassword || !newPassword || currentPassword !== newPassword;
@@ -224,7 +214,7 @@ export default function ChangePasswordPage() {
     e.preventDefault();
 
     if (!checks.hasMinLength) {
-      toast.error("Password must be at least 12 characters long");
+      toast.error("Password must be at least 8 characters long");
       return;
     }
     if (!checks.hasUpper || !checks.hasLower) {
@@ -254,16 +244,13 @@ export default function ChangePasswordPage() {
 
     try {
       await updatePassword({
-        data: {
-          currentPassword,
-          newPassword,
-          newPasswordConfirm,
-        },
+        currentPassword,
+        newPassword,
+        newPasswordConfirm,
       }).unwrap();
 
       toast.success("Password updated successfully! Please log in again.");
-      localStorage.clear();
-      router.push("/");
+      signOutAndRedirect("/login");
     } catch (err: any) {
       let errorMessage = "Failed to update password";
 
@@ -275,13 +262,7 @@ export default function ChangePasswordPage() {
         errorMessage = err.message;
       }
 
-      if (errorMessage.includes("history") || errorMessage.includes("reuse")) {
-        toast.error("You cannot reuse a previous password. Please choose a different one.");
-      } else if (errorMessage.includes("current password")) {
-        toast.error("Current password is incorrect.");
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(errorMessage);
     }
   };
 
@@ -386,10 +367,10 @@ export default function ChangePasswordPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Display Name */}
+                  {/* Full Name */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Display Name <span className="text-rose-500">*</span>
+                      Full Name <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -652,7 +633,7 @@ export default function ChangePasswordPage() {
                         checks.hasMinLength ? "text-emerald-600" : "text-slate-300"
                       }`}
                     />
-                    <span>At least 12 characters</span>
+                    <span>At least 8 characters</span>
                   </div>
 
                   <div
@@ -667,7 +648,7 @@ export default function ChangePasswordPage() {
                         checks.hasUpper && checks.hasLower ? "text-emerald-600" : "text-slate-300"
                       }`}
                     />
-                    <span>Upper & lowercase letters</span>
+                    <span>A capital and a lowercase letter</span>
                   </div>
 
                   <div
@@ -693,20 +674,7 @@ export default function ChangePasswordPage() {
                         checks.hasSpecial ? "text-emerald-600" : "text-slate-300"
                       }`}
                     />
-                    <span>One special character (!@#$)</span>
-                  </div>
-
-                  <div
-                    className={`flex items-center gap-2 ${
-                      checks.hasNoPersonalInfo ? "text-emerald-700 font-semibold" : "text-rose-600 font-semibold"
-                    }`}
-                  >
-                    <CheckCircle2
-                      className={`w-3.5 h-3.5 shrink-0 ${
-                        checks.hasNoPersonalInfo ? "text-emerald-600" : "text-rose-500"
-                      }`}
-                    />
-                    <span>No personal name or email prefix</span>
+                    <span>One special character (e.g. ! @ # $ % & *)</span>
                   </div>
 
                   <div
@@ -763,6 +731,32 @@ export default function ChangePasswordPage() {
 
         {/* Right: Security Advisory & Account Protection */}
         <div className="lg:col-span-5 space-y-5">
+          {/* Contact Us */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+            <h3 className="font-bold text-slate-900 text-sm mb-1">Contact Us</h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Questions about your account or mandate? Email us or call our office.
+            </p>
+            <div className="space-y-2.5 text-xs">
+              <a
+                href={`mailto:${OFFICE_EMAIL}`}
+                className="flex items-center gap-2.5 font-semibold text-slate-800 hover:text-emerald-700"
+              >
+                <MailOutlined className="text-emerald-600" />
+                <span>{OFFICE_EMAIL}</span>
+              </a>
+              <a
+                href={`tel:${OFFICE_PHONE_TEL}`}
+                className="flex items-center gap-2.5 font-semibold text-slate-800 hover:text-emerald-700"
+              >
+                <PhoneOutlined className="text-emerald-600" />
+                <span>
+                  {OFFICE_PHONE_INTL}{" "}
+                  <span className="font-normal text-slate-500">(local: {OFFICE_PHONE_LOCAL})</span>
+                </span>
+              </a>
+            </div>
+          </div>
           {/* Active Session Revocation Card */}
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />

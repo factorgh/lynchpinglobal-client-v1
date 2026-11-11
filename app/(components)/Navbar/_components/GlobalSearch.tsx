@@ -175,8 +175,8 @@ export const GlobalSearch: React.FC = () => {
         },
         {
           id: "page-conditions",
-          title: "Terms & Conditions Uploader",
-          subtitle: "Upload and publish agreements, terms, and conditions",
+          title: "LP Library",
+          subtitle: "Publish documents for clients & admins, or for admins only",
           category: "Page",
           href: "/conditions",
           icon: FileUp,
@@ -222,9 +222,18 @@ export const GlobalSearch: React.FC = () => {
           color: "text-emerald-600 bg-emerald-50",
         },
         {
+          id: "page-my-documents",
+          title: "My Documents",
+          subtitle: "Upload and manage documents you send to Lynchpin Global",
+          category: "Page",
+          href: "/terms?view=upload",
+          icon: FileUp,
+          color: "text-emerald-600 bg-emerald-50",
+        },
+        {
           id: "page-terms",
-          title: "Terms & Conditions",
-          subtitle: "Review legal terms, guidelines, and partner agreements",
+          title: "LP Library",
+          subtitle: "Documents shared by Lynchpin Global",
           category: "Page",
           href: "/terms",
           icon: Handshake,
@@ -232,10 +241,19 @@ export const GlobalSearch: React.FC = () => {
         },
         {
           id: "action-contact-support-client",
-          title: "Contact Support (info@lynchpinglobal.com)",
-          subtitle: "Get assistance from Lynchpin Global support team",
+          title: "Email Us (info@lynchpinglobal.com)",
+          subtitle: "Get assistance from the Lynchpin Global team",
           category: "Page",
           href: "mailto:info@lynchpinglobal.com",
+          icon: Mail,
+          color: "text-blue-600 bg-blue-50",
+        },
+        {
+          id: "action-call-office-client",
+          title: "Call Our Office (+233 30 700 0640)",
+          subtitle: "Local: 030 700 0640",
+          category: "Page",
+          href: "tel:+233307000640",
           icon: Mail,
           color: "text-blue-600 bg-blue-50",
         },
@@ -424,7 +442,7 @@ export const GlobalSearch: React.FC = () => {
 
   const handleSelect = (item: SearchResultItem) => {
     setIsOpen(false);
-    if (item.href.startsWith("mailto:")) {
+    if (item.href.startsWith("mailto:") || item.href.startsWith("tel:")) {
       window.location.href = item.href;
     } else {
       router.push(item.href);

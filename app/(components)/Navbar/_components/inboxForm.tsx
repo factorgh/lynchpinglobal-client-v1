@@ -35,9 +35,9 @@ const InboxForm = ({ showInboxForm, setShowInboxForm }: any) => {
         title: "Request Form",
         message: `I would love to have a new ${
           values.type
-        } request for ${formatPriceGHS(values.amount)}.Customer name: ${
-          currentUser.name
-        }`,
+        } request for ${formatPriceGHS(values.amount)}. Client: ${
+          currentUser.displayName || currentUser.name
+        }${currentUser.license ? ` (${currentUser.license})` : ""}`,
         users: adminsData?.users.map((admin: any) => admin._id),
       });
       toast.success("Request sent successfully");

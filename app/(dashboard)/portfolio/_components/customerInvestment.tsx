@@ -865,8 +865,8 @@ const CustomerInvestment: React.FC = () => {
                   </div>
                 )}
 
-              {/* Internal document categories remain available to admins only. */}
-              {isAdmin && (
+              {/* Checklists and partner forms are part of the client's mandate record too. */}
+              {(
                 <div className="mt-3">
                   {/* Checklists */}
                   {selectedInvestment?.checklist &&
@@ -908,7 +908,7 @@ const CustomerInvestment: React.FC = () => {
                                         {fileName}
                                       </p>
                                       <span className="text-[10px] text-slate-400 font-medium">
-                                        Internal Checklist
+                                        Due Diligence Checklist
                                       </span>
                                     </div>
                                   </div>
@@ -987,7 +987,7 @@ const CustomerInvestment: React.FC = () => {
                                         {fileName}
                                       </p>
                                       <span className="text-[10px] text-slate-400 font-medium">
-                                        Internal Partner Form
+                                        Partner Form
                                       </span>
                                     </div>
                                   </div>
@@ -1032,9 +1032,8 @@ const CustomerInvestment: React.FC = () => {
               {!selectedInvestment?.certificate?.length &&
                 !selectedInvestment?.mandate?.length &&
                 !selectedInvestment?.others?.length &&
-                (!isAdmin ||
-                  (!selectedInvestment?.checklist?.length &&
-                    !selectedInvestment?.partnerForm?.length)) && (
+                !selectedInvestment?.checklist?.length &&
+                !selectedInvestment?.partnerForm?.length && (
                   <div className="text-center py-6 border border-slate-100 rounded-xl bg-slate-50/50">
                     <PaperClipOutlined className="text-3xl text-slate-300 mx-auto mb-2 block" />
                     <p className="text-xs font-semibold text-slate-600">

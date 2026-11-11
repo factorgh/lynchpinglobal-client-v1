@@ -2,6 +2,9 @@ import type { DriveStep, Side } from "driver.js";
 
 export type TourPersona = "client" | "admin";
 
+// Fired on window when a page tour ends (finished, closed, or unable to start).
+export const TOUR_FINISHED_EVENT = "lynchpin:tour-finished";
+
 // Helper to create steps with consistent structure
 const step = (
   element: string,
@@ -33,93 +36,93 @@ const welcome = (title: string, description: string): DriveStep => ({
 export const clientLandingSteps: DriveStep[] = [
   welcome(
     "👋 Welcome to Lynchpin Global!",
-    "Let's take a quick tour of your financial dashboard. You'll learn where everything is and how to navigate.",
+    "Let's take a quick tour of your client dashboard. You'll see where your mandate figures, reports and documents are, and how to move around the portal.",
   ),
   step(
     '[data-tour="client-menu"]',
     "📍 Your Navigation Menu",
-    "This is your main menu. Access your Dashboard, Mandates, Disbursements, and Terms & Conditions from here.",
+    "Use this menu to open your Dashboard, My Mandates, Disbursements, My Documents and the LP Library.",
     "right"
   ),
   step(
     '[data-tour="cta-primary"]',
-    "💰 Total Balance",
-    "Your complete mandate value at a glance. This includes your mandate contribution, accrued disbursements, and all transactions.",
-    "bottom"
+    "💰 Total Capital Allocation",
+    "The current value of your active mandates: your mandate contribution, additional contributions and accrued disbursements, less the service fee and operational charge.",
+    "right"
   ),
   step(
     '[data-tour="feature-cards"]',
     "📊 Mandate Breakdown",
-    "Here's a detailed breakdown: Mandate Contribution, Accrued Disbursements, Additional Contributions, and Additional Disbursements.",
+    "The figures that make up your Total Capital Allocation: Mandate Contribution, Accrued Disbursements, Additional Contributions and Additional Disbursements.",
     "bottom"
   ),
   step(
     '[data-tour="yield-cards"]',
-    "📈 Disbursements & Charges",
-    "Track performance-linked disbursements, service fees, and operational charges in this section.",
+    "📈 Performance & Charges",
+    "Your Performance-Linked Disbursement for the quarter, and the Service Fee and Operational Charge deducted from your mandate.",
     "top"
   ),
   step(
     '[data-tour="assets-under"]',
-    "📄 End-Of-Quarter Report: Mandate Statement",
-    "Track the live daily countdown to quarter-end closing and preview your Quarterly Mandate Statement.",
+    "📄 End-of-Quarter Report: Quarterly Mandate Report",
+    "Shows the countdown to the current quarter's close. Once the quarter closes, you can view and download your Quarterly Mandate Report here.",
     "top"
   ),
   step(
     '[data-tour="payments-list"]',
-    "📊 Ledger Report: Disbursement & Yield",
-    "Review your reconciled disbursement and yield ledger overview, portfolio summary, and complete financial audit.",
+    "📊 Ledger Report",
+    "Open the ledger report the Lynchpin team attaches to your mandate, showing your disbursements and yields for the quarter.",
     "top"
   ),
   welcome(
     "✅ You're All Set!",
-    "That's your dashboard! Click 'My Mandates' in the menu to see your detailed mandate participations. You can restart this tour anytime using the Help button."
+    "That's your dashboard. Open 'My Mandates' in the menu to see each mandate and its documents. Questions? Email info@lynchpinglobal.com or call our office on +233 30 700 0640 (030 700 0640)."
   ),
 ];
 
 export const clientPortfolioSteps: DriveStep[] = [
   welcome(
-    "📂 Mandate Participation",
-    "Welcome to your mandate overview! Here you can view all mandate participations, lending transactions, asset-related engagements, and rental engagements in detail."
+    "📂 My Mandates",
+    "This page lists every mandate assigned to you, with its contribution, contractual terms, accrued disbursements and documents."
   ),
   step(
     '[data-tour="portfolio-tab-list"]',
     "📑 Mandate Tabs",
-    "Switch between different views: Mandates, Loans, Asset Transactions, and Rentals.",
+    "Your mandates are under the 'Mandates' tab. The other tabs show loans, asset transactions and rentals if any are assigned to you.",
     "bottom"
   ),
   step(
     '[data-tour="positions-table"]',
     "💼 Your Mandates",
-    "This table shows all mandate participations including contribution amount, contractual terms, accrued disbursements, and related documentation.",
+    "Each row is one of your mandates, showing the contribution amount, contractual terms and accrued disbursements.",
     "top"
   ),
   welcome(
-    "💡 Quick Tip",
-    "Click on any mandate entry to expand and view additional details, documentation, and transaction history!"
+    "💡 Mandate Documents",
+    "Click the view icon on a mandate to open its details and all of its mandate documents. You can also attach supporting documents there."
   ),
 ];
 
 export const clientWithdrawalSteps: DriveStep[] = [
   welcome(
     "🏦 Contributions & Disbursements",
-    "Request mandate contributions or disbursements linked to your active mandate participations here."
+    "Request an additional mandate contribution or a disbursement from your active mandate here."
   ),
   step(
     '[data-tour="withdrawal-new-request"]',
     "📝 Make a Request",
-    "Click this button to submit a new contribution or disbursement request to the admin team.",
+    "Click 'Make a Request' to send a new contribution or disbursement request to the Lynchpin team.",
     "left"
   ),
   step(
     '[data-tour="withdrawal-table"]',
-    "📋 Request History",
-    "Track all your requests here. You can see the status (Pending, Approved, Processing, or Cancelled).",
+    "📋 Disbursement History",
+    "Track your disbursements here and their status: Pending, Approved, Processing, Rejected or Cancelled. Rejected or cancelled requests are never deducted from your mandate.",
     "top"
   ),
   welcome(
     "✅ That's It!",
-    "Your requests will be reviewed by the admin team. Check back anytime to see the status!",
+    "The Lynchpin team will review your request. Check back here anytime to see its status.",
   ),
 ];
 
@@ -135,7 +138,7 @@ export const adminDashboardSteps: DriveStep[] = [
   step(
     '[data-tour="admin-menu"]',
     "📍 Admin Navigation",
-    "Your complete admin toolkit: Dashboard, Clients, Client Documents, Mandate Management, Assets, Loans & Rentals, Disbursements, User Management, and Activity Logs.",
+    "Your complete admin toolkit: Dashboard, Clients, Client Documents, Mandates, Quarterly Rollover, Asset Transactions, Loans & Rentals, Disbursements, User Management, Activity Log and the LP Library.",
     "right"
   ),
   step(
@@ -417,5 +420,5 @@ export function getTourKey(persona: TourPersona, pathname: string): string {
         ? "/dashboard"
         : "/landing"
       : pathname;
-  return `${persona}_${normalizedPath.replace(/\//g, "_")}_v2`;
+  return `${persona}_${normalizedPath.replace(/\//g, "_")}_v3`;
 }

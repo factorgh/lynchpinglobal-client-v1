@@ -1,4 +1,5 @@
 import catchAsync from "../../error/catch-async-error.js";
+import AppError from "../../../utils/appError.js";
 import {
   createOne,
   deleteOne,
@@ -20,48 +21,29 @@ export const getNotification = getOne(Notification);
 // Controller method for marking all notifications as read
 export const readAllNotifications = catchAsync(async (req, res, next) => {
   try {
-    const userId = req.params.id;
+    // Only the logged-in user's own notifications can be marked as read.
+    const userId = req.user?._id;
 
-    // Check if user ID is passed
     if (!userId) {
-      return res.status(400).json({
+      return res.status(401).json({
         status: "fail",
-        message: "User ID is required",
-      });
-    }
-    // Check if the user has unread messages
-    const count = await Notification.countDocuments({
-      users: userId, // Ensure that the user ID is correct
-      read: false,
-    });
-    if (count === 0) {
-      return res.status(404).json({
-        status: "fail",
-        message: "No unread notifications found",
+        message: "Please log in",
       });
     }
 
-    // Update all unread notifications for the user
     const result = await Notification.updateMany(
       {
-        users: userId, // Ensure that the user ID is correct
+        users: userId,
         read: false,
       },
       { $set: { read: true } }
     );
 
-    // Check if any documents were updated
-    if (result.nModified === 0) {
-      return res.status(404).json({
-        status: "fail",
-        message: "No unread notifications found",
-      });
-    }
-
     res.status(200).json({
       status: "success",
       data: {
         message: "All notifications marked as read",
+        modified: result.modifiedCount || 0,
       },
     });
   } catch (err) {
@@ -79,15 +61,9 @@ export const getNotificationByUser = catchAsync(async (req, res, next) => {
     users: req.user._id,
   }).sort({ createdAt: -1 });
 
-  if (!notifications || notifications.length === 0) {
-    return res.status(404).json({
-      status: "fail",
-      message: "No notifications found for this user",
-    });
-  }
-
+  // Always 200 with the user's own list (possibly empty) so stale data is never kept by the client cache.
   res.status(200).json({
     status: "success",
-    data: notifications,
+    data: notifications || [],
   });
 });

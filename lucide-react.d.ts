@@ -73,6 +73,7 @@ declare module "lucide-react" {
   export const List: LucideIcon;
   export const ShieldAlert: LucideIcon;
   export const Mail: LucideIcon;
+  export const Phone: LucideIcon;
   export const LifeBuoy: LucideIcon;
   export const HelpCircle: LucideIcon;
 }

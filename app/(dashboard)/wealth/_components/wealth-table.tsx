@@ -206,21 +206,8 @@ const WealthTable = ({
         const clientName = targetRecord?.userId?.displayName || targetRecord?.userId?.name || targetRecord?.name || "Client";
         const clientLicense = targetRecord?.userId?.license || "";
 
+        // The API logs the deletion with the client and mandate details.
         await deleteInvestment(id).unwrap();
-        if (loggedInUser._id) {
-          await createActivity({
-            activity: "Mandate Deleted",
-            description: `Mandate for ${clientName}${clientLicense ? ` (${clientLicense})` : ""} (Principal: GHS ${Number(targetRecord?.principal || 0).toLocaleString()}) was deleted`,
-            user: loggedInUser._id,
-            targetUser: targetRecord?.userId?._id || targetRecord?.userId,
-            targetName: clientName,
-            targetLicense: clientLicense,
-            targetAccount: `Mandate #${String(id).slice(-6).toUpperCase()}`,
-            entityType: "Mandate",
-            entityId: String(id),
-            amount: Number(targetRecord?.principal || 0),
-          }).unwrap();
-        }
         toast.success("Entry deleted successfully");
       }
     } catch (error: any) {
@@ -291,24 +278,6 @@ const WealthTable = ({
           investmentId: editRentalId,
         });
 
-        const targetRecord = investmentData?.data?.find((item: any) => item._id === editRentalId);
-        const clientName = targetRecord?.userId?.displayName || targetRecord?.userId?.name || targetRecord?.name || "Client";
-
-        if (loggedInUser._id) {
-          await createActivity({
-            activity: "Mandate Add-On Created",
-            description: `Add-on of GHS ${Number(values.amount).toLocaleString()} added to ${clientName}'s mandate`,
-            user: loggedInUser._id,
-            targetUser: targetRecord?.userId?._id || targetRecord?.userId,
-            targetName: clientName,
-            targetLicense: targetRecord?.userId?.license,
-            targetAccount: `Mandate #${String(editRentalId).slice(-6).toUpperCase()}`,
-            entityType: "Mandate",
-            entityId: String(editRentalId),
-            amount: Number(values.amount),
-          }).unwrap();
-        }
-
         closeAddOnDrawer();
         toast.success("Add On has been created successfully");
         form.resetFields();
@@ -326,28 +295,11 @@ const WealthTable = ({
             others,
           };
 
+          // The API logs the update with old and new values for each changed field and document.
           await updateInvestment({
             id: editRentalId,
             data: formattedValues,
           }).unwrap();
-
-          const targetRecord = investmentData?.data?.find((item: any) => item._id === editRentalId);
-          const clientName = targetRecord?.userId?.displayName || targetRecord?.userId?.name || targetRecord?.name || values.name || "Client";
-
-          if (loggedInUser._id) {
-            await createActivity({
-              activity: "Mandate Updated",
-              description: `Mandate details updated for ${clientName}. Principal: GHS ${Number(values.principal || targetRecord?.principal || 0).toLocaleString()}, ROI: ${values.returns || targetRecord?.returns || 0}%`,
-              user: loggedInUser._id,
-              targetUser: targetRecord?.userId?._id || targetRecord?.userId,
-              targetName: clientName,
-              targetLicense: targetRecord?.userId?.license,
-              targetAccount: `Mandate #${String(editRentalId).slice(-6).toUpperCase()}`,
-              entityType: "Mandate",
-              entityId: String(editRentalId),
-              amount: Number(values.principal || targetRecord?.principal || 0),
-            }).unwrap();
-          }
 
           toast.success("Mandate updated successfully");
         } else {

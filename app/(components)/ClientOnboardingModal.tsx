@@ -1,14 +1,33 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { Modal, Input, Button, Checkbox } from "antd";
-import { ShieldCheck, User, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import { FileText, AlertCircle } from "lucide-react";
 import { LockOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
+import { getPasswordError } from "@/lib/passwordPolicy";
+import { getTourKey, TOUR_FINISHED_EVENT } from "@/lib/tour/tourSteps";
+import PasswordRequirements from "@/components/PasswordRequirements";
+
+const LANDING_TOUR_KEY = getTourKey("client", "/landing");
+
+// The governance pop-up must not cover the first-login tour, so it waits until that tour is done.
+const isLandingTourDone = (user: any) => {
+  try {
+    if (typeof window !== "undefined" && window.innerWidth < 768) return true; // tour does not auto-run on mobile
+    if (localStorage.getItem(`tour_${LANDING_TOUR_KEY}`) === "seen") return true;
+    if (localStorage.getItem(`lynchpin_tour_${LANDING_TOUR_KEY}`) === "seen") return true;
+  } catch {}
+  const seen: string[] = Array.isArray(user?.seenTours) ? user.seenTours : [];
+  return seen.includes(LANDING_TOUR_KEY) || seen.includes("all");
+};
 
 export default function ClientOnboardingModal() {
+  const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [tourDone, setTourDone] = useState(false);
   const [currentStep, setCurrentStep] = useState<"terms" | "password">("terms");
 
   // Step 1: Terms states
@@ -18,28 +37,32 @@ export default function ClientOnboardingModal() {
 
   // Step 2: Credentials & Profile states
   const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
 
-  const refreshUser = () => {
+  const refreshUser = useCallback(() => {
     try {
       const stored = localStorage.getItem("user");
       if (stored) {
         const parsed = JSON.parse(stored);
         setUser(parsed);
         setUsername(parsed.name || "");
-        setDisplayName(parsed.displayName || parsed.name || "");
+        setFullName(parsed.displayName || parsed.name || "");
 
         // Only clients (role === 'user') need forced onboarding & password change
         if (parsed.role === "user") {
           const needsTerms = !parsed.agreedToTerms;
           const needsPassword = parsed.mustChangePassword === true;
+          const tourFinished =
+            tourDone || isLandingTourDone(parsed) || (pathname && pathname !== "/landing");
 
-          if (needsTerms) {
+          if (!tourFinished) {
+            setIsOpen(false);
+          } else if (needsTerms) {
             setCurrentStep("terms");
             setIsOpen(true);
           } else if (needsPassword) {
@@ -55,10 +78,16 @@ export default function ClientOnboardingModal() {
     } catch (e) {
       console.error("[ClientOnboardingModal] Error loading user:", e);
     }
-  };
+  }, [tourDone, pathname]);
 
   useEffect(() => {
     refreshUser();
+  }, [refreshUser]);
+
+  useEffect(() => {
+    const onTourFinished = () => setTourDone(true);
+    window.addEventListener(TOUR_FINISHED_EVENT, onTourFinished);
+    return () => window.removeEventListener(TOUR_FINISHED_EVENT, onTourFinished);
   }, []);
 
   const getAuthToken = () => {
@@ -103,7 +132,7 @@ export default function ClientOnboardingModal() {
       };
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
-      toast.success("Terms & Conditions accepted successfully");
+      toast.success("Mandate governance terms accepted");
 
       // Advance to Step 2 if temporary password still needs changing
       if (updatedUser.mustChangePassword) {
@@ -127,16 +156,21 @@ export default function ClientOnboardingModal() {
       setPasswordError("Username is required");
       return;
     }
-    if (!displayName.trim()) {
-      setPasswordError("Display Name is required");
+    if (/\s/.test(username.trim())) {
+      setPasswordError("Username cannot contain spaces");
+      return;
+    }
+    if (!fullName.trim()) {
+      setPasswordError("Full Name is required");
       return;
     }
     if (!currentPassword) {
       setPasswordError("Please enter your current temporary password");
       return;
     }
-    if (newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters long");
+    const policyError = getPasswordError(newPassword);
+    if (policyError) {
+      setPasswordError(policyError);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -151,7 +185,7 @@ export default function ClientOnboardingModal() {
     try {
       setIsSubmittingPassword(true);
 
-      // 1. Update password
+      // 1. Update password (the server clears the temporary-password flag on success)
       const pwdRes = await fetch("/api/v1/auth/changePassword", {
         method: "POST",
         headers: {
@@ -165,12 +199,17 @@ export default function ClientOnboardingModal() {
         }),
       });
 
-      const pwdData = await pwdRes.json();
+      const pwdData = await pwdRes.json().catch(() => ({}));
       if (!pwdRes.ok) {
         throw new Error(pwdData.message || "Failed to update temporary password");
       }
 
-      // 2. Update profile (name, displayName, mustChangePassword = false)
+      // Password is saved from here on, so the account must not be left in the temporary state locally.
+      const passwordSavedUser = { ...user, mustChangePassword: false };
+      localStorage.setItem("user", JSON.stringify(passwordSavedUser));
+      setUser(passwordSavedUser);
+
+      // 2. Update profile (username and full name)
       const profRes = await fetch("/api/v1/users/updateMe", {
         method: "PATCH",
         headers: {
@@ -179,27 +218,32 @@ export default function ClientOnboardingModal() {
         },
         body: JSON.stringify({
           name: username.trim(),
-          displayName: displayName.trim(),
-          mustChangePassword: false,
+          displayName: fullName.trim(),
         }),
       });
 
-      const profData = await profRes.json();
+      const profData = await profRes.json().catch(() => ({}));
       if (!profRes.ok) {
-        throw new Error(profData.message || "Failed to update profile details");
+        setIsOpen(false);
+        toast.warning(
+          `Your new password was saved, but your profile was not updated: ${
+            profData.message || "please update it under Profile & Security"
+          }`
+        );
+        return;
       }
 
       const finalizedUser = {
-        ...user,
+        ...passwordSavedUser,
         name: username.trim(),
-        displayName: displayName.trim(),
-        mustChangePassword: false,
+        displayName: fullName.trim(),
       };
 
       localStorage.setItem("user", JSON.stringify(finalizedUser));
+      window.dispatchEvent(new Event("user-profile-updated"));
       setUser(finalizedUser);
       setIsOpen(false);
-      toast.success("Account successfully activated! Welcome to your Portfolio.");
+      toast.success("Password saved. Use your new password the next time you log in.");
     } catch (err: any) {
       setPasswordError(err.message || "Failed to update credentials");
       toast.error(err.message || "Failed to update credentials");
@@ -240,7 +284,7 @@ export default function ClientOnboardingModal() {
               <p className="text-xs text-slate-500 mt-0.5">
                 Step {currentStep === "terms" ? "1 of 2" : "2 of 2"}:{" "}
                 {currentStep === "terms"
-                  ? "Accept Terms & Conditions"
+                  ? "Accept Mandate Governance"
                   : "Replace Temporary Password"}
               </p>
             </div>
@@ -265,7 +309,7 @@ export default function ClientOnboardingModal() {
               </p>
               <ul className="list-disc pl-4 space-y-1.5 text-slate-700 font-medium">
                 <li>
-                  <strong>Capital Protection:</strong> All principal mandates are deployed in asset-backed energy, commodity, and high-yield infrastructure positions.
+                  <strong>Capital Protection:</strong> All capital deployment carries risk; Lynchpin seeks to protect mandate capital through due diligence, a focus on sectors with strong cash flows and transaction-specific security measures, without guaranteeing capital protection.
                 </li>
                 <li>
                   <strong>Quarterly Compounding:</strong> Contractual returns accrue daily and disburse according to designated quarterly mandate schedules (Q1, Q2, Q3, Q4).
@@ -319,7 +363,7 @@ export default function ClientOnboardingModal() {
             <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl flex items-start gap-2.5 text-xs text-amber-800">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <span>
-                You are currently logged in using a <strong>temporary password</strong>. For account protection, you must establish a permanent password and verify your username and display name.
+                You are currently logged in using a <strong>temporary password</strong>. For account protection, you must set a permanent password and confirm your username and full name.
               </span>
             </div>
 
@@ -341,15 +385,18 @@ export default function ClientOnboardingModal() {
                   className="rounded-lg py-2 text-xs"
                   required
                 />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  You can use your username instead of your email address to log in.
+                </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Display Name
+                  Full Name
                 </label>
                 <Input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. John Mensah"
                   className="rounded-lg py-2 text-xs"
                   required
@@ -378,7 +425,7 @@ export default function ClientOnboardingModal() {
                 <Input.Password
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Min. 8 characters"
+                  placeholder="Enter a new password"
                   className="rounded-lg py-2 text-xs"
                   required
                 />
@@ -397,6 +444,8 @@ export default function ClientOnboardingModal() {
                 />
               </div>
             </div>
+
+            <PasswordRequirements password={newPassword} />
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
               <span className="text-[11px] text-slate-400">

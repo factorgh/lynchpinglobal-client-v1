@@ -136,6 +136,7 @@ export const QuarterlyMandateStatementCard: React.FC<
                 <h3 className="text-base font-bold text-gray-900 leading-tight">
                   End-Of-Quarter Report
                 </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">Quarterly Mandate Report</p>
               </div>
             </div>
 
@@ -153,7 +154,7 @@ export const QuarterlyMandateStatementCard: React.FC<
           <div className="my-6 p-6 rounded-2xl bg-gradient-to-b from-white to-blue-50/60 border border-blue-100 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden">
             {/* Top status indicator inside box */}
             <span className="text-[11px] font-semibold text-blue-600 tracking-wider uppercase mb-2">
-              Official Statement Countdown
+              Quarterly Mandate Report Countdown
             </span>
 
             {/* Centralized Big Number */}
@@ -207,7 +208,7 @@ export const QuarterlyMandateStatementCard: React.FC<
                   onClick={() => setIsModalOpen(true)}
                   className="flex-1 font-semibold rounded-xl text-xs h-9 bg-emerald-600 hover:bg-emerald-700"
                 >
-                  View Full Statement
+                  View Full Report
                 </Button>
                 <Button
                   type="primary"

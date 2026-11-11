@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import Upload from "./upload.model.js";
 import User from "../auth/models/user.model.js";
 import Notification from "../notifications/models/notification.js";
-import ActivityLog from "../activity-log/activity.model.js";
+import { logActivity } from "../activity-log/logActivity.js";
 import cloudinary from "../../utils/cloudinary.js";
 import mongoose from "mongoose";
 
@@ -37,6 +37,21 @@ const isAdminUser = (user: any) => {
   return role === "admin" || role === "superadmin";
 };
 
+// LP Library categories: "conditions" is shared with clients, "lp-library-admin" is admins only.
+export const LP_LIBRARY_SHARED = "conditions";
+export const LP_LIBRARY_ADMIN_ONLY = "lp-library-admin";
+const ADMIN_UPLOAD_ONLY = new Set([LP_LIBRARY_SHARED, LP_LIBRARY_ADMIN_ONLY]);
+
+const categoryLabel = (category: string) => {
+  const c = (category || "").toLowerCase();
+  if (c === LP_LIBRARY_SHARED) return "LP Library (Clients & Admins)";
+  if (c === LP_LIBRARY_ADMIN_ONLY) return "LP Library (Admins Only)";
+  if (c === "client-documents") return "Client Documents";
+  if (c.startsWith("mandates")) return "Mandate Documents";
+  if (c.includes("profile") || c.includes("avatar")) return "Profile Photo";
+  return category || "Uploads";
+};
+
 // Helper to sanitize R2 endpoint (remove trailing bucket segment if present)
 const getCleanR2Endpoint = (endpoint: string, bucket: string): string => {
   return endpoint.replace(new RegExp(`/${bucket}/?$`), "").replace(/\/+$/, "");
@@ -46,6 +61,12 @@ const getCleanR2Endpoint = (endpoint: string, bucket: string): string => {
 export const handleUploads = async (req: any, res: any) => {
   try {
     const folder = (req.body?.category || "uploads").toString().replace(/\/+$/g, "");
+    if (ADMIN_UPLOAD_ONLY.has(folder.toLowerCase()) && !isAdminUser(req.user)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only administrators can publish documents to the LP Library",
+      });
+    }
     const R2_ENDPOINT = process.env.R2_ENDPOINT;
     const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
     const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
@@ -134,8 +155,13 @@ export const handleUploads = async (req: any, res: any) => {
     try {
       const docType = (req.body?.docType || "general").toString();
       const note = (req.body?.note || "").toString();
-      let targetUser = req.user?._id || req.body?.user || req.body?.userId;
-      if (targetUser && !mongoose.isValidObjectId(targetUser)) {
+      // Admins may file a document against a client; clients can only file against themselves.
+      const requestedUser = req.body?.user || req.body?.userId;
+      let targetUser =
+        isAdminUser(req.user) && requestedUser && mongoose.isValidObjectId(requestedUser)
+          ? requestedUser
+          : req.user?._id;
+      if (targetUser && !mongoose.isValidObjectId(String(targetUser))) {
         targetUser = null;
       }
 
@@ -170,27 +196,39 @@ export const handleUploads = async (req: any, res: any) => {
             .filter(Boolean)
             .join(", ");
 
-          if (adminIds.length) {
+          if (adminIds.length && !isAdminUser(req.user)) {
             await Notification.create({
               title: "New Client Document Submitted",
               message: `${actorLabel} submitted a ${docType} ("${fileLabel}") for administrative review.`,
               users: adminIds,
             });
           }
-
-          await ActivityLog.create({
-            user: req.user?._id || targetUser || undefined,
-            activity: "Client Document Uploaded",
-            description: `${actorLabel} uploaded ${docType} ("${fileLabel}") to the client document vault.`,
-            targetUser: targetUser || req.user?._id || undefined,
-            entityType: "ClientDocument",
-          });
         } catch (notifyErr) {
           console.warn(
             "[uploads] failed to notify admins of client document:",
             notifyErr
           );
         }
+      }
+
+      // Profile photos are logged through the profile update itself.
+      if (uploads.length && !/profile|avatar/i.test(folder)) {
+        const fileLabel = uploads.map((u) => u.filename).filter(Boolean).join(", ");
+        const actorLabel = req.user?.displayName || req.user?.name || "A user";
+        await logActivity({
+          req,
+          activity: "Document Uploaded",
+          description: `${actorLabel} uploaded "${fileLabel}" to ${categoryLabel(folder)}${
+            docType && docType !== "general" ? ` as ${docType}` : ""
+          }.`,
+          target: targetUser || undefined,
+          targetAccount: categoryLabel(folder),
+          entityType: "Document",
+          metadata: {
+            category: folder,
+            files: uploads.map((u) => ({ filename: u.filename, key: u.key })),
+          },
+        });
       }
     } catch (dbErr) {
       console.error("[uploads] failed to persist uploads to database:", dbErr);
@@ -224,6 +262,22 @@ export const listStoredUploadsDb = async (req: any, res: any) => {
     const user = req.query?.user || req.query?.userId;
     const isClientDocs = /^client-documents$/i.test(category);
 
+    const authUser = req.user || (await getAuthUser(req));
+    if (!authUser) {
+      return res.status(401).json({
+        success: false,
+        message: "Please log in to view documents",
+      });
+    }
+    const viewerIsAdmin = isAdminUser(authUser);
+    const isSharedLibrary = category.toLowerCase() === LP_LIBRARY_SHARED;
+    if (!viewerIsAdmin && !isClientDocs && !isSharedLibrary) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have access to these documents",
+      });
+    }
+
     const query: Record<string, any> = {};
 
     if (category && category !== "any" && category !== "all") {
@@ -231,6 +285,8 @@ export const listStoredUploadsDb = async (req: any, res: any) => {
         `^${category.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
         "i"
       );
+    } else if (!viewerIsAdmin) {
+      return res.status(403).json({ success: false, message: "Category is required" });
     }
 
     if (provider && provider !== "any") {
@@ -238,22 +294,14 @@ export const listStoredUploadsDb = async (req: any, res: any) => {
     }
 
     if (isClientDocs) {
-      const authUser = req.user || (await getAuthUser(req));
-      if (!authUser) {
-        return res.status(401).json({
-          success: false,
-          message: "Please log in to view client documents",
-        });
-      }
-
-      if (isAdminUser(authUser)) {
+      if (viewerIsAdmin) {
         if (user && mongoose.isValidObjectId(user)) {
           query.user = user;
         }
       } else {
         query.user = authUser._id;
       }
-    } else if (user && mongoose.isValidObjectId(user)) {
+    } else if (viewerIsAdmin && user && mongoose.isValidObjectId(user)) {
       query.user = user;
     }
 
@@ -291,6 +339,15 @@ export const listUploadsFromProvider = async (req: any, res: any) => {
       .toString()
       .replace(/\/+$/g, "");
     const provider = (req.query?.provider || "cloudinary").toString();
+
+    // Raw storage listing bypasses per-user filtering, so only the shared LP Library is open to clients.
+    const authUser = req.user || (await getAuthUser(req));
+    if (!authUser) {
+      return res.status(401).json({ success: false, message: "Please log in to view documents" });
+    }
+    if (!isAdminUser(authUser) && folder.toLowerCase() !== LP_LIBRARY_SHARED) {
+      return res.status(403).json({ success: false, message: "You do not have access to these documents" });
+    }
 
     // 1) DB-first: if records already exist, return them
     try {
@@ -491,6 +548,45 @@ export const deleteUploadedFile = async (req: any, res: any) => {
 
     const key = String(public_id);
 
+    const record: any =
+      (await Upload.findOne({ key }).lean()) ||
+      (await Upload.findOne({ key: `lynchpin/${key}` }).lean());
+
+    // Clients may only remove their own submissions; everything else is admin-managed.
+    if (!isAdminUser(req.user)) {
+      const ownsRecord =
+        record && record.user && String(record.user) === String(req.user?._id);
+      const isOwnClientDoc =
+        ownsRecord && /^(client-documents|mandates\/client-docs)$/i.test(record.category || "");
+      if (!isOwnClientDoc) {
+        return res.status(403).json({
+          success: false,
+          message: "You do not have permission to delete this document",
+        });
+      }
+    }
+
+    const logDeletion = () =>
+      logActivity({
+        req,
+        activity: "Document Deleted",
+        description: `${req.user?.displayName || req.user?.name || "A user"} deleted "${
+          record?.filename || key.split("/").pop()
+        }" from ${categoryLabel(record?.category || key.split("/")[0])}.`,
+        target: record?.user || undefined,
+        targetAccount: categoryLabel(record?.category || key.split("/")[0]),
+        entityType: "Document",
+        metadata: {
+          deletedFile: {
+            filename: record?.filename || key.split("/").pop(),
+            key,
+            category: record?.category,
+            docType: record?.docType,
+            url: record?.url,
+          },
+        },
+      });
+
     // If provider is R2
     if ((provider || "").toString() === "r2") {
       const R2_ENDPOINT = process.env.R2_ENDPOINT;
@@ -542,6 +638,7 @@ export const deleteUploadedFile = async (req: any, res: any) => {
 
       await Upload.deleteOne({ key });
       await Upload.deleteOne({ key: `lynchpin/${key}` });
+      await logDeletion();
       return res.json({ success: true, provider: "r2" });
     }
 
@@ -557,6 +654,7 @@ export const deleteUploadedFile = async (req: any, res: any) => {
         });
         if (result?.result === "ok" || result?.result === "not found") {
           await Upload.deleteOne({ key });
+          await logDeletion();
           return res.json({
             success: true,
             resource_type: type,

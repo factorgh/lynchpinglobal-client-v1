@@ -186,10 +186,12 @@ const CustomerLanding = () => {
       <Wrapper>
         <div
           className="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 mt-5 items-stretch"
-          data-tour="cta-primary"
         >
           {/* first card */}
-          <Card className="p-5 sm:p-6 flex flex-col justify-between col-span-1 md:col-span-12 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow border border-slate-200/80 rounded-2xl bg-white/95 backdrop-blur-xs">
+          <Card
+            data-tour="cta-primary"
+            className="p-5 sm:p-6 flex flex-col justify-between col-span-1 md:col-span-12 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow border border-slate-200/80 rounded-2xl bg-white/95 backdrop-blur-xs"
+          >
             <div>
               <div className="flex justify-between items-start gap-2">
                 <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 leading-tight">

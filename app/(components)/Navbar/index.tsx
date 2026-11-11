@@ -13,6 +13,8 @@ import Link from "next/link";
 import InboxForm from "./_components/inboxForm";
 import NotificationModal from "./_components/notificationModal";
 import GlobalSearch from "./_components/GlobalSearch";
+import { signOutAndRedirect } from "@/lib/session";
+import { OFFICE_EMAIL, OFFICE_PHONE_INTL, OFFICE_PHONE_TEL } from "@/lib/contact";
 
 interface NavbarProps {
   onToggleMobileSidebar?: () => void;
@@ -175,11 +177,23 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
                       key: "support",
                       label: (
                         <a
-                          href="mailto:info@lynchpinglobal.com"
-                          className="text-xs font-semibold text-slate-700 flex items-center justify-between"
+                          href={`mailto:${OFFICE_EMAIL}`}
+                          className="text-xs font-semibold text-slate-700 flex items-center justify-between gap-3"
                         >
-                          <span>Contact Support</span>
-                          <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">Help</span>
+                          <span>Email Us</span>
+                          <span className="text-[10px] text-blue-600">{OFFICE_EMAIL}</span>
+                        </a>
+                      ),
+                    },
+                    {
+                      key: "call",
+                      label: (
+                        <a
+                          href={`tel:${OFFICE_PHONE_TEL}`}
+                          className="text-xs font-semibold text-slate-700 flex items-center justify-between gap-3"
+                        >
+                          <span>Call Our Office</span>
+                          <span className="text-[10px] text-blue-600">{OFFICE_PHONE_INTL}</span>
                         </a>
                       ),
                     },
@@ -195,9 +209,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
                 label: (
                   <span
                     onClick={() => {
-                      localStorage.clear();
-                      sessionStorage.clear();
-                      window.location.href = "/login";
+                      signOutAndRedirect("/login");
                     }}
                     className="text-xs font-semibold text-rose-600 block cursor-pointer"
                   >

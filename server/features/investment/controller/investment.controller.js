@@ -11,6 +11,49 @@ import catchAsync from "../../error/catch-async-error.js";
 import Investment from "../model/investment.model.js";
 import ActivityLog from "../../activity-log/activity.model.js";
 import { recalculateInvestment } from "../../../utils/recalculate.js";
+import {
+  logActivity,
+  diffFields,
+  diffFileLists,
+  describeChanges,
+} from "../../activity-log/logActivity.js";
+
+const MANDATE_FIELDS = {
+  name: "Mandate Name",
+  principal: "Principal (GHS)",
+  guaranteedRate: "Contractual Rate (%)",
+  managementFeeRate: "Service Fee Rate (%)",
+  operationalCost: "Operational Charge (GHS)",
+  performanceYield: "Performance-Linked Disbursement (GHS)",
+  quarter: "Quarter",
+  startDate: "Start Date",
+  quarterEndDate: "Quarter End Date",
+};
+
+// Sum of active add-on capital; it must be carried into the next quarter's principal on rollover.
+const activeAddOnTotal = (inv) =>
+  round2(
+    (inv?.addOns || []).reduce(
+      (sum, a) => (a && a.status === "active" ? sum + Number(a.amount || 0) : sum),
+      0,
+    ),
+  );
+
+// Closing balance = principal + active add-on capital + net accrued return.
+const closingBalance = (inv) =>
+  round2(Number(inv.principal || 0) + activeAddOnTotal(inv) + Number(inv.totalAccruedReturn || 0));
+
+// The next quarter starts the day after the source quarter closed; late rollovers start today.
+const nextQuarterStart = (inv) => {
+  const today = moment().startOf("day");
+  if (!inv?.quarterEndDate) return today.toDate();
+  const dayAfterClose = moment(inv.quarterEndDate).add(1, "day").startOf("day");
+  const sameQuarterAsToday =
+    getQuarter(dayAfterClose.toDate()) === getQuarter(today.toDate());
+  return dayAfterClose.isAfter(today) || sameQuarterAsToday
+    ? dayAfterClose.toDate()
+    : today.toDate();
+};
 
 export const createInvestment = catchAsync(async (req, res, next) => {
   const {
@@ -150,7 +193,6 @@ export const getAllInvestments = catchAsync(async (req, res, next) => {
 
 export const updateInvestment = catchAsync(async (req, res, next) => {
   const investmentId = req.params.id;
-  const updateData = req.body;
 
   // Permission: allow if requester is owner or admin/superadmin
   const existing = await Investment.findById(investmentId).populate({
@@ -180,6 +222,19 @@ export const updateInvestment = catchAsync(async (req, res, next) => {
     return res.status(403).json({ status: "fail", message: "Not authorized" });
   }
 
+  // Clients may only manage their own supporting documents on a mandate.
+  const updateData = isAdmin
+    ? { ...req.body }
+    : Array.isArray(req.body?.others)
+      ? { others: req.body.others }
+      : {};
+  delete updateData._id;
+  delete updateData.transactionId;
+  if (!Object.keys(updateData).length) {
+    return res.status(400).json({ status: "fail", message: "Nothing to update" });
+  }
+  const before = existing.toObject();
+
   // Update the investment and return the updated document
   const investment = await Investment.findByIdAndUpdate(
     investmentId,
@@ -193,27 +248,31 @@ export const updateInvestment = catchAsync(async (req, res, next) => {
   if (investment) {
     await recalculateInvestment(investment._id);
 
-    try {
-      const actorUser = req.user?._id || investment.userId?._id || investment.userId;
-      const targetUserObj = investment.userId;
-      const clientName = targetUserObj?.displayName || targetUserObj?.name || investment.name || "Client";
-      const clientLicense = targetUserObj?.license || "";
-      const principal = Number(investment.principal || 0);
+    const targetUserObj = investment.userId;
+    const clientName = targetUserObj?.displayName || targetUserObj?.name || investment.name || "Client";
+    const after = investment.toObject();
+    const changes = [
+      ...diffFields(before, after, MANDATE_FIELDS),
+      ...diffFileLists(before.mandate, after.mandate, "Mandate Agreements"),
+      ...diffFileLists(before.certificate, after.certificate, "Ledger & Certificates"),
+      ...diffFileLists(before.checklist, after.checklist, "Due Diligence Checklists"),
+      ...diffFileLists(before.partnerForm, after.partnerForm, "Partner Forms"),
+      ...diffFileLists(before.others, after.others, "Supporting Documents"),
+    ];
+    const onlyDocuments = changes.length > 0 && changes.every((c) => c.field === "files");
 
-      await ActivityLog.create({
-        user: actorUser,
-        targetUser: targetUserObj?._id || investment.userId,
-        targetName: clientName,
-        targetLicense: clientLicense,
+    if (changes.length) {
+      await logActivity({
+        req,
+        activity: onlyDocuments ? "Mandate Documents Updated" : "Mandate Updated",
+        description: `Mandate for ${clientName} was updated. ${describeChanges(changes)}`,
+        target: targetUserObj,
         targetAccount: `Mandate #${String(investment._id).slice(-6).toUpperCase()}`,
         entityType: "Mandate",
-        entityId: String(investment._id),
-        amount: principal,
-        activity: "Mandate Updated",
-        description: `Mandate details updated for ${clientName}. Principal: GHS ${principal.toLocaleString()}`,
+        entityId: investment._id,
+        amount: Number(investment.principal || 0),
+        changes,
       });
-    } catch (logErr) {
-      console.error("Activity logging failed in updateInvestment:", logErr);
     }
   }
 
@@ -264,7 +323,7 @@ export const rolloverInvestments = async () => {
     const archivedTransactions = await Investment.find({
       quarter: sourceQuarterLabel,
       archived: true,
-    });
+    }).populate("addOns");
     console.log(
       `Archived transactions found for source quarter ${sourceQuarterLabel}: ${archivedTransactions.length}`,
     );
@@ -289,9 +348,9 @@ export const rolloverInvestments = async () => {
         continue;
       }
 
-      // Calculate new principal
-      const updatedPrincipal =
-        transaction.principal + transaction.totalAccruedReturn;
+      // New principal = closing balance (principal + active add-on capital + net accrued return)
+      const updatedPrincipal = closingBalance(transaction);
+      const newStartDate = nextQuarterStart(transaction);
 
       // Create a new transaction for the target/current quarter
       const newTransaction = await Investment.create({
@@ -301,18 +360,15 @@ export const rolloverInvestments = async () => {
         accruedReturn: 0, // Reset accrued return
         quarter: targetQuarterLabel,
         transactionId: generateTransactionId(),
-        startDate: new Date(), // Corrected startDate
-        quarterEndDate: new Date(
-          new Date(transaction.quarterEndDate).setMonth(
-            new Date(transaction.quarterEndDate).getMonth() + 3,
-          ),
-        ),
+        startDate: newStartDate,
+        quarterEndDate: getQuarterEndDate(newStartDate).toDate(),
         archived: false,
         active: true,
         mandate: transaction.mandate,
         partnerForm: transaction.partnerForm,
         certificate: transaction.certificate,
         checklist: transaction.checklist,
+        others: transaction.others || [],
         addOns: [],
         previousTransactionId: transaction._id, // Link to the archived transaction
         owners: transaction.owners,
@@ -491,11 +547,9 @@ export const getRolloverCandidates = catchAsync(async (req, res, next) => {
       alreadyRolledOverCount++;
     }
 
-    const endingPrincipal = Number(inv.principal || 0);
-    const accruedReturn = Number(
-      inv.totalAccruedReturn ?? inv.principalAccruedReturn ?? 0
-    );
-    const netClosingBalance = endingPrincipal + accruedReturn;
+    const endingPrincipal = round2(Number(inv.principal || 0) + activeAddOnTotal(inv));
+    const accruedReturn = Number(inv.totalAccruedReturn || 0);
+    const netClosingBalance = closingBalance(inv);
     const suggestedNewPrincipal = netClosingBalance;
 
     totalEndingPrincipal += endingPrincipal;
@@ -565,7 +619,9 @@ export const executeSingleRollover = catchAsync(async (req, res, next) => {
     return res.status(400).json({ status: "fail", message: "Investment ID is required" });
   }
 
-  const sourceInv = await Investment.findById(investmentId).populate("userId");
+  // Bring accruals up to date so the closing balance is current before it is carried forward.
+  await recalculateInvestment(investmentId);
+  const sourceInv = await Investment.findById(investmentId).populate(["userId", "addOns"]);
   if (!sourceInv) {
     return res.status(404).json({ status: "fail", message: "Source mandate not found" });
   }
@@ -591,14 +647,15 @@ export const executeSingleRollover = catchAsync(async (req, res, next) => {
   await sourceInv.save({ validateBeforeSave: false });
 
   // 2. Compute date range
-  const newStartDate = startDate ? new Date(startDate) : new Date();
-  const defaultQuarterEnd = getQuarterEndDate(newStartDate);
+  const newStartDate = startDate ? new Date(startDate) : nextQuarterStart(sourceInv);
+  const defaultQuarterEnd = getQuarterEndDate(newStartDate).toDate();
   const newEndDate = quarterEndDate ? new Date(quarterEndDate) : defaultQuarterEnd;
 
+  const sourceClosingBalance = closingBalance(sourceInv);
   const principalToSet =
     newPrincipal !== undefined && newPrincipal !== null && !isNaN(Number(newPrincipal))
       ? Number(newPrincipal)
-      : Number(sourceInv.principal) + Number(sourceInv.totalAccruedReturn || 0);
+      : sourceClosingBalance;
 
   // 3. Create the newly rolled-over transaction with manual values
   const newTransaction = await Investment.create({
@@ -653,7 +710,7 @@ export const executeSingleRollover = catchAsync(async (req, res, next) => {
       entityId: String(newTransaction._id),
       amount: rolledPrincipal,
       activity: "Mandate Rolled Over",
-      description: `Mandate for ${clientName} rolled over into ${effectiveTargetQuarter} with principal GHS ${rolledPrincipal.toLocaleString()}`,
+      description: `Mandate for ${clientName} rolled over into ${effectiveTargetQuarter}. Closing balance of source mandate: GHS ${sourceClosingBalance.toLocaleString()} (principal GHS ${Number(sourceInv.principal || 0).toLocaleString()} + add-ons GHS ${activeAddOnTotal(sourceInv).toLocaleString()} + net accrued GHS ${Number(sourceInv.totalAccruedReturn || 0).toLocaleString()}). New principal: GHS ${rolledPrincipal.toLocaleString()}, starting ${moment(newStartDate).format("YYYY-MM-DD")}.`,
     });
   } catch (logErr) {
     console.error("Activity logging failed in executeSingleRollover:", logErr);
@@ -695,7 +752,8 @@ export const executeBatchRollover = catchAsync(async (req, res, next) => {
         continue;
       }
 
-      const sourceInv = await Investment.findById(investmentId);
+      await recalculateInvestment(investmentId);
+      const sourceInv = await Investment.findById(investmentId).populate("addOns");
       if (!sourceInv) {
         errors.push({ investmentId, error: "Source mandate not found" });
         continue;
@@ -721,14 +779,14 @@ export const executeBatchRollover = catchAsync(async (req, res, next) => {
       sourceInv.active = false;
       await sourceInv.save({ validateBeforeSave: false });
 
-      const newStartDate = startDate ? new Date(startDate) : new Date();
-      const defaultQuarterEnd = getQuarterEndDate(newStartDate);
+      const newStartDate = startDate ? new Date(startDate) : nextQuarterStart(sourceInv);
+      const defaultQuarterEnd = getQuarterEndDate(newStartDate).toDate();
       const newEndDate = quarterEndDate ? new Date(quarterEndDate) : defaultQuarterEnd;
 
       const principalToSet =
         newPrincipal !== undefined && newPrincipal !== null && !isNaN(Number(newPrincipal))
           ? Number(newPrincipal)
-          : Number(sourceInv.principal) + Number(sourceInv.totalAccruedReturn || 0);
+          : closingBalance(sourceInv);
 
       const newTransaction = await Investment.create({
         userId: sourceInv.userId,

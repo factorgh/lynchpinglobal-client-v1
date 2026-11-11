@@ -4,8 +4,15 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { driver, DriveStep, Driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { usePathname } from "next/navigation";
-import { getTourSteps, getTourKey, TourPersona } from "./tourSteps";
+import { getTourSteps, getTourKey, TourPersona, TOUR_FINISHED_EVENT } from "./tourSteps";
 import { useAuth } from "@/context/authContext";
+
+export { TOUR_FINISHED_EVENT };
+
+const announceTourFinished = (key: string) => {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(TOUR_FINISHED_EVENT, { detail: { key } }));
+};
 
 // Storage helpers
 const storage = {
@@ -211,6 +218,7 @@ const AppTour: React.FC<AppTourProps> = ({
       onDestroyStarted: () => {
         syncTourSeenToDb(newTourKey);
         driverInstance.destroy();
+        announceTourFinished(newTourKey);
       },
       steps: steps,
     });
@@ -244,6 +252,8 @@ const AppTour: React.FC<AppTourProps> = ({
                 clearInterval(checkInterval);
                 if (attempts <= 15) {
                   driverInstance.drive();
+                } else {
+                  announceTourFinished(newTourKey);
                 }
               }
             }, 300);

@@ -46,6 +46,13 @@ export interface TimelineItemProps {
   targetAccount?: string;
   entityType?: string;
   amount?: number;
+  metadata?: {
+    changes?: { field: string; label: string; from: string; to: string }[];
+    actorName?: string;
+    actorLicense?: string;
+    actorRole?: string;
+    [key: string]: any;
+  };
   timestamp: Date | string;
 }
 
@@ -59,6 +66,7 @@ const TimelineWidget: React.FC<TimelineItemProps> = ({
   targetAccount,
   entityType,
   amount,
+  metadata,
   timestamp,
 }) => {
   const isDelete = (title || "").toLowerCase().includes("delete");
@@ -121,12 +129,17 @@ const TimelineWidget: React.FC<TimelineItemProps> = ({
 
   // Parse Actor info
   const actorObj: ActivityActor | null = typeof user === "object" && user ? user : null;
+  // metadata keeps the actor's name even if that account was later deleted.
   const actorName =
-    actorObj?.displayName || actorObj?.name || (typeof user === "string" ? user : "System Administrator");
+    actorObj?.displayName ||
+    actorObj?.name ||
+    metadata?.actorName ||
+    (typeof user === "string" ? user : "System (automated)");
   const actorUsername = actorObj?.name && actorObj.name !== actorName ? actorObj.name : null;
-  const actorRole = (actorObj?.role || "admin").toLowerCase();
-  const actorLicense = actorObj?.license;
+  const actorRole = (actorObj?.role || metadata?.actorRole || "admin").toLowerCase();
+  const actorLicense = actorObj?.license || metadata?.actorLicense;
   const actorPhoto = actorObj?.photo;
+  const changes = Array.isArray(metadata?.changes) ? metadata!.changes! : [];
 
   // Parse Target Account / Client info
   const targetUserObj: ActivityTarget | null =
@@ -201,6 +214,29 @@ const TimelineWidget: React.FC<TimelineItemProps> = ({
         {description}
       </div>
 
+      {changes.length > 0 && (
+        <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <table className="w-full text-[11px]">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr>
+                <th className="text-left font-semibold px-2.5 py-1.5">Field</th>
+                <th className="text-left font-semibold px-2.5 py-1.5">Old value</th>
+                <th className="text-left font-semibold px-2.5 py-1.5">New value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {changes.map((c, i) => (
+                <tr key={`${c.field}-${i}`} className="border-t border-slate-100">
+                  <td className="px-2.5 py-1.5 font-semibold text-slate-700">{c.label}</td>
+                  <td className="px-2.5 py-1.5 text-rose-700 break-all">{c.from}</td>
+                  <td className="px-2.5 py-1.5 text-emerald-700 break-all">{c.to}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Audit Meta Grid: Performed By (Actor) vs Target Account (Client Affected) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
         {/* ACTOR CARD: Who performed the action */}
@@ -274,7 +310,7 @@ const TimelineWidget: React.FC<TimelineItemProps> = ({
 
             <div className="flex items-center gap-1.5 mt-0.5 truncate">
               <span className="font-bold text-xs text-slate-900 truncate">
-                {resolvedTargetName || "System / Master Account"}
+                {resolvedTargetName || "System (no specific account)"}
               </span>
 
               {resolvedTargetLicense && (

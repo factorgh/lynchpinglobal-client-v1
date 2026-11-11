@@ -1,15 +1,11 @@
 "use client";
 
 import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { signOutAndRedirect } from "@/lib/session";
 
 const SignOutButton = ({ isCollapsed }: any) => {
-  const router = useRouter();
-
   const handleSignOut = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    router.replace("/login");
+    signOutAndRedirect("/login");
   };
 
   return (

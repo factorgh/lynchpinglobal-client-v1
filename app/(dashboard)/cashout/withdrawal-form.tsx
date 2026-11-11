@@ -1,6 +1,5 @@
 "use client";
 
-import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import { useGetUsersQuery } from "@/services/auth";
 import { useCreateNotificationMutation } from "@/services/notifications";
 import { useCreateWithdrawalMutation } from "@/services/withdrawals";
@@ -17,7 +16,6 @@ const WithdrawalForm: React.FC = () => {
   const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
   const [selectedUser, setSelectedUser] = useState<any[]>([]);
   const [createNotification] = useCreateNotificationMutation();
-  const [createActivity] = useCreateActivityLogMutation();
 
   // Hnadle file category
 
@@ -28,24 +26,8 @@ const WithdrawalForm: React.FC = () => {
 
   const handleFormSubmit = async (values: any) => {
     try {
-      const targetUserObj = users.find((u: any) => u._id === values.user);
-      const clientName =
-        targetUserObj?.displayName || targetUserObj?.name || "Client";
-      const clientLicense = targetUserObj?.license || "";
-
-      if (loggedInUser._id) {
-        await createActivity({
-          activity: "Disbursement Created",
-          description: `Disbursement entry of GHS ${Number(values.amount).toLocaleString()} created for ${clientName}${clientLicense ? ` (${clientLicense})` : ""}. Status: ${values.status || "Pending"}`,
-          user: loggedInUser._id,
-          targetUser: values.user,
-          targetName: clientName,
-          targetLicense: clientLicense,
-          targetAccount: "Disbursement",
-          entityType: "Disbursement",
-          amount: Number(values.amount),
-        }).unwrap();
-      }
+      // The API records the activity log entry and any principal deduction.
+      await createPayment(values).unwrap();
       // Send notifications
       await createNotification({
         title: "Disbursement Information",
@@ -105,7 +87,9 @@ const WithdrawalForm: React.FC = () => {
               }
               options={users?.map((user: any) => ({
                 value: user._id,
-                label: user.name,
+                label: `${user.displayName || user.name} (@${user.name}${
+                  user.license ? `, ${user.license}` : ""
+                })`,
               }))}
             />
           </Form.Item>

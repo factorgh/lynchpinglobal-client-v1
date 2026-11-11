@@ -8,6 +8,9 @@ import { Modal } from "antd";
 import { ShieldCheck, CheckCircle2 } from "lucide-react";
 import { useSignupMutation } from "@/services/auth";
 import { useAuth } from "@/context/authContext";
+import { getPasswordError } from "@/lib/passwordPolicy";
+import { resetCachedApiData } from "@/lib/session";
+import PasswordRequirements from "@/components/PasswordRequirements";
 
 const RegisterForm = () => {
   const [email, setEmail] = useState("");
@@ -16,7 +19,7 @@ const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [userName, setUserName] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
   const [errors, setErrors] = useState({
@@ -24,7 +27,7 @@ const RegisterForm = () => {
     password: "",
     passwordConfirm: "",
     userName: "",
-    displayName: "",
+    fullName: "",
     terms: "",
   });
 
@@ -41,16 +44,7 @@ const RegisterForm = () => {
 
   const validatePassword = (value: string) => {
     if (!value) return "Password is required.";
-    if (value.length < 8) return "Password must be at least 8 characters.";
-    if (!/[A-Z]/.test(value))
-      return "Password must contain at least one uppercase letter.";
-    if (!/[a-z]/.test(value))
-      return "Password must contain at least one lowercase letter.";
-    if (!/[0-9]/.test(value))
-      return "Password must contain at least one number.";
-    if (!/[@$!%*?&]/.test(value))
-      return "Password must contain at least one special character.";
-    return "";
+    return getPasswordError(value);
   };
 
   const validatePasswordConfirm = (value: string) => {
@@ -59,12 +53,13 @@ const RegisterForm = () => {
   };
 
   const validateUserName = (value: string) => {
-    if (!value) return "Username is required.";
+    if (!value.trim()) return "Username is required.";
+    if (/\s/.test(value.trim())) return "Username cannot contain spaces.";
     return "";
   };
 
-  const validateDisplayName = (value: string) => {
-    if (!value) return "Display Name is required.";
+  const validateFullName = (value: string) => {
+    if (!value.trim()) return "Full name is required.";
     return "";
   };
 
@@ -82,7 +77,7 @@ const RegisterForm = () => {
     const passwordError = validatePassword(password);
     const passwordConfirmError = validatePasswordConfirm(passwordConfirm);
     const userNameError = validateUserName(userName);
-    const displayNameError = validateDisplayName(displayName);
+    const fullNameError = validateFullName(fullName);
     const termsError = validateTerms(agreedToTerms);
 
     if (
@@ -90,7 +85,7 @@ const RegisterForm = () => {
       passwordError ||
       passwordConfirmError ||
       userNameError ||
-      displayNameError ||
+      fullNameError ||
       termsError
     ) {
       setErrors({
@@ -98,7 +93,7 @@ const RegisterForm = () => {
         password: passwordError,
         passwordConfirm: passwordConfirmError,
         userName: userNameError,
-        displayName: displayNameError,
+        fullName: fullNameError,
         terms: termsError,
       });
       return;
@@ -106,10 +101,11 @@ const RegisterForm = () => {
 
     try {
       const response = await signup({
-        email,
+        email: email.trim(),
         password,
-        name: userName,
-        displayName,
+        name: userName.trim(),
+        fullName: fullName.trim(),
+        displayName: fullName.trim(),
         passwordConfirm,
         agreedToTerms: true,
       }).unwrap();
@@ -117,6 +113,7 @@ const RegisterForm = () => {
       const { token, data } = response;
       const user = data.user;
 
+      resetCachedApiData();
       setToken(token);
       setUser(user);
       setRoles(user.role);
@@ -142,40 +139,73 @@ const RegisterForm = () => {
           Register to Lynchpin Global
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4" data-tour="register-form">
-          {/* Display Name */}
+          {/* Email */}
           <div>
             <label
-              htmlFor="displayName"
+              htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Display Name
+              Email Address
             </label>
             <input
-              id="displayName"
-              type="text"
-              value={displayName}
+              id="email"
+              type="email"
+              value={email}
               onChange={(e) => {
-                setDisplayName(e.target.value);
+                setEmail(e.target.value);
                 setErrors((prev) => ({
                   ...prev,
-                  displayName: validateDisplayName(e.target.value),
+                  email: validateEmail(e.target.value),
                 }));
               }}
-              placeholder="Enter your display name"
+              placeholder="Enter your email address"
               required
               className={`w-full px-4 py-2 border bg-white ${
-                errors.displayName ? "border-red-500" : "border-gray-300"
+                errors.email ? "border-red-500" : "border-gray-300"
               } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                errors.displayName
-                  ? "focus:ring-red-500"
-                  : "focus:ring-blue-500"
+                errors.email ? "focus:ring-red-500" : "focus:ring-blue-500"
               }`}
               disabled={isLoading}
             />
-            {errors.displayName && (
-              <p className="text-red-500 text-sm">{errors.displayName}</p>
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
             )}
           </div>
+
+          {/* Full Name */}
+          <div>
+            <label
+              htmlFor="fullName"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Full Name
+            </label>
+            <input
+              id="fullName"
+              type="text"
+              value={fullName}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                setErrors((prev) => ({
+                  ...prev,
+                  fullName: validateFullName(e.target.value),
+                }));
+              }}
+              placeholder="e.g. Ama Serwaa Mensah"
+              autoComplete="name"
+              required
+              className={`w-full px-4 py-2 border bg-white ${
+                errors.fullName ? "border-red-500" : "border-gray-300"
+              } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
+                errors.fullName ? "focus:ring-red-500" : "focus:ring-blue-500"
+              }`}
+              disabled={isLoading}
+            />
+            {errors.fullName && (
+              <p className="text-red-500 text-sm">{errors.fullName}</p>
+            )}
+          </div>
+
           {/* Username */}
           <div>
             <label
@@ -195,7 +225,8 @@ const RegisterForm = () => {
                   userName: validateUserName(e.target.value),
                 }));
               }}
-              placeholder="Enter your username"
+              placeholder="Choose a username"
+              autoComplete="username"
               required
               className={`w-full px-4 py-2 border bg-white ${
                 errors.userName ? "border-red-500" : "border-gray-300"
@@ -204,41 +235,11 @@ const RegisterForm = () => {
               }`}
               disabled={isLoading}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              You can use your username instead of your email address to log in.
+            </p>
             {errors.userName && (
               <p className="text-red-500 text-sm">{errors.userName}</p>
-            )}
-          </div>
-
-          {/* Email */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErrors((prev) => ({
-                  ...prev,
-                  email: validateEmail(e.target.value),
-                }));
-              }}
-              placeholder="Enter your email"
-              required
-              className={`w-full px-4 py-2 border bg-white ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                errors.email ? "focus:ring-red-500" : "focus:ring-blue-500"
-              }`}
-              disabled={isLoading}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm">{errors.email}</p>
             )}
           </div>
 
@@ -285,6 +286,7 @@ const RegisterForm = () => {
             {errors.password && (
               <p className="text-red-500 text-sm">{errors.password}</p>
             )}
+            <PasswordRequirements password={password} className="mt-2" />
           </div>
 
           {/* Confirm Password */}

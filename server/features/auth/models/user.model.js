@@ -10,10 +10,10 @@ const userSchema = new mongoose.Schema(
       required: [true, "Please provide your name"],
       unique: true,
     },
+    // Full name shown across the app; clients can share the same full name.
     displayName: {
       type: String,
-      unique: true,
-      sparse: true,
+      trim: true,
     },
     designation: {
       type: String,

@@ -202,7 +202,7 @@ export const EndOfQuarterReportsCard: React.FC<EndOfQuarterReportsCardProps> = (
 
           {/* Reports Grid Section */}
           <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Report 1: Quarterly Mandate Statement */}
+            {/* Report 1: Quarterly Mandate Report */}
             <div className="p-4 rounded-xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50 flex flex-col justify-between hover:border-blue-300 transition-all shadow-sm">
               <div>
                 <div className="flex items-center justify-between mb-2.5">
@@ -212,7 +212,7 @@ export const EndOfQuarterReportsCard: React.FC<EndOfQuarterReportsCardProps> = (
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-gray-900 leading-tight">
-                        Quarterly Mandate Statement
+                        Quarterly Mandate Report
                       </h4>
                       <span className="text-[11px] text-gray-500">
                         Official Partner Statement
@@ -261,7 +261,7 @@ export const EndOfQuarterReportsCard: React.FC<EndOfQuarterReportsCardProps> = (
                       : "border-emerald-200 text-emerald-700 hover:text-emerald-800 bg-emerald-50/40"
                   }`}
                 >
-                  {isClosed ? "View Statement" : "Preview Statement"}
+                  {isClosed ? "View Report" : "Preview Report"}
                 </Button>
 
                 {isClosed ? (

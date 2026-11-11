@@ -1,4 +1,5 @@
 import catchAsync from "../error/catch-async-error.js";
+import mongoose from "mongoose";
 import { deleteOne, getOne, updateOne } from "../factory/factory-functions.js";
 
 import ActivityLog from "./activity.model.js";
@@ -174,14 +175,23 @@ const enrichActivityTarget = async (log) => {
 
 export const createActivityLog = catchAsync(async (req, res, next) => {
   const data = { ...req.body };
-  if (!data.user && req.user?._id) {
+  // The actor is always the authenticated user; never trust a client-supplied actor.
+  if (req.user?._id) {
     data.user = req.user._id;
   }
+  const originalTargetUser = data.targetUser;
   try {
     const enriched = await enrichActivityTarget(data);
     Object.assign(data, enriched);
   } catch (err) {
     // Keep activity recording resilient if the related entity is unavailable.
+  }
+  // Enrichment returns a populated object; persist only the reference (deleted users have no _id here).
+  if (data.targetUser && typeof data.targetUser === "object") {
+    data.targetUser = data.targetUser._id || originalTargetUser;
+  }
+  if (data.targetUser && !mongoose.isValidObjectId(String(data.targetUser))) {
+    delete data.targetUser;
   }
   const doc = await ActivityLog.create(data);
   res.status(201).json({

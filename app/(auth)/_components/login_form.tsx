@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useLoginMutation } from "@/services/auth";
 import { useAuth } from "@/context/authContext";
+import { resetCachedApiData } from "@/lib/session";
 
 // Call base url
 
@@ -37,10 +38,11 @@ const LoginForm = () => {
       return;
     }
     try {
-      const response = await login({ identifier, password }).unwrap();
+      const response = await login({ identifier: identifier.trim(), password }).unwrap();
       const { token, data } = response;
       const user = data.user;
 
+      resetCachedApiData();
       // Use auth context to set auth state
       setToken(token);
       setUser(user);

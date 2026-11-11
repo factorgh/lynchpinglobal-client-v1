@@ -52,7 +52,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
 
   const isStatement = documentType === "mandate-statement";
   const docTitle = isStatement
-    ? `Quarterly Mandate Statement (${quarter} ${year})`
+    ? `Quarterly Mandate Report (${quarter} ${year})`
     : `Quarterly Ledger Report (${quarter} ${year})`;
 
   return (
@@ -114,7 +114,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
               color={data.isClosed ? "green" : "blue"}
               className="text-xs px-2.5 py-0.5 uppercase font-medium"
             >
-              {data.isClosed ? "Official Closed Statement" : "Interim Progress Ledger"}
+              {data.isClosed ? "Official Quarterly Mandate Report" : "Interim Progress Ledger"}
             </Tag>
             <p className="text-xs text-gray-500 mt-1 font-mono">
               REF: LPG-{year}-{quarter}-
@@ -130,7 +130,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
         <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-100/80 p-4 rounded-xl flex items-center justify-between">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
-              {isStatement ? "Holding Statement" : "Disbursement Ledger"}
+              {isStatement ? "Quarterly Mandate Report" : "Disbursement Ledger"}
             </span>
             <h2 className="text-lg font-bold text-gray-900 mt-0.5">{docTitle}</h2>
             <p className="text-xs text-gray-600">

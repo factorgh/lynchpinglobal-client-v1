@@ -221,17 +221,17 @@ export default function DashboardPage() {
         <Form form={form} layout="vertical" onFinish={handleAddClientSubmit}>
           <Form.Item
             name="name"
-            label="Full Name / Username"
-            rules={[{ required: true, message: "Please enter client name" }]}
+            label="Username"
+            rules={[{ required: true, message: "Please enter a username" }]}
           >
-            <Input placeholder="e.g. John Doe" />
+            <Input placeholder="e.g. johndoe" />
           </Form.Item>
           <Form.Item
             name="displayName"
-            label="Display Name"
-            rules={[{ required: true, message: "Please enter display name" }]}
+            label="Full Name"
+            rules={[{ required: true, message: "Please enter the client's full name" }]}
           >
-            <Input placeholder="e.g. John D." />
+            <Input placeholder="e.g. John Doe" />
           </Form.Item>
           <Form.Item
             name="email"

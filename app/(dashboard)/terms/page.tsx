@@ -97,33 +97,37 @@ const TermsPageContent = () => {
     }
   }, [user, isClientDocumentsPage]);
 
-  // 1. Fetch Official Institutional Terms & Conditions (Read-Only)
+  // 1. Fetch LP Library documents shared with clients (read-only)
   const fetchTerms = async () => {
     setIsTermsLoading(true);
     try {
+      const authToken = getStoredToken();
+      const authHeaders = authToken
+        ? {
+            Authorization: authToken.startsWith("Bearer ")
+              ? authToken
+              : `Bearer ${authToken}`,
+          }
+        : undefined;
       const dbRes = await fetch(
         `${API_BASE}/uploads/db?category=conditions&provider=any`,
+        { headers: authHeaders },
       );
-      if (!dbRes.ok) throw new Error("Failed to fetch terms");
+      if (!dbRes.ok) throw new Error("Failed to fetch LP Library");
       const dbData = await dbRes.json();
       let files = (dbData?.files || [])
-        .filter(
-          (f: any) =>
-            f?.url && (f.resource_type === "image" || f.format === "pdf"),
-        )
+        .filter((f: any) => f?.url)
         .map((f: any) => ({ name: f.filename || f.public_id, url: f.url }));
 
       if (files.length === 0) {
         const r2Res = await fetch(
           `${API_BASE}/uploads/list?category=conditions&provider=r2`,
+          { headers: authHeaders },
         );
         if (r2Res.ok) {
           const r2Data = await r2Res.json();
           files = (r2Data?.files || [])
-            .filter(
-              (f: any) =>
-                f?.url && (f.resource_type === "image" || f.format === "pdf"),
-            )
+            .filter((f: any) => f?.url)
             .map((f: any) => ({ name: f.filename || f.public_id, url: f.url }));
         }
       }
@@ -334,7 +338,7 @@ const TermsPageContent = () => {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold mb-2 backdrop-blur-xs">
               <SafetyCertificateOutlined />
-              <span>Compliance & Institutional Records</span>
+              <span>{isClientDocumentsPage ? "Client Documents" : "Lynchpin Global Documents"}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">
               {isClientDocumentsPage ? "My Documents" : "LP Library"}
@@ -342,7 +346,7 @@ const TermsPageContent = () => {
             <p className="text-xs sm:text-sm text-white/80 font-medium mt-1">
               {isClientDocumentsPage
                 ? "Upload and manage documents submitted to Lynchpin Global administrators."
-                : "Review official Lynchpin Global documents and policies."}
+                : "Documents shared with you by Lynchpin Global."}
             </p>
           </div>
         </div>
@@ -356,11 +360,11 @@ const TermsPageContent = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500 mr-1">
-                  Official Documents:
+                  LP Library Documents:
                 </span>
                 {pdfUrls.length === 0 ? (
                   <span className="text-xs text-slate-400 italic">
-                    No terms documents published yet
+                    No documents published yet
                   </span>
                 ) : (
                   pdfUrls.map((file, idx) => (
@@ -414,31 +418,40 @@ const TermsPageContent = () => {
                 <div className="flex flex-col items-center justify-center py-28 text-slate-400">
                   <Spin size="large" />
                   <p className="text-xs font-semibold mt-3 text-slate-500">
-                    Loading Lynchpin Global terms...
+                    Loading LP Library...
                   </p>
                 </div>
-              ) : selectedPdf ? (
+              ) : selectedPdf && /\.(pdf|png|jpe?g|webp|gif)($|\?)/i.test(selectedPdf) ? (
                 <iframe
                   src={selectedPdf}
-                  title="Official Terms & Conditions"
+                  title="LP Library document"
                   width="100%"
                   height="780px"
                   className="rounded-xl border border-slate-200"
                   style={{ border: "none" }}
                 />
+              ) : selectedPdf ? (
+                <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+                  <FileTextOutlined className="text-4xl text-emerald-600 mb-3" />
+                  <h3 className="text-base font-bold text-slate-800">
+                    This document can't be previewed here
+                  </h3>
+                  <p className="text-xs text-slate-500 max-w-md mt-1">
+                    Use "Open in Window" or "Download" above to view it.
+                  </p>
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
                   <img
                     src="/empty-doc.svg"
-                    alt="No terms and conditions found"
+                    alt="No LP Library documents found"
                     className="max-w-[260px] w-full h-auto opacity-80 mb-4"
                   />
                   <h3 className="text-base font-bold text-slate-800">
-                    No Policy Documents Published Yet
+                    No LP Library Documents Published Yet
                   </h3>
                   <p className="text-xs text-slate-500 max-w-md mt-1 mb-5">
-                    Official Lynchpin Global terms and conditions are configured
-                    by the portfolio compliance team.
+                    Documents shared by the Lynchpin Global team will appear here.
                   </p>
                 </div>
               )}

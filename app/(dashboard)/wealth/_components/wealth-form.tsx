@@ -107,25 +107,8 @@ const WealthForm: React.FC = () => {
     };
 
     try {
+      // The API logs the new mandate against the selected client.
       await createInvestment(formattedValues).unwrap();
-
-      const targetUserObj: any = (users as any[]).find((u: any) => u._id === values.userId);
-      const clientName = targetUserObj?.displayName || targetUserObj?.name || values.name || "Client";
-      const clientLicense = targetUserObj?.license || "";
-
-      if (loggedInUser._id) {
-        await createActivity({
-          activity: "New Mandate Created",
-          description: `New mandate created for client "${clientName}"${clientLicense ? ` (${clientLicense})` : ""} with initial principal GHS ${Number(values.principal || 0).toLocaleString()}`,
-          user: loggedInUser._id,
-          targetUser: values.userId,
-          targetName: clientName,
-          targetLicense: clientLicense,
-          targetAccount: "New Mandate",
-          entityType: "Mandate",
-          amount: Number(values.principal || 0),
-        }).unwrap();
-      }
 
       toast.success("Mandate created successfully");
       setOpen(false);

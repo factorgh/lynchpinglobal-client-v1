@@ -119,7 +119,7 @@ const WithdrawalTable: React.FC<any> = () => {
 
   const getUserName = (user: any) => {
     if (typeof user === "object" && user) {
-      return user.name || user.displayName || "N/A";
+      return user.displayName || user.name || "N/A";
     }
     return user || "N/A";
   };

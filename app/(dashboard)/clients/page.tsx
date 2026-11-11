@@ -804,25 +804,30 @@ export default function ClientsPage() {
             <div className="space-y-3">
               <Form.Item
                 label={<span className="font-semibold text-xs text-slate-700">Full Name</span>}
-                name="name"
-                rules={[{ required: true, message: "Please provide the client name" }]}
+                name="displayName"
+                rules={[{ required: true, message: "Please provide the client's full name" }]}
                 className="mb-3"
               >
                 <Input
-                  prefix={<UserOutlined className="text-slate-400 text-xs mr-1" />}
+                  prefix={<IdcardOutlined className="text-slate-400 text-xs mr-1" />}
                   placeholder="e.g. John Mensah"
                   className="rounded-xl py-2 text-xs"
                 />
               </Form.Item>
 
               <Form.Item
-                label={<span className="font-semibold text-xs text-slate-700">Display / Corporate Name</span>}
-                name="displayName"
+                label={<span className="font-semibold text-xs text-slate-700">Username</span>}
+                name="name"
+                rules={[
+                  { required: true, message: "Please provide a username" },
+                  { pattern: /^\S+$/, message: "Username cannot contain spaces" },
+                ]}
+                extra={<span className="text-[11px] text-slate-400">The client can log in with this username or their email address.</span>}
                 className="mb-3"
               >
                 <Input
-                  prefix={<IdcardOutlined className="text-slate-400 text-xs mr-1" />}
-                  placeholder="e.g. Mensah Capital (Optional)"
+                  prefix={<UserOutlined className="text-slate-400 text-xs mr-1" />}
+                  placeholder="e.g. john_mensah"
                   className="rounded-xl py-2 text-xs"
                 />
               </Form.Item>
@@ -1027,7 +1032,7 @@ export default function ClientsPage() {
               </Form.Item>
 
               <Form.Item
-                label={<span className="font-semibold text-xs text-slate-700">Display Name</span>}
+                label={<span className="font-semibold text-xs text-slate-700">Full Name</span>}
                 name="displayName"
                 className="mb-3"
               >

@@ -317,6 +317,7 @@ const ActivityPage: React.FC = () => {
                   targetAccount={activity.targetAccount}
                   entityType={activity.entityType}
                   amount={activity.amount}
+                  metadata={activity.metadata}
                   timestamp={activity.createdAt || activity.date}
                 />
               ))}

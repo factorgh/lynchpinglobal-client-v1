@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useCreateActivityLogMutation } from "@/services/activity-logs";
 import {
   useDeleteUserMutation,
   useGetAllUsersQuery,
@@ -46,7 +45,6 @@ const Users = () => {
   const { data: dataSource, isFetching, refetch: refetchUsers } = useGetAllUsersQuery(null);
   const [deleteUser] = useDeleteUserMutation();
   const [updateUser] = useUpdateUserMutation();
-  const [createActivity] = useCreateActivityLogMutation();
   const loggedInUser = JSON.parse(
     typeof window !== "undefined" ? localStorage.getItem("user") || "{}" : "{}"
   );
@@ -150,26 +148,15 @@ const Users = () => {
       });
 
       if (result.isConfirmed) {
+        // The API records the deletion (actor, affected account and its details) in the activity log.
         await deleteUser(id).unwrap();
-        if (loggedInUser._id) {
-          const targetU = allUsers.find((u: any) => u._id === id);
-          const uName = targetU?.displayName || targetU?.name || name || "User";
-          await createActivity({
-            activity: "User Account Deleted",
-            description: `User account "${uName}" (@${targetU?.name || 'user'}, ${targetU?.license || id}) with role "${targetU?.role || 'user'}" was deleted`,
-            user: loggedInUser._id,
-            targetUser: id,
-            targetName: uName,
-            targetLicense: targetU?.license,
-            targetAccount: `@${targetU?.name || 'user'}`,
-            entityType: "User",
-            entityId: String(id),
-          }).unwrap();
-        }
         toast.success("User deleted successfully");
       }
     } catch (error: any) {
-      toast.error("Failed to delete user: " + error?.message);
+      toast.error(
+        "Failed to delete user: " +
+          (error?.data?.message || error?.message || "unexpected error")
+      );
     }
   };
 
@@ -209,20 +196,6 @@ const Users = () => {
           refetchUsers();
         }
 
-        if (loggedInUser._id) {
-          const uName = selectedUser.displayName || selectedUser.name;
-          await createActivity({
-            activity: "User Profile Updated",
-            description: `User "${uName}" (@${selectedUser.name}, ${selectedUser.license || selectedUser._id}) profile was updated (Role: ${values.role || selectedUser.role})`,
-            user: loggedInUser._id,
-            targetUser: selectedUser._id,
-            targetName: uName,
-            targetLicense: selectedUser.license,
-            targetAccount: `@${selectedUser.name}`,
-            entityType: "User",
-            entityId: String(selectedUser._id),
-          }).unwrap();
-        }
         toast.success("User updated successfully");
       }
       setSelectedUser(null);

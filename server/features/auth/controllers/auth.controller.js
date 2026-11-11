@@ -5,12 +5,10 @@ import { promisify } from "util";
 import { catchAsync } from "../../../utils/catchAsync.js";
 import AppError from "../../../utils/appError.js";
 import User from "../models/user.model.js";
-// Temporarily disabled for debugging
-// import { auditLogger, logAuditEvent } from "../../../middleware/auditLogger.js";
-import PasswordValidator from "../../../utils/passwordValidator.js";
+import { getPasswordError } from "../../../../lib/passwordPolicy.js";
+import { logActivity } from "../../activity-log/logActivity.js";
 
-// Create password validator instance
-const passwordValidator = new PasswordValidator();
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
  * Create JWT token
@@ -38,14 +36,24 @@ const createSendToken = (user, statusCode, res) => {
 
   res.cookie("jwt", token, cookieOptions);
 
-  // Remove password from output
-  user.password = undefined;
+  const safeUser = typeof user.toObject === "function" ? user.toObject() : { ...user };
+  for (const field of [
+    "password",
+    "passwordConfirm",
+    "passwordHistory",
+    "passwordResetToken",
+    "passwordResetExpiresIn",
+    "failedLoginAttempts",
+    "twoFactorSecret",
+  ]) {
+    delete safeUser[field];
+  }
 
   res.status(statusCode).json({
     status: "success",
     token,
     data: {
-      user,
+      user: safeUser,
     },
   });
 };
@@ -62,17 +70,23 @@ const sanitizeInput = (input) => {
  * User signup
  */
 export const signup = catchAsync(async (req, res, next) => {
-  const { name, email, password, passwordConfirm, displayName, agreedToTerms } = req.body;
+  const { name, email, password, passwordConfirm, displayName, fullName, agreedToTerms } = req.body;
 
   // Required fields
   if (!name || !email || !password || !passwordConfirm) {
-    return next(new AppError("All fields are required", 400));
+    return next(new AppError("Email, full name, username and password are all required", 400));
   }
 
   // Basic sanitization
   const sanitizedName = name.trim();
   const sanitizedEmail = email.trim().toLowerCase();
-  const sanitizedDisplayName = displayName ? displayName.trim() : sanitizedName;
+  const providedFullName = (fullName || displayName || "").trim();
+  if (!providedFullName) {
+    return next(new AppError("Full name is required", 400));
+  }
+  if (/\s/.test(sanitizedName)) {
+    return next(new AppError("Username cannot contain spaces", 400));
+  }
 
   // Basic email check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -80,9 +94,9 @@ export const signup = catchAsync(async (req, res, next) => {
     return next(new AppError("Invalid email address", 400));
   }
 
-  // Password rules (keep it simple)
-  if (password.length < 8) {
-    return next(new AppError("Password must be at least 8 characters", 400));
+  const passwordError = getPasswordError(password);
+  if (passwordError) {
+    return next(new AppError(passwordError, 400));
   }
 
   if (password !== passwordConfirm) {
@@ -94,6 +108,12 @@ export const signup = catchAsync(async (req, res, next) => {
   if (existingUser) {
     return next(new AppError("Email already registered", 400));
   }
+  const existingUsername = await User.findOne({
+    name: new RegExp(`^${escapeRegex(sanitizedName)}$`, "i"),
+  });
+  if (existingUsername) {
+    return next(new AppError("That username is already taken. Please choose another.", 400));
+  }
 
   // Create user
   const newUser = await User.create({
@@ -101,9 +121,19 @@ export const signup = catchAsync(async (req, res, next) => {
     email: sanitizedEmail,
     password,
     passwordConfirm,
-    displayName: sanitizedDisplayName,
+    displayName: providedFullName,
     agreedToTerms: agreedToTerms !== undefined ? Boolean(agreedToTerms) : true,
     agreedToTermsAt: new Date(),
+  });
+
+  await logActivity({
+    actor: newUser,
+    activity: "Client Account Registered",
+    description: `New client "${providedFullName}" (@${sanitizedName}, ${sanitizedEmail}) self-registered. Client ID ${newUser.license || "—"}.`,
+    target: newUser,
+    targetAccount: `@${sanitizedName}`,
+    entityType: "User",
+    entityId: newUser._id,
   });
 
   createSendToken(newUser, 201, res);
@@ -121,17 +151,23 @@ export const login = catchAsync(async (req, res, next) => {
   }
 
   const sanitizedIdentifier = sanitizeInput(identifier);
-  const sanitizedPassword = sanitizeInput(password);
+  // Passwords are compared verbatim; stripping characters would break passwords containing < or >.
+  const sanitizedPassword = String(password);
+  const authSelect =
+    "+password +failedLoginAttempts +mustChangePassword +twoFactorEnabled +passwordHistory +passwordResetToken +passwordResetExpiresIn +passwordLastChanged +passwordChangedAt";
 
-  // Find user by email or username
-  const user = await User.findOne({
+  // Find user by email or username (exact match first, then case-insensitive username)
+  let user = await User.findOne({
     $or: [
       { email: sanitizedIdentifier.toLowerCase() },
       { name: sanitizedIdentifier },
     ],
-  }).select(
-    "+password +failedLoginAttempts +mustChangePassword +twoFactorEnabled +passwordHistory +passwordResetToken +passwordResetExpiresIn +passwordLastChanged +passwordChangedAt",
-  );
+  }).select(authSelect);
+  if (!user) {
+    user = await User.findOne({
+      name: new RegExp(`^${escapeRegex(sanitizedIdentifier)}$`, "i"),
+    }).select(authSelect);
+  }
 
   if (!user) {
     // await logAuditEvent(null, "LOGIN_FAILED", req, false, "User not found");
@@ -263,10 +299,9 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     );
   }
 
-  // Validate password strength
-  const passwordValidation = passwordValidator.validatePassword(password, {});
-  if (!passwordValidation.isValid) {
-    return next(new AppError(passwordValidation.errors.join(", "), 400));
+  const passwordError = getPasswordError(password);
+  if (passwordError) {
+    return next(new AppError(passwordError, 400));
   }
 
   // Check if passwords match
