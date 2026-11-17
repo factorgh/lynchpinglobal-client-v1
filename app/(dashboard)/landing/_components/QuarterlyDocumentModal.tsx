@@ -22,6 +22,7 @@ interface DocumentModalProps {
     totalBalance: number;
     principal: number;
     accruedInterest: number;
+    netAccruedReturn?: number;
     addOns: number;
     addonAccruedReturn: number;
     performanceYield: number;
@@ -160,10 +161,14 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
           </div>
           <div className="bg-gray-50 border border-gray-100 p-3.5 rounded-xl">
             <span className="text-xs uppercase text-gray-500 font-medium">
-              Accrued Earnings
+              Accrued Earnings (Net)
             </span>
             <p className="text-base font-bold text-emerald-600 mt-1">
-              {formatPriceGHS(data.accruedInterest)}
+              {formatPriceGHS(
+                data.netAccruedReturn !== undefined
+                  ? data.netAccruedReturn
+                  : data.accruedInterest,
+              )}
             </p>
           </div>
           <div className="bg-gray-50 border border-gray-100 p-3.5 rounded-xl">

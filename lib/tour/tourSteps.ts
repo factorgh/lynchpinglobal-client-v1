@@ -118,7 +118,7 @@ export const clientWithdrawalSteps: DriveStep[] = [
   step(
     '[data-tour="withdrawal-table"]',
     "📋 Disbursement History",
-    "Track each request: Pending, Approved, Processing, Rejected or Cancelled. Rejected or cancelled requests are never deducted from your mandate.",
+    "Track each request: Pending, Approved, or Cancelled. Cancelled requests are never deducted from your mandate.",
     "top"
   ),
   welcome(

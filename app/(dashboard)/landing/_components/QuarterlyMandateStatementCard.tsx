@@ -17,6 +17,7 @@ interface QuarterlyStatementCardProps {
   totalBalance: number;
   principal: number;
   accruedInterest: number;
+  netAccruedReturn?: number;
   addOns: number;
   addonAccruedReturn: number;
   performanceYield: number;
@@ -33,6 +34,7 @@ export const QuarterlyMandateStatementCard: React.FC<
   totalBalance,
   principal,
   accruedInterest,
+  netAccruedReturn,
   addOns,
   addonAccruedReturn,
   performanceYield,
@@ -245,6 +247,14 @@ export const QuarterlyMandateStatementCard: React.FC<
           totalBalance,
           principal,
           accruedInterest,
+          netAccruedReturn:
+            netAccruedReturn !== undefined
+              ? netAccruedReturn
+              : accruedInterest +
+                addonAccruedReturn +
+                performanceYield -
+                managementFee -
+                operationalCost,
           addOns,
           addonAccruedReturn,
           performanceYield,

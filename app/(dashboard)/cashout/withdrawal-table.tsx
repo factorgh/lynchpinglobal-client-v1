@@ -99,10 +99,7 @@ const WithdrawalTable: React.FC<any> = () => {
       const status = values.status;
       const payload = {
         ...values,
-        approvedDate:
-          status === "Approved" || status === "Processing"
-            ? values.approvedDate
-            : null,
+        approvedDate: status === "Approved" ? values.approvedDate : null,
       };
       await updatePayment({
         id: editRentalId,
@@ -149,7 +146,7 @@ const WithdrawalTable: React.FC<any> = () => {
       badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
     } else if (s === "pending") {
       badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
-    } else if (s === "cancelled" || s === "rejected") {
+    } else if (s === "cancelled") {
       badgeClass = "bg-rose-50 text-rose-700 border-rose-200";
     }
 
@@ -193,7 +190,6 @@ const WithdrawalTable: React.FC<any> = () => {
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="cancelled">Cancelled</option>
-            <option value="rejected">Rejected</option>
           </select>
 
           <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">
@@ -419,13 +415,10 @@ const WithdrawalTable: React.FC<any> = () => {
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   const status = getFieldValue("status");
-                  if (
-                    (status === "Approved" || status === "Processing") &&
-                    !value
-                  ) {
+                  if (status === "Approved" && !value) {
                     return Promise.reject(
                       new Error(
-                        "Approval date is required when status is Approved or Processing.",
+                        "Approval date is required when status is Approved.",
                       ),
                     );
                   }
@@ -450,7 +443,6 @@ const WithdrawalTable: React.FC<any> = () => {
             <Select>
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Approved">Approved</Select.Option>
-              <Select.Option value="Rejected">Rejected</Select.Option>
               <Select.Option value="Cancelled">Cancelled</Select.Option>
             </Select>
           </Form.Item>

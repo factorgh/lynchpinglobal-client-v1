@@ -74,6 +74,7 @@ export async function createWithdrawalAction(data: {
 const isApprovedStatus = (status: any) => {
   if (!status) return false;
   const s = String(status).trim().toLowerCase();
+  // Disbursements: Pending / Approved / Cancelled (legacy processing = approved).
   return s === "approved" || s === "processing";
 };
 

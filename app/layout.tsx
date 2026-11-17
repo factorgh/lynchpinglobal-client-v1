@@ -19,6 +19,13 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Lynchpin Global",
   description: "A financial management system",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {

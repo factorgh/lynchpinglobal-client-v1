@@ -265,6 +265,8 @@ export const updateInvestment = catchAsync(async (req, res, next) => {
 const isApprovalLikeWithdrawalStatus = (status) => {
   if (!status) return false;
   const s = String(status).trim().toLowerCase();
+  // Disbursements only allow Pending / Approved / Cancelled.
+  // Legacy "processing" still counts as approved for open deductions.
   return s === "approved" || s === "processing";
 };
 

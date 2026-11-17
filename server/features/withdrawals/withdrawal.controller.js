@@ -3,7 +3,9 @@ import catchAsync from "../error/catch-async-error.js";
 import { getOne } from "../factory/factory-functions.js";
 
 import Investment from "../investment/model/investment.model.js";
-import WithdrawalModel from "./withdrawal.model.js";
+import WithdrawalModel, {
+  normalizeDisbursementStatus,
+} from "./withdrawal.model.js";
 
 import User from "../auth/models/user.model.js";
 import { recalculateInvestment } from "../../utils/recalculate.js";
@@ -17,8 +19,9 @@ import {
 
 const isApprovalLikeStatus = (status) => {
   if (!status) return false;
-  const s = String(status).trim().toLowerCase();
-  return s === "approved" || s === "processing";
+  const s = String(normalizeDisbursementStatus(status)).trim().toLowerCase();
+  // Legacy "processing" still counts as approved for open deductions.
+  return s === "approved";
 };
 
 const hasApprovalDate = (approvedDate) => {
@@ -139,10 +142,12 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("Please select a client and enter a valid amount.", 400));
   }
 
-  if (isApprovalLikeStatus(status) && !hasApprovalDate(approvedDate)) {
+  const normalizedStatus = normalizeDisbursementStatus(status) || "Pending";
+
+  if (isApprovalLikeStatus(normalizedStatus) && !hasApprovalDate(approvedDate)) {
     return next(
       new AppError(
-        "Approved or processing disbursements must include an approval date.",
+        "Approved disbursements must include an approval date.",
         400,
       ),
     );
@@ -153,7 +158,7 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("No active mandate found for this client.", 404));
   }
 
-  const isApproved = isApprovedStatus(status, approvedDate);
+  const isApproved = isApprovedStatus(normalizedStatus, approvedDate);
   if (isApproved && numericAmount > investment.principal) {
     return next(new AppError("Insufficient funds for disbursement.", 400));
   }
@@ -163,7 +168,7 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     amount: numericAmount,
     requestedDate: req.body.requestedDate,
     approvedDate: hasApprovalDate(approvedDate) ? approvedDate : undefined,
-    status: status || "Pending",
+    status: normalizedStatus,
     investment: investment._id,
     deductedAmount: 0,
   });
@@ -203,6 +208,12 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
   });
 });
 
+const presentWithdrawal = (doc) => {
+  const obj = typeof doc.toObject === "function" ? doc.toObject() : { ...doc };
+  obj.status = normalizeDisbursementStatus(obj.status) || obj.status;
+  return obj;
+};
+
 export const getUserWithdrawals = catchAsync(async (req, res, next) => {
   if (!req.user) {
     return next(new AppError("User not found. Please log in.", 401));
@@ -211,7 +222,7 @@ export const getUserWithdrawals = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: {
-      data: doc,
+      data: doc.map(presentWithdrawal),
     },
   });
 });
@@ -284,13 +295,13 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("No document found with that ID", 404));
   }
 
-  const nextStatus = req.body.status ?? oldDoc.status;
+  const nextStatus = normalizeDisbursementStatus(req.body.status ?? oldDoc.status);
   const nextAmount =
     req.body.amount !== undefined ? Number(req.body.amount) : Number(oldDoc.amount);
   if (!Number.isFinite(nextAmount) || nextAmount <= 0) {
     return next(new AppError("Please enter a valid disbursement amount.", 400));
   }
-  // A cancelled or rejected disbursement must not keep an approval date.
+  // A cancelled disbursement must not keep an approval date.
   let nextApprovedDate = req.body.approvedDate ?? oldDoc.approvedDate;
   if (!isApprovalLikeStatus(nextStatus)) {
     nextApprovedDate = null;
@@ -298,7 +309,7 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
   if (isApprovalLikeStatus(nextStatus) && !hasApprovalDate(nextApprovedDate)) {
     return next(
       new AppError(
-        "Approved or processing disbursements must include an approval date.",
+        "Approved disbursements must include an approval date.",
         400,
       ),
     );
@@ -383,7 +394,7 @@ export const getAllWithdrawals = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: {
-      data: withdrawals,
+      data: withdrawals.map(presentWithdrawal),
     },
   });
 });

@@ -30,7 +30,10 @@ const CustomerLanding = () => {
 
   const [totalBalance, setTotalBalance] = useState(0);
   const [principal, setPrincipal] = useState(0);
+  /** Net accrued (totalAccruedReturn) — matches admin mandate accrued. */
   const [accruedInterest, setAccruedInterest] = useState(0);
+  /** Gross principal accrual before fees — used only in statement breakdown. */
+  const [grossPrincipalAccrued, setGrossPrincipalAccrued] = useState(0);
   const [addOns, setAddOns] = useState(0);
   const [addonAccruedReturn, setAddonAccruedReturn] = useState(0);
   const [managementFee, setManagementFee] = useState(0);
@@ -58,7 +61,8 @@ const CustomerLanding = () => {
       setActiveInves(activeInvestments);
 
       let totalPrincipal = 0;
-      let totalAccruedInterest = 0;
+      let totalNetAccrued = 0;
+      let totalGrossPrincipalAccrued = 0;
       let totalAddOns = 0;
       let totalAddonAccruedReturn = 0;
       let totalManagementFee = 0;
@@ -71,10 +75,13 @@ const CustomerLanding = () => {
       // Calculate the totals and gather additional fields
       activeInvestments.forEach((investment: any, index: number) => {
         totalPrincipal = round2(totalPrincipal + Number(investment.principal || 0));
-        // Gross principal accrual only — never fall back to net totalAccruedReturn
-        // (that already embeds add-on yield, performance bonus, and fees).
-        totalAccruedInterest = round2(
-          totalAccruedInterest + Number(investment.principalAccruedReturn || 0),
+        // Net accrued after service fee / ops — same figure admin mandate end uses.
+        totalNetAccrued = round2(
+          totalNetAccrued + Number(investment.totalAccruedReturn || 0),
+        );
+        totalGrossPrincipalAccrued = round2(
+          totalGrossPrincipalAccrued +
+            Number(investment.principalAccruedReturn || 0),
         );
         // Match server closingBalance: only active add-on capital counts.
         const addOnSum = (investment.addOns || []).reduce(
@@ -104,23 +111,15 @@ const CustomerLanding = () => {
         }
       });
 
-      const totalCalculatedBalance = round2(
-        totalPrincipal +
-        totalAccruedInterest +
-        totalAddOns +
-        totalAddonAccruedReturn +
-        totalPerformanceYield
-      );
-
-      const totalDeductions = round2(totalOperationalCost + totalManagementFee);
-
+      // closingBalance = principal + active add-ons + net accrued (fees already netted).
       const totalCalculatedBalanceAfterDeductions = round2(
-        totalCalculatedBalance - totalDeductions
+        totalPrincipal + totalAddOns + totalNetAccrued,
       );
       // Set the calculated values to state
       setTotalBalance(totalCalculatedBalanceAfterDeductions);
       setPrincipal(totalPrincipal);
-      setAccruedInterest(totalAccruedInterest);
+      setAccruedInterest(totalNetAccrued);
+      setGrossPrincipalAccrued(totalGrossPrincipalAccrued);
       setAddOns(totalAddOns);
       setAddonAccruedReturn(totalAddonAccruedReturn);
       setManagementFee(totalManagementFee);
@@ -290,7 +289,8 @@ const CustomerLanding = () => {
               quarter={quarter || "Q4"}
               totalBalance={totalBalance}
               principal={principal}
-              accruedInterest={accruedInterest}
+              accruedInterest={grossPrincipalAccrued}
+              netAccruedReturn={accruedInterest}
               addOns={addOns}
               addonAccruedReturn={addonAccruedReturn}
               performanceYield={performanceYield}
@@ -305,7 +305,8 @@ const CustomerLanding = () => {
               quarter={quarter || "Q4"}
               totalBalance={totalBalance}
               principal={principal}
-              accruedInterest={accruedInterest}
+              accruedInterest={grossPrincipalAccrued}
+              netAccruedReturn={accruedInterest}
               addOns={addOns}
               addonAccruedReturn={addonAccruedReturn}
               performanceYield={performanceYield}

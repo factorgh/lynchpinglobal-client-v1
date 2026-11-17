@@ -21,6 +21,7 @@ interface QuarterlyDisbursementReportCardProps {
   totalBalance: number;
   principal: number;
   accruedInterest: number;
+  netAccruedReturn?: number;
   addOns: number;
   addonAccruedReturn: number;
   performanceYield: number;
@@ -38,6 +39,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
   totalBalance,
   principal,
   accruedInterest,
+  netAccruedReturn,
   addOns,
   addonAccruedReturn,
   performanceYield,
@@ -119,8 +121,11 @@ export const QuarterlyDisbursementReportCard: React.FC<
     year: "numeric",
   });
 
+  // Prefer net accrued (after fees) so the ledger matches admin / Accrued Earnings.
   const totalAccruedDisbursements =
-    accruedInterest + addonAccruedReturn + performanceYield;
+    netAccruedReturn !== undefined
+      ? netAccruedReturn
+      : accruedInterest + addonAccruedReturn + performanceYield;
 
   // Extract all ledger documents attached to the client's mandate records (certificate field)
   const attachedLedgers = useMemo(() => {
@@ -255,7 +260,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
                   {formatPriceGHS(totalAccruedDisbursements)}
                 </div>
                 <p className="text-[11px] text-emerald-700 font-medium">
-                  Gross accrued earnings before fees (ledger reference)
+                  Net accrued earnings after fees (ledger reference)
                 </p>
               </div>
             ) : isClosed ? (
@@ -270,7 +275,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
                   {formatPriceGHS(totalAccruedDisbursements)}
                 </div>
                 <p className="text-xs text-slate-500 font-medium">
-                  Gross accrued earnings before fees · {quarter} {year}
+                  Net accrued earnings after fees · {quarter} {year}
                 </p>
               </div>
             ) : (
@@ -457,6 +462,12 @@ export const QuarterlyDisbursementReportCard: React.FC<
           totalBalance,
           principal,
           accruedInterest,
+          netAccruedReturn:
+            netAccruedReturn !== undefined
+              ? netAccruedReturn
+              : accruedInterest + addonAccruedReturn + performanceYield -
+                managementFee -
+                operationalCost,
           addOns,
           addonAccruedReturn,
           performanceYield,

@@ -128,13 +128,10 @@ const WithdrawalForm: React.FC = () => {
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   const status = getFieldValue("status");
-                  if (
-                    (status === "Approved" || status === "Processing") &&
-                    !value
-                  ) {
+                  if (status === "Approved" && !value) {
                     return Promise.reject(
                       new Error(
-                        "Approval date is required when status is Approved or Processing.",
+                        "Approval date is required when status is Approved.",
                       ),
                     );
                   }
@@ -159,8 +156,6 @@ const WithdrawalForm: React.FC = () => {
             <Select>
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Approved">Approved</Select.Option>
-              <Select.Option value="Processing">Processing</Select.Option>
-              <Select.Option value="Rejected">Rejected</Select.Option>
               <Select.Option value="Cancelled">Cancelled</Select.Option>
             </Select>
           </Form.Item>
