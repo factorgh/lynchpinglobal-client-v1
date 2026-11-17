@@ -400,7 +400,7 @@ const AssetForm: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="accruedInterest"
-                label="Accrued Disbursements (GHS)"
+                label="Accrued Earnings (GHS)"
                 rules={[
                   {
                     required: true,

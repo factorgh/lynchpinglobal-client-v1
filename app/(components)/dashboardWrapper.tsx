@@ -9,6 +9,7 @@ import { useRouter, usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { store } from "../../services/store";
+import { resetCachedApiData } from "@/lib/session";
 
 const AuthProvider = dynamic(
   () => import("@/context/authContext").then((mod) => mod.AuthProvider),
@@ -28,7 +29,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsed = JSON.parse(storedUser);
+        const id = String(parsed._id || parsed.id || "");
+        const lastId = sessionStorage.getItem("activeUserId");
+        if (lastId && id && lastId !== id) {
+          resetCachedApiData();
+        }
+        if (id) sessionStorage.setItem("activeUserId", id);
+        setUser(parsed);
       } catch (e) {
         console.error("Failed to parse user from localStorage", e);
       }

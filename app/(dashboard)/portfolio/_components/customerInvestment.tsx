@@ -545,16 +545,16 @@ const CustomerInvestment: React.FC = () => {
               <Descriptions.Item label="Contractual Terms (%)">
                 {toTwoDecimalPlaces(selectedInvestment.guaranteedRate)}%
               </Descriptions.Item>
-              <Descriptions.Item label="Performance-Linked Disbursement (GHS)">
+              <Descriptions.Item label="Performance Bonus (GHS)">
                 {formatPriceGHS(selectedInvestment.performanceYield)}
               </Descriptions.Item>
               <Descriptions.Item label="Service Fee (GHS)">
                 {formatPriceGHS(selectedInvestment.managementFee)}
               </Descriptions.Item>
-              <Descriptions.Item label="Operational Charge (GHS)">
+              <Descriptions.Item label="Operational Charges (GHS)">
                 {formatPriceGHS(selectedInvestment.operationalCost || 0)}
               </Descriptions.Item>
-              <Descriptions.Item label="Total Disbursements (GHS)">
+              <Descriptions.Item label="Total Accrued Earnings (GHS)">
                 {formatPriceGHS(selectedInvestment.totalAccruedReturn)}
               </Descriptions.Item>
             </Descriptions>

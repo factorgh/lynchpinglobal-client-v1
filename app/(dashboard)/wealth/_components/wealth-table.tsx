@@ -414,13 +414,13 @@ const WealthTable = ({
                   Contractual Terms
                 </TableHead>
                 <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-right">
-                  Performance-Linked
+                  Performance Bonus
                 </TableHead>
                 <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-right">
                   Service Fee Rate
                 </TableHead>
                 <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-right">
-                  Total Disbursements
+                  Total Accrued Earnings
                 </TableHead>
                 <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-center">
                   Status
@@ -662,7 +662,7 @@ const WealthTable = ({
             <Col span={12}>
               <Form.Item
                 name="performanceYield"
-                label="Performance-Linked Disbursement (GH)"
+                label="Performance Bonus (GHS)"
               >
                 <InputNumber
                   placeholder="Enter performance-linked disbursement"
@@ -727,7 +727,7 @@ const WealthTable = ({
             <Col span={12}>
               <Form.Item
                 name="operationalCost"
-                label="Operational Charge (GHS)"
+                label="Operational Charges (GHS)"
               >
                 <InputNumber
                   placeholder="Enter operational charge"

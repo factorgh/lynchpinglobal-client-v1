@@ -472,10 +472,10 @@ export async function dispatchApiRequest(
       }
     }
     if (segs[1] === "db" && method === "GET") {
-      return runHandlerChain(webReq, params, [listStoredUploadsDb]);
+      return runHandlerChain(webReq, params, [verifyToken, listStoredUploadsDb]);
     }
     if (segs[1] === "list" && method === "GET") {
-      return runHandlerChain(webReq, params, [listUploadsFromProvider]);
+      return runHandlerChain(webReq, params, [verifyToken, listUploadsFromProvider]);
     }
   }
 

@@ -7,6 +7,7 @@ import WithdrawalModel from "./withdrawal.model.js";
 
 import User from "../auth/models/user.model.js";
 import { recalculateInvestment } from "../../utils/recalculate.js";
+import { applyPrincipalChange } from "../../utils/principalAdjustment.js";
 import { round2 } from "../../utils/halper.js";
 import {
   logActivity,
@@ -58,30 +59,55 @@ const currentDeduction = (doc) => {
   return isApprovalLikeStatus(doc.status) ? Number(doc.amount) || 0 : 0;
 };
 
-// Prefer the mandate the money originally came from; fall back to the client's current active mandate.
+/**
+ * Prefer the linked mandate even when archived (post-rollover restores must
+ * hit the same books that were deducted). Only fall back for legacy rows
+ * with no investment link.
+ */
 const resolveMandate = async (doc) => {
   if (doc.investment) {
     const linked = await Investment.findById(doc.investment).select("+archived +active");
-    if (linked && !linked.archived && linked.active !== false) return linked;
+    if (linked) return linked;
   }
   return getActiveInvestmentForUser(doc.user);
 };
 
-/**
- * Move `delta` GHS out of (positive) or back into (negative) a mandate's principal.
- * Accrued profit up to today is locked first so the adjustment never erases earned returns.
- */
-const applyPrincipalChange = async (investment, delta) => {
-  await recalculateInvestment(investment._id);
-  const fresh = await Investment.findById(investment._id);
-  fresh.lockedPrincipalProfit = round2(
-    (fresh.lockedPrincipalProfit || 0) + (fresh.principalAccruedReturn || 0),
+/** Persist deductedAmount on legacy approval-like rows so heal queries stay accurate. */
+const backfillLegacyDeductedAmounts = async (investmentId) => {
+  if (!investmentId) return;
+  const legacy = await WithdrawalModel.find({
+    investment: investmentId,
+    deductedAmount: { $exists: false },
+  });
+  for (const row of legacy) {
+    if (isApprovalLikeStatus(row.status)) {
+      row.deductedAmount = Number(row.amount) || 0;
+    } else {
+      row.deductedAmount = 0;
+    }
+    await row.save({ validateBeforeSave: false });
+  }
+};
+
+const remainingDeductedCount = async (investmentId) => {
+  if (!investmentId) return 0;
+  await backfillLegacyDeductedAmounts(investmentId);
+  const rows = await WithdrawalModel.find({ investment: investmentId }).select(
+    "amount status deductedAmount",
   );
-  fresh.lastPrincipalAdjustmentDate = new Date();
-  fresh.principal = round2(Math.max(0, (fresh.principal || 0) - delta));
-  await fresh.save();
-  await recalculateInvestment(fresh._id);
-  return fresh;
+  return rows.filter((row) => currentDeduction(row) > 0).length;
+};
+
+const healAccrualIfFullyReversed = async (investmentId) => {
+  if (!investmentId) return;
+  const remaining = await remainingDeductedCount(investmentId);
+  if (remaining > 0) return;
+  const inv = await Investment.findById(investmentId);
+  if (!inv || !inv.lastPrincipalAdjustmentDate) return;
+  inv.lockedPrincipalProfit = 0;
+  inv.lastPrincipalAdjustmentDate = undefined;
+  await inv.save({ validateBeforeSave: false });
+  await recalculateInvestment(inv._id);
 };
 
 const clientInfo = async (userId) => {
@@ -214,6 +240,7 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
     principalBefore = investment.principal;
     const updated = await applyPrincipalChange(investment, -deducted);
     principalAfter = updated.principal;
+    await healAccrualIfFullyReversed(investment._id);
   }
 
   await WithdrawalModel.findByIdAndDelete(doc._id);
@@ -288,7 +315,12 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
   if (delta !== 0) {
     investment = await resolveMandate(oldDoc);
     if (!investment) {
-      return next(new AppError("No active mandate found for this client.", 404));
+      return next(
+        new AppError(
+          "The mandate linked to this disbursement could not be found.",
+          404,
+        ),
+      );
     }
     if (delta > 0 && delta > investment.principal) {
       return next(new AppError("Insufficient funds for disbursement.", 400));
@@ -296,6 +328,9 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
     principalBefore = investment.principal;
     const updated = await applyPrincipalChange(investment, delta);
     principalAfter = updated.principal;
+    if (delta < 0) {
+      await healAccrualIfFullyReversed(investment._id);
+    }
   }
 
   oldDoc.amount = nextAmount;

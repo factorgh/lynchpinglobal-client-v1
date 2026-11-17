@@ -160,7 +160,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
           </div>
           <div className="bg-gray-50 border border-gray-100 p-3.5 rounded-xl">
             <span className="text-xs uppercase text-gray-500 font-medium">
-              Accrued Disbursements
+              Accrued Earnings
             </span>
             <p className="text-base font-bold text-emerald-600 mt-1">
               {formatPriceGHS(data.accruedInterest)}
@@ -228,7 +228,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
                 </tr>
                 <tr>
                   <td className="py-2.5 px-3.5 text-gray-800">
-                    Additional Accrued Disbursements
+                    Additional Accrued Earnings
                   </td>
                   <td className="py-2.5 px-3.5 text-emerald-600">Add-on Yield</td>
                   <td className="py-2.5 px-3.5 text-right text-gray-600">Calculated</td>
@@ -238,7 +238,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
                 </tr>
                 <tr>
                   <td className="py-2.5 px-3.5 text-gray-800">
-                    Performance-Linked Disbursement
+                    Performance Bonus
                   </td>
                   <td className="py-2.5 px-3.5 text-blue-600">Incentive Yield</td>
                   <td className="py-2.5 px-3.5 text-right text-gray-600">Milestone</td>

@@ -1,7 +1,7 @@
 import moment from "moment";
 import Investment from "../features/investment/model/investment.model.js";
 import { calculateDailyRate, round2 } from "./halper.js";
-import { getQuarterDetails } from "./handle_date_range.js";
+import { getQuarterDetails, inclusiveDayCount } from "./handle_date_range.js";
 
 export const recalculateInvestment = async (investmentId) => {
   try {
@@ -17,7 +17,7 @@ export const recalculateInvestment = async (investmentId) => {
     const calculationEndDate = moment.min(currentDate, moment(investment.quarterEndDate));
     const quarterDays = getQuarterDetails(investment.startDate || investment.creationDate || new Date());
 
-    const daysSinceStart = Math.max(0, calculationEndDate.diff(moment(investment.startDate), "days"));
+    const daysSinceStart = inclusiveDayCount(investment.startDate, calculationEndDate);
 
     console.log(
       `[Day Count Log] Investment ID: ${investmentId} | Start Date: ${moment(investment.startDate).format("YYYY-MM-DD")} | End Date: ${calculationEndDate.format("YYYY-MM-DD")} | Days Elapsed: ${daysSinceStart} | Quarter Days: ${quarterDays}`
@@ -25,14 +25,22 @@ export const recalculateInvestment = async (investmentId) => {
 
     // ----- Principal Return Calculation -----
     let principalReturn = round2(investment.lockedPrincipalProfit || 0);
-    const effectiveStartDate = investment.lastPrincipalAdjustmentDate
+    const lockedAt = investment.lastPrincipalAdjustmentDate
       ? moment(investment.lastPrincipalAdjustmentDate)
-      : moment(investment.startDate);
+      : null;
+    const effectiveStartDate = lockedAt || moment(investment.startDate);
 
-    const activeDaysSinceAdjustment = Math.max(
-      0,
-      calculationEndDate.diff(effectiveStartDate, "days")
-    );
+    // Inclusive from mandate start (matches quarter length). After a principal lock,
+    // count exclusive of the lock day — that day's accrual is already in lockedPrincipalProfit.
+    const activeDaysSinceAdjustment = lockedAt
+      ? Math.max(
+          0,
+          calculationEndDate
+            .clone()
+            .startOf("day")
+            .diff(effectiveStartDate.clone().startOf("day"), "days"),
+        )
+      : inclusiveDayCount(effectiveStartDate, calculationEndDate);
 
     if (activeDaysSinceAdjustment > 0 && investment.principal > 0) {
       const principalDailyReturn = calculateDailyRate(
@@ -51,7 +59,7 @@ export const recalculateInvestment = async (investmentId) => {
       if (addOn.status !== "active") continue;
 
       const addOnEndDate = moment.min(currentDate, moment(investment.quarterEndDate));
-      const addOnDays = Math.max(0, addOnEndDate.diff(moment(addOn.startDate), "days"));
+      const addOnDays = inclusiveDayCount(addOn.startDate, addOnEndDate);
 
       console.log(
         `[Day Count Log] AddOn ID: ${addOn._id} | Start Date: ${moment(addOn.startDate).format("YYYY-MM-DD")} | End Date: ${addOnEndDate.format("YYYY-MM-DD")} | Resulting Day Count: ${addOnDays}`

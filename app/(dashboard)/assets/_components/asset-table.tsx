@@ -324,7 +324,7 @@ const AssetTransactionTable: React.FC = () => {
                   Designation
                 </TableHead>
                 <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-right">
-                  Accrued Disbursements
+                  Accrued Earnings
                 </TableHead>
                 <TableHead className="font-bold text-slate-700 text-xs py-3.5 text-right">
                   Service Fee
@@ -582,7 +582,7 @@ const AssetTransactionTable: React.FC = () => {
             <Col span={12}>
               <Form.Item
                 name="accruedInterest"
-                label="Accrued Disbursements"
+                label="Accrued Earnings"
                 rules={[
                   {
                     required: true,
@@ -592,7 +592,7 @@ const AssetTransactionTable: React.FC = () => {
               >
                 <InputNumber
                   className="w-full"
-                  placeholder="Accrued Disbursements"
+                  placeholder="Accrued Earnings"
                 />
               </Form.Item>
             </Col>

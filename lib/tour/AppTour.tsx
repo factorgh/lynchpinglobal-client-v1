@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { driver, DriveStep, Driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { usePathname } from "next/navigation";
-import { getTourSteps, getTourKey, TourPersona, TOUR_FINISHED_EVENT } from "./tourSteps";
+import { getTourSteps, getTourKey, TourPersona, TOUR_FINISHED_EVENT, START_TOUR_EVENT } from "./tourSteps";
 import { useAuth } from "@/context/authContext";
 
 export { TOUR_FINISHED_EVENT };
@@ -49,7 +49,8 @@ const AppTour: React.FC<AppTourProps> = ({
   autoStart = true,
   showFloatingButton = false,
 }) => {
-  const pathname = usePathname() || "/";
+  const rawPathname = usePathname() || "/";
+  const [pathname, setPathname] = useState(rawPathname);
   const { user, setUser } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [persona, setPersona] = useState<TourPersona>("client");
@@ -57,6 +58,11 @@ const AppTour: React.FC<AppTourProps> = ({
   const [dbSeenTours, setDbSeenTours] = useState<string[]>([]);
   const [hasLoadedDb, setHasLoadedDb] = useState(false);
   const driverRef = useRef<Driver | null>(null);
+
+  useEffect(() => {
+    const withSearch = `${window.location.pathname}${window.location.search}`;
+    setPathname(withSearch || rawPathname);
+  }, [rawPathname]);
 
   // Initialize on mount and fetch user's seen tours from DB
   useEffect(() => {
@@ -298,6 +304,14 @@ const AppTour: React.FC<AppTourProps> = ({
       driverRef.current.drive();
     }
   }, [tourKey]);
+
+  useEffect(() => {
+    const onStart = () => {
+      restartTour();
+    };
+    window.addEventListener(START_TOUR_EVENT, onStart);
+    return () => window.removeEventListener(START_TOUR_EVENT, onStart);
+  }, [restartTour]);
 
   // Dismiss all tours across the app in the database
   const dismissAllTours = useCallback(async () => {

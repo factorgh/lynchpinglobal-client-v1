@@ -12,6 +12,7 @@ import {
   Handshake,
   LayoutDashboard,
   LucideIcon,
+  HelpCircle,
   Mail,
   Phone,
   RefreshCw,
@@ -70,6 +71,11 @@ const SidebarLink = ({
       href={href}
       onClick={() => {
         setCurrentUrl(href);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("lynchpin:nav-revisit", { detail: { href } }),
+          );
+        }
         onClick?.();
       }}
     >
@@ -258,6 +264,17 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
           {roles === "user" && (
             <>
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new Event("lynchpin:start-tour"));
+                  onCloseMobile?.();
+                }}
+                className="flex items-center mx-3 my-0.5 px-3.5 py-2 gap-3 rounded-xl transition-all duration-200 text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100/70 cursor-pointer w-[calc(100%-1.5rem)] text-left"
+              >
+                <HelpCircle className="w-4 h-4 flex-shrink-0 text-slate-600" />
+                <span>Want a Tour?</span>
+              </button>
               <a
                 href={`mailto:${OFFICE_EMAIL}`}
                 className="flex items-center mx-3 my-0.5 px-3.5 py-2 gap-3 rounded-xl transition-all duration-200 text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100/70 cursor-pointer"

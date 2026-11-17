@@ -69,23 +69,22 @@ const CustomerLanding = () => {
       const currentQuarterLabel = `Q${Math.ceil((new Date().getMonth() + 1) / 3)}`;
 
       // Calculate the totals and gather additional fields
-      activeInvestments.forEach((investment: any) => {
+      activeInvestments.forEach((investment: any, index: number) => {
         totalPrincipal = round2(totalPrincipal + Number(investment.principal || 0));
+        // Gross principal accrual only — never fall back to net totalAccruedReturn
+        // (that already embeds add-on yield, performance bonus, and fees).
         totalAccruedInterest = round2(
-          totalAccruedInterest +
-            Number(
-              investment.principalAccruedReturn !== undefined
-                ? investment.principalAccruedReturn
-                : investment.totalAccruedReturn || 0
-            )
+          totalAccruedInterest + Number(investment.principalAccruedReturn || 0),
         );
+        // Match server closingBalance: only active add-on capital counts.
         const addOnSum = (investment.addOns || []).reduce(
-          (sum: any, addOn: any) => round2(sum + Number(addOn.amount || 0)),
+          (sum: any, addOn: any) =>
+            addOn?.status === "active"
+              ? round2(sum + Number(addOn.amount || 0))
+              : sum,
           0,
         );
         totalAddOns = round2(totalAddOns + addOnSum);
-        const exchangeRateUSDToGHS = 11; // Replace this with the actual exchange rate
-
 
         totalAddonAccruedReturn = round2(
           totalAddonAccruedReturn + Number(investment.addOnAccruedReturn || 0)
@@ -99,9 +98,10 @@ const CustomerLanding = () => {
         totalOperationalCost = round2(
           totalOperationalCost + Number(investment.operationalCost || 0)
         );
-        guaranteedRate = round2(
-          guaranteedRate + Number(investment.guaranteedRate || 0)
-        );
+        // Display rate from the primary (first) mandate — do not sum rates across mandates.
+        if (index === 0) {
+          guaranteedRate = round2(Number(investment.guaranteedRate || 0));
+        }
       });
 
       const totalCalculatedBalance = round2(
@@ -224,7 +224,7 @@ const CustomerLanding = () => {
             />
             <LandingCard
               icon={<PieChartOutlined />}
-              title="ACCRUED DISBURSEMENTS"
+              title="ACCRUED EARNINGS"
               amount={formatPriceGHS(accruedInterest)}
               color={accruedInterest > 0 ? "bg-emerald-400" : "bg-sky-400"}
             />
@@ -246,7 +246,7 @@ const CustomerLanding = () => {
             />
             <LandingCard
               icon={<PieChartOutlined />}
-              title="ADDITIONAL DISBURSEMENTS"
+              title="ADDITIONAL EARNINGS"
               amount={formatPriceGHS(addonAccruedReturn)}
               color={addonAccruedReturn > 0 ? "bg-emerald-400" : "bg-sky-400"}
             />
@@ -265,10 +265,10 @@ const CustomerLanding = () => {
           >
             <CustomCard
               icon={<PlusCircleOutlined />}
-              title="PERFORMANCE-LINKED DISBURSEMENT"
+              title="PERFORMANCE BONUS"
               amount={formatPriceGHS(performanceYield)}
               color={performanceYield > 0 ? "bg-emerald-400" : "bg-sky-400"}
-              subtitle="Quarterly performance yield"
+              subtitle="Quarterly performance bonus"
             />
             <CustomCard
               icon={<MinusCircleOutlined />}
@@ -279,10 +279,10 @@ const CustomerLanding = () => {
             />
             <CustomCard
               icon={<MinusCircleOutlined />}
-              title="OPERATIONAL CHARGE"
+              title="OPERATIONAL CHARGES"
               amount={formatPriceGHS(operationalCost)}
               color="bg-rose-400"
-              subtitle="Operational deduction"
+              subtitle="Operational charges"
             />
           </div>
           <div data-tour="assets-under" className="h-full">

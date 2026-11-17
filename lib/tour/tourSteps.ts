@@ -4,6 +4,7 @@ export type TourPersona = "client" | "admin";
 
 // Fired on window when a page tour ends (finished, closed, or unable to start).
 export const TOUR_FINISHED_EVENT = "lynchpin:tour-finished";
+export const START_TOUR_EVENT = "lynchpin:start-tour";
 
 // Helper to create steps with consistent structure
 const step = (
@@ -36,93 +37,139 @@ const welcome = (title: string, description: string): DriveStep => ({
 export const clientLandingSteps: DriveStep[] = [
   welcome(
     "👋 Welcome to Lynchpin Global!",
-    "Let's take a quick tour of your client dashboard. You'll see where your mandate figures, reports and documents are, and how to move around the portal.",
+    "This is your client dashboard. It shows only your mandate figures, reports and documents — nothing belonging to another client.",
   ),
   step(
     '[data-tour="client-menu"]',
     "📍 Your Navigation Menu",
-    "Use this menu to open your Dashboard, My Mandates, Disbursements, My Documents and the LP Library.",
+    "Use this menu for Dashboard, My Mandates, Disbursements (withdrawal requests), My Documents and the LP Library.",
     "right"
   ),
   step(
     '[data-tour="cta-primary"]',
     "💰 Total Capital Allocation",
-    "The current value of your active mandates: your mandate contribution, additional contributions and accrued disbursements, less the service fee and operational charge.",
+    "The current value of your active mandates: mandate contribution, additional contributions and accrued earnings, less the service fee and operational charges.",
     "right"
   ),
   step(
     '[data-tour="feature-cards"]',
     "📊 Mandate Breakdown",
-    "The figures that make up your Total Capital Allocation: Mandate Contribution, Accrued Disbursements, Additional Contributions and Additional Disbursements.",
+    "Mandate Contribution is capital you placed. Accrued Earnings are contractual earnings to date. Additional Contributions are extra amounts added. Additional Earnings are earnings on those extras.",
     "bottom"
   ),
   step(
     '[data-tour="yield-cards"]',
     "📈 Performance & Charges",
-    "Your Performance-Linked Disbursement for the quarter, and the Service Fee and Operational Charge deducted from your mandate.",
+    "Performance Bonus is extra yield for the quarter. Service Fee and Operational Charges are the deductions taken from your mandate.",
     "top"
   ),
   step(
     '[data-tour="assets-under"]',
-    "📄 End-of-Quarter Report: Quarterly Mandate Report",
-    "Shows the countdown to the current quarter's close. Once the quarter closes, you can view and download your Quarterly Mandate Report here.",
+    "📄 Quarterly Mandate Report",
+    "Countdown to the current quarter close. After close, view and download your Quarterly Mandate Report here.",
     "top"
   ),
   step(
     '[data-tour="payments-list"]',
     "📊 Ledger Report",
-    "Open the ledger report the Lynchpin team attaches to your mandate, showing your disbursements and yields for the quarter.",
+    "Open the ledger the Lynchpin team attaches to your mandate. It shows your earnings and disbursements for the quarter.",
     "top"
   ),
   welcome(
     "✅ You're All Set!",
-    "That's your dashboard. Open 'My Mandates' in the menu to see each mandate and its documents. Questions? Email info@lynchpinglobal.com or call our office on +233 30 700 0640 (030 700 0640)."
+    "Open My Mandates to see each mandate and its documents. Restart this tour anytime with Want a Tour? in the menu. Questions? Email info@lynchpinglobal.com or call +233 30 700 0640."
   ),
 ];
 
 export const clientPortfolioSteps: DriveStep[] = [
   welcome(
     "📂 My Mandates",
-    "This page lists every mandate assigned to you, with its contribution, contractual terms, accrued disbursements and documents."
+    "This page lists only the mandates assigned to you: contribution, contractual terms, accrued earnings and documents."
   ),
   step(
     '[data-tour="portfolio-tab-list"]',
     "📑 Mandate Tabs",
-    "Your mandates are under the 'Mandates' tab. The other tabs show loans, asset transactions and rentals if any are assigned to you.",
+    "Mandates is your main tab. Loans, asset transactions and rentals appear only if they are assigned to you.",
     "bottom"
   ),
   step(
     '[data-tour="positions-table"]',
     "💼 Your Mandates",
-    "Each row is one of your mandates, showing the contribution amount, contractual terms and accrued disbursements.",
+    "Each row is one of your mandates, with contribution, contractual terms and accrued earnings.",
     "top"
   ),
   welcome(
     "💡 Mandate Documents",
-    "Click the view icon on a mandate to open its details and all of its mandate documents. You can also attach supporting documents there."
+    "Open a mandate to preview its documents in the same viewer used on the admin side, and attach supporting files if needed."
   ),
 ];
 
 export const clientWithdrawalSteps: DriveStep[] = [
   welcome(
-    "🏦 Contributions & Disbursements",
-    "Request an additional mandate contribution or a disbursement from your active mandate here."
+    "🏦 Disbursements",
+    "Disbursements are withdrawals from your mandate. Request a payout or an additional contribution here."
   ),
   step(
     '[data-tour="withdrawal-new-request"]',
     "📝 Make a Request",
-    "Click 'Make a Request' to send a new contribution or disbursement request to the Lynchpin team.",
+    "Send a contribution or disbursement request to the Lynchpin team.",
     "left"
   ),
   step(
     '[data-tour="withdrawal-table"]',
     "📋 Disbursement History",
-    "Track your disbursements here and their status: Pending, Approved, Processing, Rejected or Cancelled. Rejected or cancelled requests are never deducted from your mandate.",
+    "Track each request: Pending, Approved, Processing, Rejected or Cancelled. Rejected or cancelled requests are never deducted from your mandate.",
     "top"
   ),
   welcome(
     "✅ That's It!",
-    "The Lynchpin team will review your request. Check back here anytime to see its status.",
+    "The Lynchpin team reviews each request. Check back here for its status.",
+  ),
+];
+
+export const clientDocumentsSteps: DriveStep[] = [
+  welcome(
+    "📁 My Documents",
+    "Upload files for Lynchpin to review: signed agreements, ID, receipts and supporting records. Only your files appear here."
+  ),
+  step(
+    '[data-tour="docs-upload"]',
+    "⬆️ Submit a File",
+    "Choose a document type, add an optional note, then drag in or browse for the file and submit it to admin.",
+    "left"
+  ),
+  step(
+    '[data-tour="docs-list"]',
+    "📋 Your Submissions",
+    "Every file you have sent to admin is listed here. You can preview, download or remove it.",
+    "top"
+  ),
+  welcome(
+    "✅ Documents",
+    "Admin reviews these under Client Documents. Official Lynchpin PDFs are in LP Library, not on this page."
+  ),
+];
+
+export const clientLibrarySteps: DriveStep[] = [
+  welcome(
+    "📚 LP Library",
+    "This is the shared library of official Lynchpin terms and policy documents. It is not your personal file vault."
+  ),
+  step(
+    '[data-tour="library-docs"]',
+    "📄 Official Documents",
+    "Select a published document to read it in the viewer. These are the same institutional papers for every client.",
+    "bottom"
+  ),
+  step(
+    '[data-tour="library-viewer"]',
+    "👀 Document Viewer",
+    "Read the selected PDF here, or open/download it from the buttons above.",
+    "top"
+  ),
+  welcome(
+    "✅ Library",
+    "To send your own files to admin, use My Documents in the menu."
   ),
 ];
 
@@ -184,7 +231,7 @@ export const adminWealthSteps: DriveStep[] = [
   ),
   welcome(
     "💡 Pro Tips",
-    "• Daily cron jobs automatically calculate accrued disbursements<br>• You can add co owners for joint mandates<br>• Upload ledger reports, mandates, and other documents"
+    "• Daily cron jobs automatically calculate accrued earnings<br>• You can add co owners for joint mandates<br>• Upload ledger reports, mandates, and other documents"
   ),
 ];
 
@@ -202,7 +249,7 @@ export const adminAssetSteps: DriveStep[] = [
   step(
     '[data-tour="asset-table"]',
     "📊 Asset Transactions",
-    "View all assets with their values, accrued disbursements, status, and maturity information.",
+    "View all assets with their values, accrued earnings, status, and maturity information.",
     "top"
   ),
   welcome(
@@ -368,14 +415,22 @@ export function getTourSteps(
 ): DriveStep[] {
   // Client routes
   if (persona === "client") {
-    if (pathname === "/landing" || pathname === "/") {
+    const [path, query = ""] = (pathname || "").split("?");
+    const view = new URLSearchParams(query).get("view");
+    if (path === "/landing" || path === "/") {
       return clientLandingSteps;
     }
-    if (pathname === "/portfolio") {
+    if (path === "/portfolio") {
       return clientPortfolioSteps;
     }
-    if (pathname === "/withdrawal") {
+    if (path === "/withdrawal") {
       return clientWithdrawalSteps;
+    }
+    if (path === "/terms" && view === "upload") {
+      return clientDocumentsSteps;
+    }
+    if (path === "/terms") {
+      return clientLibrarySteps;
     }
   }
 
@@ -414,11 +469,15 @@ export function getTourSteps(
 
 // Get tour key for storage
 export function getTourKey(persona: TourPersona, pathname: string): string {
-  const normalizedPath =
+  const raw =
     !pathname || pathname === "/"
       ? persona === "admin"
         ? "/dashboard"
         : "/landing"
       : pathname;
-  return `${persona}_${normalizedPath.replace(/\//g, "_")}_v3`;
+  const [path, query = ""] = raw.split("?");
+  const view = new URLSearchParams(query).get("view");
+  const normalizedPath =
+    path === "/terms" && view === "upload" ? "/terms_upload" : path;
+  return `${persona}_${normalizedPath.replace(/\//g, "_")}_v4`;
 }

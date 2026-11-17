@@ -219,7 +219,7 @@ const WealthForm: React.FC = () => {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="performanceYield" label="Performance-Linked Disbursement (GHS)">
+              <Form.Item name="performanceYield" label="Performance Bonus (GHS)">
                 <InputNumber
                   placeholder="Enter performance yield"
                   style={{ width: "100%" }}
@@ -280,7 +280,7 @@ const WealthForm: React.FC = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="operationalCost" label="Operational Charge (GHS)">
+              <Form.Item name="operationalCost" label="Operational Charges (GHS)">
                 <InputNumber
                   placeholder="Enter operational cost"
                   style={{ width: "100%" }}

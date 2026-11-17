@@ -96,9 +96,17 @@ const WithdrawalTable: React.FC<any> = () => {
 
   const handleFormSubmit = async (values: any) => {
     try {
+      const status = values.status;
+      const payload = {
+        ...values,
+        approvedDate:
+          status === "Approved" || status === "Processing"
+            ? values.approvedDate
+            : null,
+      };
       await updatePayment({
         id: editRentalId,
-        data: values,
+        data: payload,
       }).unwrap();
 
       await createNotification({
@@ -406,11 +414,24 @@ const WithdrawalTable: React.FC<any> = () => {
           <Form.Item
             label="Approval Date"
             name="approvedDate"
+            dependencies={["status"]}
             rules={[
-              {
-                required: true,
-                message: "Please select the disbursement approval date!",
-              },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const status = getFieldValue("status");
+                  if (
+                    (status === "Approved" || status === "Processing") &&
+                    !value
+                  ) {
+                    return Promise.reject(
+                      new Error(
+                        "Approval date is required when status is Approved or Processing.",
+                      ),
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              }),
             ]}
           >
             <DatePicker style={{ width: "100%" }} />

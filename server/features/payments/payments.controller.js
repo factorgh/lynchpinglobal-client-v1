@@ -7,7 +7,8 @@ import PaymentModel from "./payments.model.js";
 
 import User from "../auth/models/user.model.js";
 import ActivityLog from "../activity-log/activity.model.js";
-import { recalculateInvestment } from "../../utils/recalculate.js";
+import { applyPrincipalChange } from "../../utils/principalAdjustment.js";
+import { round2 } from "../../utils/halper.js";
 
 const isApprovalLikeStatus = (status) => {
   if (!status) return false;
@@ -65,9 +66,10 @@ export const createPayment = catchAsync(async (req, res, next) => {
   const isApproved = isApprovedStatus(status, approvedDate);
 
   // Step 2: ONLY deduct from principal if the payment is explicitly APPROVED
+  // Use the same lock/adjustment path as disbursements so pre-cut accrued interest is preserved.
   if (isApproved) {
-    // Check if payment amount is greater than or equal to the investment principal
-    if (amount >= investment.principal) {
+    const numericAmount = Number(amount) || 0;
+    if (numericAmount >= investment.principal) {
       return next(
         new AppError(
           "Payment amount cannot be greater than or equal to the principal.",
@@ -76,12 +78,7 @@ export const createPayment = catchAsync(async (req, res, next) => {
       );
     }
 
-    // Reduce the investment principal by the payment amount
-    investment.principal = Math.max(0, investment.principal - amount);
-    await investment.save();
-
-    // Trigger recalculation
-    await recalculateInvestment(investment._id);
+    await applyPrincipalChange(investment, numericAmount);
   }
 
   // Step 3: Create the payment record
@@ -138,12 +135,7 @@ export const deletePayment = catchAsync(async (req, res, next) => {
   if (wasApproved) {
     const investment = await getActiveInvestmentForUser(doc.user);
     if (investment) {
-      investment.principal = Math.max(
-        0,
-        (investment.principal || 0) + Number(doc.amount || 0),
-      );
-      await investment.save();
-      await recalculateInvestment(investment._id);
+      await applyPrincipalChange(investment, -Number(doc.amount || 0));
     }
   }
 
@@ -219,17 +211,21 @@ export const updatePayment = catchAsync(async (req, res, next) => {
 
   const prevDeduction = wasApproved ? oldAmount : 0;
   const nextDeduction = isApproved ? newAmount : 0;
-  const principalDelta = prevDeduction - nextDeduction;
+  // Same delta convention as withdrawals: positive = money leaving principal.
+  const principalDelta = round2(nextDeduction - prevDeduction);
 
   if (principalDelta !== 0) {
     const investment = await getActiveInvestmentForUser(doc.user);
     if (investment) {
-      investment.principal = Math.max(
-        0,
-        (investment.principal || 0) + principalDelta,
-      );
-      await investment.save();
-      await recalculateInvestment(investment._id);
+      if (principalDelta > 0 && principalDelta >= investment.principal) {
+        return next(
+          new AppError(
+            "Payment amount cannot be greater than or equal to the principal.",
+            400,
+          ),
+        );
+      }
+      await applyPrincipalChange(investment, principalDelta);
     }
   }
 
@@ -240,10 +236,10 @@ export const updatePayment = catchAsync(async (req, res, next) => {
         ? ` Status changed from ${oldDoc.status} to ${doc.status}.`
         : "";
     const refundNote =
-      principalDelta > 0
-        ? ` Refunded GHS ${principalDelta.toFixed(2)} to principal.`
-        : principalDelta < 0
-          ? ` Deducted GHS ${Math.abs(principalDelta).toFixed(2)} from principal.`
+      principalDelta < 0
+        ? ` Refunded GHS ${Math.abs(principalDelta).toFixed(2)} to principal.`
+        : principalDelta > 0
+          ? ` Deducted GHS ${principalDelta.toFixed(2)} from principal.`
           : "";
 
     const targetUserDoc = await User.findById(doc.user).select(

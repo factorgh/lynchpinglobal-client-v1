@@ -1,14 +1,14 @@
 import moment from "moment";
-import { generateTransactionId, calculateDailyRate, round2 } from "../../../utils/halper.js";
+import { generateTransactionId, round2 } from "../../../utils/halper.js";
 import {
   getQuarter,
   getQuarterEndDate,
   getQuarterDetails,
 } from "../../../utils/handle_date_range.js";
-import { calculateDynamicAccruedReturn } from "../../../utils/handle_dynamic_rate.js";
 import User from "../../auth/models/user.model.js";
 import catchAsync from "../../error/catch-async-error.js";
 import Investment from "../model/investment.model.js";
+import WithdrawalModel from "../../withdrawals/withdrawal.model.js";
 import ActivityLog from "../../activity-log/activity.model.js";
 import { recalculateInvestment } from "../../../utils/recalculate.js";
 import {
@@ -23,8 +23,8 @@ const MANDATE_FIELDS = {
   principal: "Principal (GHS)",
   guaranteedRate: "Contractual Rate (%)",
   managementFeeRate: "Service Fee Rate (%)",
-  operationalCost: "Operational Charge (GHS)",
-  performanceYield: "Performance-Linked Disbursement (GHS)",
+  operationalCost: "Operational Charges (GHS)",
+  performanceYield: "Performance Bonus (GHS)",
   quarter: "Quarter",
   startDate: "Start Date",
   quarterEndDate: "Quarter End Date",
@@ -76,37 +76,10 @@ export const createInvestment = catchAsync(async (req, res, next) => {
     return res.status(404).json({ status: "fail", message: "User not found" });
   }
 
-  // Daily accrued Return
-  const dailyRate = guaranteedRate / 100;
-  const CalculatedDailyAmount = dailyRate * principal;
-
-  // End of daily amount
+  // Placeholder accruals — recalculateInvestment is the sole fee/accrual source of truth.
   const creationDate = new Date();
   const quarterEndDate = getQuarterEndDate(creationDate);
-
-  const principalAccruedReturn = round2(
-    (await calculateDynamicAccruedReturn(
-      principal,
-      creationDate,
-      quarterEndDate,
-      guaranteedRate,
-    )) || 0
-  );
-
-  const totalAccrued = round2(principalAccruedReturn + Number(performanceYield || 0));
-  const transformedTotalAccrued = Number(totalAccrued) || 0;
-
-  let managementFeeTotal = 0;
-  if (transformedTotalAccrued > 0) {
-    managementFeeTotal = round2(
-      (transformedTotalAccrued * (managementFeeRate !== undefined ? managementFeeRate : 20)) / 100
-    );
-  }
-
-  const totalAccruedReturn = round2(transformedTotalAccrued - managementFeeTotal);
-  const transformedTotalAccruedReturn = round2(
-    Math.max(Number(totalAccruedReturn) || 0, 0)
-  );
+  const CalculatedDailyAmount = (guaranteedRate / 100) * principal;
 
   // Build owners: always include primary user, exclude primary from co-owners, and dedupe
   const inputOwners = Array.isArray(owners) ? owners : [];
@@ -127,9 +100,10 @@ export const createInvestment = catchAsync(async (req, res, next) => {
     ...req.body,
     owners: resolvedOwners,
     isJoint: resolvedOwners.length > 1,
-    principalAccruedReturn,
-    managementFee: managementFeeTotal,
-    totalAccruedReturn: transformedTotalAccruedReturn,
+    principalAccruedReturn: 0,
+    addOnAccruedReturn: 0,
+    managementFee: 0,
+    totalAccruedReturn: 0,
     creationDate,
     quarterEndDate,
     expectedReturnHolder: CalculatedDailyAmount,
@@ -183,9 +157,14 @@ export const getAllInvestments = catchAsync(async (req, res, next) => {
     return res.status(404).json({ status: "fail", message: "No investments" });
   }
 
+  const healed = [];
+  for (const inv of investments) {
+    healed.push((await healReversedDisbursementAccrual(inv)) || inv);
+  }
+
   res.status(200).json({
     status: "success",
-    data: investments,
+    data: healed,
   });
 });
 
@@ -283,27 +262,78 @@ export const updateInvestment = catchAsync(async (req, res, next) => {
   });
 });
 
+const isApprovalLikeWithdrawalStatus = (status) => {
+  if (!status) return false;
+  const s = String(status).trim().toLowerCase();
+  return s === "approved" || s === "processing";
+};
+
+const openDisbursementDeduction = (doc) => {
+  if (typeof doc.deductedAmount === "number") return doc.deductedAmount;
+  return isApprovalLikeWithdrawalStatus(doc.status) ? Number(doc.amount) || 0 : 0;
+};
+
+/** Align heal with currentDeduction semantics and backfill legacy rows. */
+const remainingOpenDisbursements = async (investmentId) => {
+  if (!investmentId) return 0;
+  const rows = await WithdrawalModel.find({ investment: investmentId }).select(
+    "amount status deductedAmount",
+  );
+  let open = 0;
+  for (const row of rows) {
+    if (typeof row.deductedAmount !== "number") {
+      row.deductedAmount = isApprovalLikeWithdrawalStatus(row.status)
+        ? Number(row.amount) || 0
+        : 0;
+      await row.save({ validateBeforeSave: false });
+    }
+    if (openDisbursementDeduction(row) > 0) open += 1;
+  }
+  return open;
+};
+
 // Get a single transaction for a partcular user
+const healReversedDisbursementAccrual = async (investment) => {
+  if (!investment?._id || !investment.lastPrincipalAdjustmentDate) return investment;
+  const remaining = await remainingOpenDisbursements(investment._id);
+  if (remaining > 0) return investment;
+  investment.lockedPrincipalProfit = 0;
+  investment.lastPrincipalAdjustmentDate = undefined;
+  await investment.save({ validateBeforeSave: false });
+  await recalculateInvestment(investment._id);
+  const fresh = await Investment.findById(investment._id).select("+archived +active");
+  if (fresh) {
+    investment.lockedPrincipalProfit = fresh.lockedPrincipalProfit;
+    investment.principalAccruedReturn = fresh.principalAccruedReturn;
+    investment.totalAccruedReturn = fresh.totalAccruedReturn;
+    investment.lastPrincipalAdjustmentDate = fresh.lastPrincipalAdjustmentDate;
+    investment.principal = fresh.principal;
+  }
+  return investment;
+};
+
 export const getInvestment = catchAsync(async (req, res, next) => {
+  if (!req.user?._id) {
+    return res.status(401).json({ status: "fail", message: "Not authenticated" });
+  }
   const userId = req.user._id;
-  console.log("some user", userId);
-  // Ensure the investment belongs to the user and include archived/active flags
   const investment = await Investment.find({
     $or: [{ "owners.user": userId }, { userId: userId }],
   })
     .select("+archived +active")
-    .populate(["addOns", { path: "owners.user" }]);
+    .populate([
+      "addOns",
+      { path: "owners.user", select: "displayName name" },
+    ]);
 
-  if (!investment) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Investment not found or access denied",
-    });
+  const healed = [];
+  for (const inv of investment || []) {
+    healed.push((await healReversedDisbursementAccrual(inv)) || inv);
   }
 
   res.status(200).json({
     status: "success",
-    data: investment,
+    data: healed,
   });
 });
 
@@ -348,14 +378,19 @@ export const rolloverInvestments = async () => {
         continue;
       }
 
+      // Fresh accruals before carry-forward (same as executeSingleRollover).
+      await recalculateInvestment(transaction._id);
+      const freshSource =
+        (await Investment.findById(transaction._id).populate("addOns")) || transaction;
+
       // New principal = closing balance (principal + active add-on capital + net accrued return)
-      const updatedPrincipal = closingBalance(transaction);
-      const newStartDate = nextQuarterStart(transaction);
+      const updatedPrincipal = closingBalance(freshSource);
+      const newStartDate = nextQuarterStart(freshSource);
 
       // Create a new transaction for the target/current quarter
       const newTransaction = await Investment.create({
-        userId: transaction.userId,
-        name: transaction.name, // Preserve name
+        userId: freshSource.userId,
+        name: freshSource.name, // Preserve name
         principal: updatedPrincipal,
         accruedReturn: 0, // Reset accrued return
         quarter: targetQuarterLabel,
@@ -364,19 +399,19 @@ export const rolloverInvestments = async () => {
         quarterEndDate: getQuarterEndDate(newStartDate).toDate(),
         archived: false,
         active: true,
-        mandate: transaction.mandate,
-        partnerForm: transaction.partnerForm,
-        certificate: transaction.certificate,
-        checklist: transaction.checklist,
-        others: transaction.others || [],
+        mandate: freshSource.mandate,
+        partnerForm: freshSource.partnerForm,
+        certificate: freshSource.certificate,
+        checklist: freshSource.checklist,
+        others: freshSource.others || [],
         addOns: [],
-        previousTransactionId: transaction._id, // Link to the archived transaction
-        owners: transaction.owners,
-        isJoint: transaction.isJoint,
-        guaranteedRate: transaction.guaranteedRate,
-        managementFeeRate: transaction.managementFeeRate,
-        operationalCost: transaction.operationalCost,
-        performanceYield: transaction.performanceYield,
+        previousTransactionId: freshSource._id, // Link to the archived transaction
+        owners: freshSource.owners,
+        isJoint: freshSource.isJoint,
+        guaranteedRate: freshSource.guaranteedRate,
+        managementFeeRate: freshSource.managementFeeRate,
+        operationalCost: freshSource.operationalCost,
+        performanceYield: freshSource.performanceYield,
       });
 
       // Recalculate immediately for the new quarter investment
@@ -536,9 +571,20 @@ export const getRolloverCandidates = catchAsync(async (req, res, next) => {
   let alreadyRolledOverCount = 0;
 
   for (const inv of investments) {
+    // Fresh accruals before quoting closing balance (matches executeSingleRollover).
+    await recalculateInvestment(inv._id);
+    const freshInv =
+      (await Investment.findById(inv._id)
+        .select("+archived +active")
+        .populate([
+          { path: "userId", select: "name displayName email license photo" },
+          { path: "owners.user", select: "name displayName email license photo" },
+          "addOns",
+        ])) || inv;
+
     // Check if this investment has already been rolled over to activeTargetQuarter
     const existingRollover = await Investment.findOne({
-      previousTransactionId: inv._id,
+      previousTransactionId: freshInv._id,
       quarter: activeTargetQuarter,
     }).select("transactionId principal quarter createdAt");
 
@@ -547,9 +593,9 @@ export const getRolloverCandidates = catchAsync(async (req, res, next) => {
       alreadyRolledOverCount++;
     }
 
-    const endingPrincipal = round2(Number(inv.principal || 0) + activeAddOnTotal(inv));
-    const accruedReturn = Number(inv.totalAccruedReturn || 0);
-    const netClosingBalance = closingBalance(inv);
+    const endingPrincipal = round2(Number(freshInv.principal || 0) + activeAddOnTotal(freshInv));
+    const accruedReturn = Number(freshInv.totalAccruedReturn || 0);
+    const netClosingBalance = closingBalance(freshInv);
     const suggestedNewPrincipal = netClosingBalance;
 
     totalEndingPrincipal += endingPrincipal;
@@ -557,26 +603,26 @@ export const getRolloverCandidates = catchAsync(async (req, res, next) => {
     totalProjectedRollover += suggestedNewPrincipal;
 
     candidates.push({
-      investmentId: inv._id,
-      transactionId: inv.transactionId,
-      name: inv.name,
-      user: inv.userId,
-      owners: inv.owners,
-      isJoint: inv.isJoint,
-      sourceQuarter: inv.quarter,
+      investmentId: freshInv._id,
+      transactionId: freshInv.transactionId,
+      name: freshInv.name,
+      user: freshInv.userId,
+      owners: freshInv.owners,
+      isJoint: freshInv.isJoint,
+      sourceQuarter: freshInv.quarter,
       targetQuarter: activeTargetQuarter,
-      startDate: inv.startDate,
-      quarterEndDate: inv.quarterEndDate,
+      startDate: freshInv.startDate,
+      quarterEndDate: freshInv.quarterEndDate,
       endingPrincipal,
       accruedReturn,
       netClosingBalance,
       suggestedNewPrincipal,
-      guaranteedRate: inv.guaranteedRate ?? 8,
-      managementFeeRate: inv.managementFeeRate ?? 20,
-      operationalCost: inv.operationalCost ?? 0,
-      performanceYield: inv.performanceYield ?? 0,
-      archived: inv.archived,
-      active: inv.active,
+      guaranteedRate: freshInv.guaranteedRate ?? 8,
+      managementFeeRate: freshInv.managementFeeRate ?? 20,
+      operationalCost: freshInv.operationalCost ?? 0,
+      performanceYield: freshInv.performanceYield ?? 0,
+      archived: freshInv.archived,
+      active: freshInv.active,
       isRolledOver,
       existingRolloverId: existingRollover?._id || null,
       existingRolloverTransactionId: existingRollover?.transactionId || null,
@@ -880,17 +926,16 @@ export const calculateDailyAccruals = async (req, res, next) => {
       }
     }
 
-    const currentDate = moment();
     const quarterDays = getQuarterDetails();
 
     // Query ONLY active, non-archived mandates
     const investments = await Investment.find({
       active: true,
       archived: false,
-    }).populate("addOns");
+    }).select("_id transactionId");
 
     console.log(
-      `[AccrualsEngine] Executing daily calculations for ${investments.length} active mandate(s)...`
+      `[AccrualsEngine] Executing daily calculations for ${investments.length} active mandate(s) via recalculateInvestment...`
     );
 
     let updatedCount = 0;
@@ -899,86 +944,18 @@ export const calculateDailyAccruals = async (req, res, next) => {
     let totalNetAccrued = 0;
     const details = [];
 
+    // Single source of truth: honors lockedPrincipalProfit / lastPrincipalAdjustmentDate.
     for (const investment of investments) {
-      // Determine effective calculation date (clamp to quarterEndDate if reached)
-      let calcDate = currentDate;
-      if (investment.quarterEndDate) {
-        const qEnd = moment(investment.quarterEndDate);
-        if (currentDate.isAfter(qEnd)) {
-          calcDate = qEnd;
-        }
-      }
-
-      const daysSinceStart = Math.max(0, calcDate.diff(moment(investment.startDate), "days"));
-      if (daysSinceStart <= 0) continue;
-
-      const mandateQuarterDays = getQuarterDetails(
-        investment.startDate || investment.creationDate || calcDate.toDate()
+      await recalculateInvestment(investment._id);
+      const fresh = await Investment.findById(investment._id).select(
+        "principalAccruedReturn addOnAccruedReturn managementFee totalAccruedReturn transactionId",
       );
+      if (!fresh) continue;
 
-      // 1. Principal Daily Return
-      const principalDailyReturn = calculateDailyRate(
-        investment.principal,
-        investment.guaranteedRate ?? 8,
-        mandateQuarterDays
-      );
-      const principalReturn = round2(principalDailyReturn * daysSinceStart);
-      investment.principalAccruedReturn = principalReturn;
-
-      // 2. Add-on Returns
-      let totalAddOnReturn = 0;
-      if (Array.isArray(investment.addOns)) {
-        for (const addOn of investment.addOns) {
-          if (addOn.status !== "active") continue;
-
-          let addOnCalcDate = currentDate;
-          if (investment.quarterEndDate) {
-            const qEnd = moment(investment.quarterEndDate);
-            if (currentDate.isAfter(qEnd)) addOnCalcDate = qEnd;
-          }
-
-          const addOnDays = Math.max(0, addOnCalcDate.diff(moment(addOn.startDate), "days"));
-          if (addOnDays <= 0) continue;
-
-          // Only charge interest if amount is at least 5000 GHS
-          if (addOn.amount < 5000) {
-            addOn.accruedAddOnInterest = 0;
-            await addOn.save();
-            continue;
-          }
-
-          const dailyAddOnReturn = calculateDailyRate(
-            addOn.amount,
-            investment.guaranteedRate ?? 8,
-            mandateQuarterDays
-          );
-          const addOnInterest = round2(dailyAddOnReturn * addOnDays);
-          addOn.accruedAddOnInterest = addOnInterest;
-          await addOn.save();
-          totalAddOnReturn = round2(totalAddOnReturn + addOnInterest);
-        }
-      }
-      investment.addOnAccruedReturn = totalAddOnReturn;
-
-      // 3. Management Fee
-      const grossReturn = round2(principalReturn + totalAddOnReturn);
-      const feeRate =
-        investment.managementFeeRate !== undefined ? investment.managementFeeRate : 20;
-      const managementFee = round2((grossReturn * feeRate) / 100);
-      investment.managementFee = managementFee;
-
-      // 4. Net Accrued Return
-      const performanceYield = round2(Number(investment.performanceYield || 0));
-      const operationalCost = round2(Number(investment.operationalCost || 0));
-      const netReturn = round2(
-        Math.max(
-          grossReturn + performanceYield - (managementFee + operationalCost),
-          0
-        )
-      );
-      investment.totalAccruedReturn = netReturn;
-
-      await investment.save({ validateBeforeSave: false });
+      const principalReturn = round2(Number(fresh.principalAccruedReturn || 0));
+      const totalAddOnReturn = round2(Number(fresh.addOnAccruedReturn || 0));
+      const managementFee = round2(Number(fresh.managementFee || 0));
+      const netReturn = round2(Number(fresh.totalAccruedReturn || 0));
 
       updatedCount++;
       totalGrossAccrued = round2(totalGrossAccrued + principalReturn + totalAddOnReturn);
@@ -987,8 +964,7 @@ export const calculateDailyAccruals = async (req, res, next) => {
 
       details.push({
         investmentId: investment._id,
-        transactionId: investment.transactionId,
-        daysActive: daysSinceStart,
+        transactionId: fresh.transactionId || investment.transactionId,
         principalAccrued: principalReturn,
         addOnAccrued: totalAddOnReturn,
         managementFee,

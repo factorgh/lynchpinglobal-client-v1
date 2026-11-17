@@ -109,6 +109,17 @@ export const isQuarterEnd = (date = new Date()) => {
 //     endDate: endDate.toISOString().split("T")[0],     // Optional, formatted as YYYY-MM-DD
 //   };
 // };
+/**
+ * Inclusive calendar days from start through end (both endpoints count).
+ * Matches getQuarterDetails so a full-quarter hold earns the full contractual rate.
+ */
+export const inclusiveDayCount = (startDate, endDate) => {
+  const start = moment(startDate).startOf("day");
+  const end = moment(endDate).startOf("day");
+  if (!start.isValid() || !end.isValid() || end.isBefore(start)) return 0;
+  return end.diff(start, "days") + 1;
+};
+
 export const getQuarterDetails = (date = new Date()) => {
   const d = moment.isMoment(date)
     ? date.toDate()
@@ -126,10 +137,8 @@ export const getQuarterDetails = (date = new Date()) => {
   const startDate = new Date(year, startMonth, 1);
   const endDate = new Date(year, startMonth + 3, 0); // Last day of the quarter
 
-  // Get the total number of days in the quarter
-  const daysInQuarter = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-
-  return daysInQuarter;
+  // Inclusive days in the quarter (same convention as inclusiveDayCount / accrual)
+  return inclusiveDayCount(startDate, endDate);
 };
 
 export const calculateDays30360 = (startDate, endDate) => {

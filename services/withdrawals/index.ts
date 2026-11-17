@@ -9,15 +9,15 @@ export const WithdrawalApi = baseApi.injectEndpoints({
     return {
       createWithdrawal: builder.mutation({
         query: (data) => WithdrawalCrud.create(data),
-        invalidatesTags: ["Withdrawals"],
+        invalidatesTags: ["Withdrawals", "Investment"],
       }),
       updateWithdrawal: builder.mutation({
         query: ({ id, data }) => WithdrawalCrud.update({ id, data: data }),
-        invalidatesTags: ["Withdrawals"],
+        invalidatesTags: ["Withdrawals", "Investment"],
       }),
       deleteWithdrawal: builder.mutation({
         query: (id) => WithdrawalCrud.delete(id),
-        invalidatesTags: ["Withdrawals"],
+        invalidatesTags: ["Withdrawals", "Investment"],
       }),
       getWithdrawals: builder.query({
         query: () => WithdrawalCrud.getAll(),

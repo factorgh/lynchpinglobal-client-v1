@@ -357,7 +357,10 @@ const TermsPageContent = () => {
         {!isClientDocumentsPage && (
           <div className="space-y-4 animate-in fade-in duration-200">
             {/* Document Selector Pills & Download */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+            <div
+              data-tour="library-docs"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-xs"
+            >
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500 mr-1">
                   LP Library Documents:
@@ -413,7 +416,10 @@ const TermsPageContent = () => {
             </div>
 
             {/* Terms Viewer / Iframe */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-2">
+            <div
+              data-tour="library-viewer"
+              className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-2"
+            >
               {isTermsLoading ? (
                 <div className="flex flex-col items-center justify-center py-28 text-slate-400">
                   <Spin size="large" />
@@ -490,7 +496,10 @@ const TermsPageContent = () => {
             </div>
 
             {/* Document Upload Card */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm">
+            <div
+              data-tour="docs-upload"
+              className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm"
+            >
               <div className="mb-4">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
                   Upload New Document for Admin
@@ -637,7 +646,10 @@ const TermsPageContent = () => {
             </div>
 
             {/* List of Documents Uploaded by Client */}
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm">
+            <div
+              data-tour="docs-list"
+              className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm"
+            >
               <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">

@@ -69,27 +69,36 @@ export default function DashboardPage() {
       // Loop through all the data and add those needed
       activeInvestments.forEach((investment: any) => {
         totalPrincipal = round2(totalPrincipal + (investment.principal || 0));
-        totalAccruedInterest = round2(totalAccruedInterest + (investment.totalAccruedReturn || 0));
+        // Net accrued already includes add-on yield + performance − fees.
+        totalAccruedInterest = round2(
+          totalAccruedInterest + (investment.totalAccruedReturn || 0),
+        );
         totalAddOns = round2(
           totalAddOns +
-          (investment.addOns || []).reduce(
-            (sum: any, addOn: any) => round2(sum + (addOn.amount || 0)),
-            0
-          )
+            (investment.addOns || []).reduce(
+              (sum: any, addOn: any) =>
+                addOn?.status === "active"
+                  ? round2(sum + (addOn.amount || 0))
+                  : sum,
+              0,
+            ),
         );
 
-        totalAddOnIneterest = round2(totalAddOnIneterest + (investment.addOnAccruedReturn || 0));
-        totalPerformanceYield = round2(totalPerformanceYield + (investment.performanceYield || 0));
-        totalAddonAccruedReturn = round2(totalAddonAccruedReturn + (investment.addOnAccruedReturn || 0));
+        totalAddOnIneterest = round2(
+          totalAddOnIneterest + (investment.addOnAccruedReturn || 0),
+        );
+        totalPerformanceYield = round2(
+          totalPerformanceYield + (investment.performanceYield || 0),
+        );
+        totalAddonAccruedReturn = round2(
+          totalAddonAccruedReturn + (investment.addOnAccruedReturn || 0),
+        );
       });
 
       totalAssetsUnderManagement = round2(totalPrincipal + totalAddOns + totalAssets);
 
-      totalOutstandingPayments = round2(
-        totalAccruedInterest +
-        totalAddOnIneterest +
-        totalPerformanceYield
-      );
+      // Outstanding / accrued KPI = Σ net totalAccruedReturn only (no double-count).
+      totalOutstandingPayments = round2(totalAccruedInterest);
 
       setAssetsUnderMgt(totalAssetsUnderManagement);
       setOutstandingPayments(totalOutstandingPayments);

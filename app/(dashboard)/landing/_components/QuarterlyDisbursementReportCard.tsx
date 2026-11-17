@@ -255,7 +255,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
                   {formatPriceGHS(totalAccruedDisbursements)}
                 </div>
                 <p className="text-[11px] text-emerald-700 font-medium">
-                  Official mandate ledger on record
+                  Gross accrued earnings before fees (ledger reference)
                 </p>
               </div>
             ) : isClosed ? (
@@ -270,7 +270,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
                   {formatPriceGHS(totalAccruedDisbursements)}
                 </div>
                 <p className="text-xs text-slate-500 font-medium">
-                  Audited closing for {quarter} {year}
+                  Gross accrued earnings before fees · {quarter} {year}
                 </p>
               </div>
             ) : (

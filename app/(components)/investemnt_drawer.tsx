@@ -531,16 +531,16 @@ const InvestmentDetailDrawer = ({
             <Descriptions.Item label="Mandate Contribution (GHS)">
               {formatPriceGHS(investment?.principal)}
             </Descriptions.Item>
-            <Descriptions.Item label="Accrued Disbursements (GHS)">
+            <Descriptions.Item label="Accrued Earnings (GHS)">
               {formatPriceGHS(investment?.principalAccruedReturn)}
             </Descriptions.Item>
             <Descriptions.Item label="Contractual Terms (%)">
               {investment?.guaranteedRate}% (Contractual Terms)
             </Descriptions.Item>
-            <Descriptions.Item label="Additional Disbursements (GHS)">
+            <Descriptions.Item label="Additional Earnings (GHS)">
               {formatPriceGHS(investment?.addOnAccruedReturn)}
             </Descriptions.Item>
-            <Descriptions.Item label="Total Disbursements (GHS)">
+            <Descriptions.Item label="Total Accrued Earnings (GHS)">
               {formatPriceGHS(investment?.totalAccruedReturn)}
             </Descriptions.Item>
             <Descriptions.Item label="Quarter End Date">
@@ -555,10 +555,10 @@ const InvestmentDetailDrawer = ({
             <Descriptions.Item label="Service Fee (GHS)">
               {formatPriceGHS(investment?.managementFee)}
             </Descriptions.Item>
-            <Descriptions.Item label="Performance-Linked Disbursement (GHS)">
+            <Descriptions.Item label="Performance Bonus (GHS)">
               {formatPriceGHS(investment?.performanceYield)}
             </Descriptions.Item>
-            <Descriptions.Item label="Operational Charge (GHS)">
+            <Descriptions.Item label="Operational Charges (GHS)">
               {formatPriceGHS(investment?.operationalCost || 0)}
             </Descriptions.Item>
           </Descriptions>

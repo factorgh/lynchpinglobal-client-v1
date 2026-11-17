@@ -7,20 +7,23 @@ import { FileText, AlertCircle } from "lucide-react";
 import { LockOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import { getPasswordError } from "@/lib/passwordPolicy";
-import { getTourKey, TOUR_FINISHED_EVENT } from "@/lib/tour/tourSteps";
+import { getTourKey, getTourSteps, TOUR_FINISHED_EVENT } from "@/lib/tour/tourSteps";
 import PasswordRequirements from "@/components/PasswordRequirements";
 
-const LANDING_TOUR_KEY = getTourKey("client", "/landing");
-
-// The governance pop-up must not cover the first-login tour, so it waits until that tour is done.
-const isLandingTourDone = (user: any) => {
+const isPageTourDone = (user: any, pathname: string | null) => {
+  const path = pathname || "/landing";
+  const steps = getTourSteps("client", path);
+  if (!steps.length) return true;
   try {
-    if (typeof window !== "undefined" && window.innerWidth < 768) return true; // tour does not auto-run on mobile
-    if (localStorage.getItem(`tour_${LANDING_TOUR_KEY}`) === "seen") return true;
-    if (localStorage.getItem(`lynchpin_tour_${LANDING_TOUR_KEY}`) === "seen") return true;
-  } catch {}
-  const seen: string[] = Array.isArray(user?.seenTours) ? user.seenTours : [];
-  return seen.includes(LANDING_TOUR_KEY) || seen.includes("all");
+    if (typeof window !== "undefined" && window.innerWidth < 768) return true;
+    const key = getTourKey("client", path);
+    if (localStorage.getItem(`tour_${key}`) === "seen") return true;
+    if (localStorage.getItem(`lynchpin_tour_${key}`) === "seen") return true;
+    const seen: string[] = Array.isArray(user?.seenTours) ? user.seenTours : [];
+    return seen.includes(key) || seen.includes("all");
+  } catch {
+    return false;
+  }
 };
 
 export default function ClientOnboardingModal() {
@@ -57,10 +60,13 @@ export default function ClientOnboardingModal() {
         if (parsed.role === "user") {
           const needsTerms = !parsed.agreedToTerms;
           const needsPassword = parsed.mustChangePassword === true;
-          const tourFinished =
-            tourDone || isLandingTourDone(parsed) || (pathname && pathname !== "/landing");
+          const routePath =
+            typeof window !== "undefined"
+              ? `${window.location.pathname}${window.location.search}`
+              : pathname || "/landing";
+          const pageTourFinished = tourDone || isPageTourDone(parsed, routePath);
 
-          if (!tourFinished) {
+          if (!pageTourFinished) {
             setIsOpen(false);
           } else if (needsTerms) {
             setCurrentStep("terms");
@@ -282,10 +288,11 @@ export default function ClientOnboardingModal() {
                   : "Account & Profile Preferences"}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Step {currentStep === "terms" ? "1 of 2" : "2 of 2"}:{" "}
-                {currentStep === "terms"
-                  ? "Accept Mandate Governance"
-                  : "Replace Temporary Password"}
+                {user?.mustChangePassword
+                  ? currentStep === "terms"
+                    ? "Step 1 of 2: Accept Mandate Governance"
+                    : "Step 2 of 2: Replace Temporary Password"
+                  : "Accept Mandate Governance"}
               </p>
             </div>
           </div>
@@ -305,14 +312,14 @@ export default function ClientOnboardingModal() {
                 Lynchpin Global Mandate & Fiduciary Agreement
               </h4>
               <p>
-                As a registered client with active or prospective capital mandates, your portfolio is governed under Lynchpin Global institutional asset management standards.
+                As a registered client with active or prospective capital mandates, your portfolio is governed under Lynchpin Global institutional standards.
               </p>
               <ul className="list-disc pl-4 space-y-1.5 text-slate-700 font-medium">
                 <li>
                   <strong>Capital Protection:</strong> All capital deployment carries risk; Lynchpin seeks to protect mandate capital through due diligence, a focus on sectors with strong cash flows and transaction-specific security measures, without guaranteeing capital protection.
                 </li>
                 <li>
-                  <strong>Quarterly Compounding:</strong> Contractual returns accrue daily and disburse according to designated quarterly mandate schedules (Q1, Q2, Q3, Q4).
+                  <strong>Quarterly Compounding:</strong> Contractual earnings accrue daily and disburse according to designated quarterly mandate schedules (Q1, Q2, Q3, Q4).
                 </li>
                 <li>
                   <strong>Disbursements:</strong> Principal adjustments and profit liquidations are processed upon formal request subject to contractual notice.
@@ -349,7 +356,9 @@ export default function ClientOnboardingModal() {
                 disabled={!agreedTerms || !completedOnboarding}
                 className="bg-emerald-600 hover:bg-emerald-500 rounded-xl px-5 py-2 font-bold text-xs shadow-sm disabled:opacity-50"
               >
-                Accept & Proceed to Password Setup
+                {user?.mustChangePassword
+                  ? "Accept & Proceed to Password Setup"
+                  : "Accept & Continue"}
               </Button>
             </div>
           </div>

@@ -70,7 +70,7 @@ const sanitizeInput = (input) => {
  * User signup
  */
 export const signup = catchAsync(async (req, res, next) => {
-  const { name, email, password, passwordConfirm, displayName, fullName, agreedToTerms } = req.body;
+  const { name, email, password, passwordConfirm, displayName, fullName } = req.body;
 
   // Required fields
   if (!name || !email || !password || !passwordConfirm) {
@@ -122,8 +122,8 @@ export const signup = catchAsync(async (req, res, next) => {
     password,
     passwordConfirm,
     displayName: providedFullName,
-    agreedToTerms: agreedToTerms !== undefined ? Boolean(agreedToTerms) : true,
-    agreedToTermsAt: new Date(),
+    agreedToTerms: false,
+    agreedToTermsAt: undefined,
   });
 
   await logActivity({

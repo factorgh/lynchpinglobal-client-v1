@@ -115,9 +115,9 @@ export async function updateWithdrawalAction(id: string, data: any) {
           await recalculateInvestment(investment._id);
           const refreshedInvestment = await Investment.findById(investment._id);
           if (refreshedInvestment) {
+            // Assign (do not +=) — principalAccruedReturn already includes any prior lock.
             refreshedInvestment.lockedPrincipalProfit =
-              (refreshedInvestment.lockedPrincipalProfit || 0) +
-              (refreshedInvestment.principalAccruedReturn || 0);
+              refreshedInvestment.principalAccruedReturn || 0;
             refreshedInvestment.lastPrincipalAdjustmentDate = new Date();
             refreshedInvestment.principal = Math.max(
               0,

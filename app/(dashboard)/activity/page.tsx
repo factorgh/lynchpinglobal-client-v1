@@ -12,19 +12,34 @@ import {
 import { Select, Empty, Spin, Input } from "antd";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Wrapper from "../wealth/_components/wapper";
 import TimelineWidget from "./_components/TimelineItem";
 
 const { Option } = Select;
 
 const ActivityPage: React.FC = () => {
-  const { data: activities, isLoading, error } = useGetActivityLogsQuery(null);
+  const { data: activities, isLoading, error, refetch } = useGetActivityLogsQuery(null, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+  });
   const [timeFilter, setTimeFilter] = useState("all");
   const [actionFilter, setActionFilter] = useState<"all" | "deletes" | "creates" | "updates">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
+
+  useEffect(() => {
+    refetch();
+    const onRevisit = (event: Event) => {
+      const href = (event as CustomEvent<{ href?: string }>).detail?.href;
+      if (!href || href === "/activity" || href.startsWith("/activity")) {
+        refetch();
+      }
+    };
+    window.addEventListener("lynchpin:nav-revisit", onRevisit);
+    return () => window.removeEventListener("lynchpin:nav-revisit", onRevisit);
+  }, [refetch]);
 
   const allActivitiesRaw = useMemo(() => {
     return activities?.data?.data || [];

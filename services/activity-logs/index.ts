@@ -22,6 +22,7 @@ export const ActivityLogApi = baseApi.injectEndpoints({
       getActivityLogs: builder.query({
         query: () => ActivityLogCrud.getAll(),
         providesTags: ["ActivityLogs"],
+        keepUnusedDataFor: 0,
       }),
       getSingleActivityLog: builder.query({
         query: (id) => ActivityLogCrud.getSingle(id),
