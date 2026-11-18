@@ -9,7 +9,12 @@ import WithdrawalModel, {
 
 import User from "../auth/models/user.model.js";
 import { recalculateInvestment } from "../../utils/recalculate.js";
-import { applyPrincipalChange } from "../../utils/principalAdjustment.js";
+import {
+  applyPrincipalChange,
+  snapshotPrincipalState,
+  restorePrincipalState,
+} from "../../utils/principalAdjustment.js";
+import { withMongoTransaction } from "../../utils/withMongoTransaction.js";
 import { round2 } from "../../utils/halper.js";
 import {
   logActivity,
@@ -76,41 +81,47 @@ const resolveMandate = async (doc) => {
 };
 
 /** Persist deductedAmount on legacy approval-like rows so heal queries stay accurate. */
-const backfillLegacyDeductedAmounts = async (investmentId) => {
+const backfillLegacyDeductedAmounts = async (investmentId, session = null) => {
   if (!investmentId) return;
-  const legacy = await WithdrawalModel.find({
+  let q = WithdrawalModel.find({
     investment: investmentId,
     deductedAmount: { $exists: false },
   });
+  if (session) q = q.session(session);
+  const legacy = await q;
   for (const row of legacy) {
     if (isApprovalLikeStatus(row.status)) {
       row.deductedAmount = Number(row.amount) || 0;
     } else {
       row.deductedAmount = 0;
     }
-    await row.save({ validateBeforeSave: false });
+    await row.save({ validateBeforeSave: false, ...(session ? { session } : {}) });
   }
 };
 
-const remainingDeductedCount = async (investmentId) => {
+const remainingDeductedCount = async (investmentId, session = null) => {
   if (!investmentId) return 0;
-  await backfillLegacyDeductedAmounts(investmentId);
-  const rows = await WithdrawalModel.find({ investment: investmentId }).select(
+  await backfillLegacyDeductedAmounts(investmentId, session);
+  let q = WithdrawalModel.find({ investment: investmentId }).select(
     "amount status deductedAmount",
   );
+  if (session) q = q.session(session);
+  const rows = await q;
   return rows.filter((row) => currentDeduction(row) > 0).length;
 };
 
-const healAccrualIfFullyReversed = async (investmentId) => {
+const healAccrualIfFullyReversed = async (investmentId, session = null) => {
   if (!investmentId) return;
-  const remaining = await remainingDeductedCount(investmentId);
+  const remaining = await remainingDeductedCount(investmentId, session);
   if (remaining > 0) return;
-  const inv = await Investment.findById(investmentId);
+  let q = Investment.findById(investmentId);
+  if (session) q = q.session(session);
+  const inv = await q;
   if (!inv || !inv.lastPrincipalAdjustmentDate) return;
   inv.lockedPrincipalProfit = 0;
-  inv.lastPrincipalAdjustmentDate = undefined;
-  await inv.save({ validateBeforeSave: false });
-  await recalculateInvestment(inv._id);
+  inv.set("lastPrincipalAdjustmentDate", undefined);
+  await inv.save({ validateBeforeSave: false, ...(session ? { session } : {}) });
+  await recalculateInvestment(inv._id, session);
 };
 
 const clientInfo = async (userId) => {
@@ -163,7 +174,8 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     return next(new AppError("Insufficient funds for disbursement.", 400));
   }
 
-  const doc = await WithdrawalModel.create({
+  const principalBefore = investment.principal;
+  const payload = {
     user,
     amount: numericAmount,
     requestedDate: req.body.requestedDate,
@@ -171,15 +183,34 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     status: normalizedStatus,
     investment: investment._id,
     deductedAmount: 0,
-  });
+  };
 
-  let principalAfter = investment.principal;
-  if (isApproved) {
-    const updated = await applyPrincipalChange(investment, numericAmount);
-    principalAfter = updated.principal;
-    doc.deductedAmount = numericAmount;
-    await doc.save();
-  }
+  const runCreate = async (session = null) => {
+    const created = await WithdrawalModel.create([payload], session ? { session } : undefined);
+    const doc = Array.isArray(created) ? created[0] : created;
+    let principalAfter = principalBefore;
+    if (isApproved) {
+      const updated = await applyPrincipalChange(investment, numericAmount, session);
+      principalAfter = updated.principal;
+      doc.deductedAmount = numericAmount;
+      await doc.save(session ? { session } : undefined);
+    }
+    return { doc, principalAfter };
+  };
+
+  const { doc, principalAfter } = await withMongoTransaction(
+    (session) => runCreate(session),
+    async () => {
+      const snap = snapshotPrincipalState(investment);
+      try {
+        return await runCreate(null);
+      } catch (err) {
+        await restorePrincipalState(snap);
+        // Pending create may still exist if create succeeded before principal failed.
+        throw err;
+      }
+    },
+  );
 
   const client = await clientInfo(user);
   await logActivity({
@@ -189,7 +220,7 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
       client.license ? ` (${client.license})` : ""
     } against ${mandateRef(investment)}. Status: ${doc.status}${
       isApproved
-        ? `. ${ghs(numericAmount)} deducted; principal ${ghs(investment.principal)} → ${ghs(principalAfter)}.`
+        ? `. ${ghs(numericAmount)} deducted; principal ${ghs(principalBefore)} → ${ghs(principalAfter)}.`
         : " (awaiting approval, nothing deducted)."
     }`,
     target: client.doc || user,
@@ -236,8 +267,6 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
 
   const deducted = currentDeduction(doc);
   let investment = null;
-  let principalBefore = 0;
-  let principalAfter = 0;
   if (deducted > 0) {
     investment = await resolveMandate(doc);
     if (!investment) {
@@ -248,13 +277,37 @@ export const deleteWithdrawal = catchAsync(async (req, res, next) => {
         ),
       );
     }
-    principalBefore = investment.principal;
-    const updated = await applyPrincipalChange(investment, -deducted);
-    principalAfter = updated.principal;
-    await healAccrualIfFullyReversed(investment._id);
   }
 
-  await WithdrawalModel.findByIdAndDelete(doc._id);
+  const principalBefore = investment ? investment.principal : 0;
+
+  const runDelete = async (session = null) => {
+    let principalAfter = principalBefore;
+    if (deducted > 0 && investment) {
+      const updated = await applyPrincipalChange(investment, -deducted, session);
+      principalAfter = updated.principal;
+      await healAccrualIfFullyReversed(investment._id, session);
+      const healed = await Investment.findById(investment._id)
+        .select("+archived +active")
+        .session(session || null);
+      if (healed) principalAfter = healed.principal;
+    }
+    await WithdrawalModel.findByIdAndDelete(doc._id, session ? { session } : undefined);
+    return { principalAfter };
+  };
+
+  const { principalAfter } = await withMongoTransaction(
+    (session) => runDelete(session),
+    async () => {
+      const snap = investment ? snapshotPrincipalState(investment) : null;
+      try {
+        return await runDelete(null);
+      } catch (err) {
+        if (snap) await restorePrincipalState(snap);
+        throw err;
+      }
+    },
+  );
 
   const client = await clientInfo(doc.user);
   await logActivity({
@@ -321,8 +374,6 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
   const delta = round2(shouldBeDeducted - alreadyDeducted);
 
   let investment = null;
-  let principalBefore = 0;
-  let principalAfter = 0;
   if (delta !== 0) {
     investment = await resolveMandate(oldDoc);
     if (!investment) {
@@ -333,24 +384,60 @@ export const updateWithdrawal = catchAsync(async (req, res, next) => {
         ),
       );
     }
+    await recalculateInvestment(investment._id);
+    investment = await Investment.findById(investment._id).select("+archived +active");
     if (delta > 0 && delta > investment.principal) {
       return next(new AppError("Insufficient funds for disbursement.", 400));
     }
-    principalBefore = investment.principal;
-    const updated = await applyPrincipalChange(investment, delta);
-    principalAfter = updated.principal;
-    if (delta < 0) {
-      await healAccrualIfFullyReversed(investment._id);
-    }
   }
 
-  oldDoc.amount = nextAmount;
-  oldDoc.status = nextStatus;
-  oldDoc.approvedDate = nextApprovedDate || undefined;
-  if (req.body.requestedDate) oldDoc.requestedDate = req.body.requestedDate;
-  oldDoc.deductedAmount = shouldBeDeducted;
-  if (investment) oldDoc.investment = investment._id;
-  const doc = await oldDoc.save();
+  const principalBefore = investment ? investment.principal : 0;
+
+  const runUpdate = async (session = null) => {
+    let principalAfter = principalBefore;
+    if (delta !== 0 && investment) {
+      const updated = await applyPrincipalChange(investment, delta, session);
+      principalAfter = updated.principal;
+      if (delta < 0) {
+        await healAccrualIfFullyReversed(investment._id, session);
+        const healed = await Investment.findById(investment._id)
+          .select("+archived +active")
+          .session(session || null);
+        if (healed) principalAfter = healed.principal;
+      }
+    }
+
+    // Re-load inside the transaction so we don't save a stale in-memory doc.
+    let working = oldDoc;
+    if (session) {
+      working = await WithdrawalModel.findById(oldDoc._id).session(session);
+      if (!working) {
+        throw new AppError("No document found with that ID", 404);
+      }
+    }
+
+    working.amount = nextAmount;
+    working.status = nextStatus;
+    working.approvedDate = nextApprovedDate || undefined;
+    if (req.body.requestedDate) working.requestedDate = req.body.requestedDate;
+    working.deductedAmount = shouldBeDeducted;
+    if (investment) working.investment = investment._id;
+    const doc = await working.save(session ? { session } : undefined);
+    return { doc, principalAfter };
+  };
+
+  const { doc, principalAfter } = await withMongoTransaction(
+    (session) => runUpdate(session),
+    async () => {
+      const snap = investment ? snapshotPrincipalState(investment) : null;
+      try {
+        return await runUpdate(null);
+      } catch (err) {
+        if (snap) await restorePrincipalState(snap);
+        throw err;
+      }
+    },
+  );
 
   const changes = diffFields(before, doc.toObject(), WITHDRAWAL_FIELDS);
   const balanceNote =

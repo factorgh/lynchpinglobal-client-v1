@@ -3,7 +3,12 @@
 import connectDB from "@/lib/db";
 import Withdrawal from "@/server/features/withdrawals/withdrawal.model.js";
 import Investment from "@/server/features/investment/model/investment.model.js";
-import { recalculateInvestment } from "@/server/utils/recalculate.js";
+import {
+  applyPrincipalChange,
+  snapshotPrincipalState,
+  restorePrincipalState,
+} from "@/server/utils/principalAdjustment.js";
+import { withMongoTransaction } from "@/server/utils/withMongoTransaction.js";
 import { revalidatePath } from "next/cache";
 
 export async function getAllWithdrawalsAction() {
@@ -52,12 +57,12 @@ export async function createWithdrawalAction(data: {
   try {
     await connectDB();
     const withdrawal = await Withdrawal.create({
-      userId: data.userId,
-      investmentId: data.investmentId,
+      user: data.userId,
+      investment: data.investmentId,
       amount: data.amount,
-      paymentMethod: data.paymentMethod || "bank_transfer",
-      accountDetails: data.accountDetails,
-      status: "pending",
+      requestedDate: new Date(),
+      status: "Pending",
+      deductedAmount: 0,
     });
 
     revalidatePath("/cashout");
@@ -74,8 +79,12 @@ export async function createWithdrawalAction(data: {
 const isApprovedStatus = (status: any) => {
   if (!status) return false;
   const s = String(status).trim().toLowerCase();
-  // Disbursements: Pending / Approved / Cancelled (legacy processing = approved).
   return s === "approved" || s === "processing";
+};
+
+const currentDeduction = (doc: any) => {
+  if (typeof doc?.deductedAmount === "number") return Number(doc.deductedAmount) || 0;
+  return isApprovedStatus(doc?.status) ? Number(doc?.amount) || 0 : 0;
 };
 
 export async function updateWithdrawalAction(id: string, data: any) {
@@ -86,58 +95,67 @@ export async function updateWithdrawalAction(id: string, data: any) {
       return { success: false, error: "Disbursement not found" };
     }
 
-    const updated = await Withdrawal.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
+    const nextStatus = data.status ?? oldDoc.status;
+    const nextAmount =
+      data.amount !== undefined ? Number(data.amount) : Number(oldDoc.amount);
+    const alreadyDeducted = currentDeduction(oldDoc);
+    const shouldBeDeducted = isApprovedStatus(nextStatus) ? nextAmount : 0;
+    const delta = shouldBeDeducted - alreadyDeducted;
 
-    if (!updated) {
-      return { success: false, error: "Disbursement not found" };
-    }
-
-    const wasApproved = isApprovedStatus(oldDoc.status);
-    const isApproved = isApprovedStatus(updated.status);
-
-    const oldAmount = Number(oldDoc.amount) || 0;
-    const newAmount = Number(updated.amount) || 0;
-
-    const prevDeduction = wasApproved ? oldAmount : 0;
-    const nextDeduction = isApproved ? newAmount : 0;
-
-    const principalDelta = prevDeduction - nextDeduction;
-
-    if (principalDelta !== 0) {
-      const investment = await Investment.findOne({
-        userId: updated.user || updated.userId,
-      });
-      if (investment) {
-        if (principalDelta < 0) {
-          // Approving/increasing deduction: snapshot and lock profit
-          await recalculateInvestment(investment._id);
-          const refreshedInvestment = await Investment.findById(investment._id);
-          if (refreshedInvestment) {
-            // Assign (do not +=) — principalAccruedReturn already includes any prior lock.
-            refreshedInvestment.lockedPrincipalProfit =
-              refreshedInvestment.principalAccruedReturn || 0;
-            refreshedInvestment.lastPrincipalAdjustmentDate = new Date();
-            refreshedInvestment.principal = Math.max(
-              0,
-              (refreshedInvestment.principal || 0) + principalDelta,
-            );
-            await refreshedInvestment.save();
-            await recalculateInvestment(refreshedInvestment._id);
-          }
-        } else {
-          // Refunding back to principal
-          investment.principal = Math.max(
-            0,
-            (investment.principal || 0) + principalDelta,
-          );
-          await investment.save();
-          await recalculateInvestment(investment._id);
-        }
+    let investment = null;
+    if (delta !== 0) {
+      if (oldDoc.investment) {
+        investment = await Investment.findById(oldDoc.investment).select(
+          "+archived +active",
+        );
+      }
+      if (!investment) {
+        investment = await Investment.findOne({
+          $or: [
+            { userId: oldDoc.user || oldDoc.userId },
+            { "owners.user": oldDoc.user || oldDoc.userId },
+          ],
+          active: { $ne: false },
+          archived: { $ne: true },
+        }).select("+archived +active");
+      }
+      if (!investment) {
+        return { success: false, error: "Linked mandate not found" };
       }
     }
+
+    const runUpdate = async (session: any = null) => {
+      if (delta !== 0 && investment) {
+        await applyPrincipalChange(investment, delta, session);
+      }
+      let working = oldDoc;
+      if (session) {
+        working = await Withdrawal.findById(id).session(session);
+      }
+      Object.assign(working, data, {
+        status: nextStatus,
+        amount: nextAmount,
+        deductedAmount: shouldBeDeducted,
+        approvedDate: isApprovedStatus(nextStatus)
+          ? data.approvedDate ?? working.approvedDate
+          : undefined,
+      });
+      if (investment) working.investment = investment._id;
+      return working.save(session ? { session } : undefined);
+    };
+
+    const updated = await withMongoTransaction(
+      (session) => runUpdate(session),
+      async () => {
+        const snap = investment ? snapshotPrincipalState(investment) : null;
+        try {
+          return await runUpdate(null);
+        } catch (err) {
+          if (snap) await restorePrincipalState(snap);
+          throw err;
+        }
+      },
+    );
 
     revalidatePath("/cashout");
     return { success: true, data: JSON.parse(JSON.stringify(updated)) };
@@ -153,25 +171,51 @@ export async function updateWithdrawalAction(id: string, data: any) {
 export async function deleteWithdrawalAction(id: string) {
   try {
     await connectDB();
-    const doc = await Withdrawal.findByIdAndDelete(id);
+    const doc = await Withdrawal.findById(id);
     if (!doc) {
       return { success: false, error: "Disbursement not found" };
     }
 
-    const wasApproved = isApprovedStatus(doc.status);
-    if (wasApproved) {
-      const investment = await Investment.findOne({
-        userId: doc.user || doc.userId,
-      });
-      if (investment) {
-        investment.principal += doc.amount;
-        await investment.save();
-        await recalculateInvestment(investment._id);
+    const deducted = currentDeduction(doc);
+    let investment = null;
+    if (deducted > 0) {
+      if (doc.investment) {
+        investment = await Investment.findById(doc.investment).select(
+          "+archived +active",
+        );
+      }
+      if (!investment) {
+        investment = await Investment.findOne({
+          $or: [
+            { userId: doc.user || doc.userId },
+            { "owners.user": doc.user || doc.userId },
+          ],
+        }).select("+archived +active");
       }
     }
 
+    const runDelete = async (session: any = null) => {
+      if (deducted > 0 && investment) {
+        await applyPrincipalChange(investment, -deducted, session);
+      }
+      await Withdrawal.findByIdAndDelete(id, session ? { session } : undefined);
+    };
+
+    await withMongoTransaction(
+      (session) => runDelete(session),
+      async () => {
+        const snap = investment ? snapshotPrincipalState(investment) : null;
+        try {
+          await runDelete(null);
+        } catch (err) {
+          if (snap) await restorePrincipalState(snap);
+          throw err;
+        }
+      },
+    );
+
     revalidatePath("/cashout");
-    return { success: true, data: null };
+    return { success: true };
   } catch (error: any) {
     console.error("deleteWithdrawalAction error:", error);
     return {

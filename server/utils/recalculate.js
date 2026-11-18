@@ -3,11 +3,11 @@ import Investment from "../features/investment/model/investment.model.js";
 import { calculateDailyRate, round2 } from "./halper.js";
 import { getQuarterDetails, inclusiveDayCount } from "./handle_date_range.js";
 
-export const recalculateInvestment = async (investmentId) => {
+export const recalculateInvestment = async (investmentId, session = null) => {
   try {
-    const investment = await Investment.findById(investmentId).populate(
-      "addOns"
-    );
+    let query = Investment.findById(investmentId).populate("addOns");
+    if (session) query = query.session(session);
+    const investment = await query;
     if (!investment) {
       console.warn(`[Recalculate] Investment ${investmentId} not found`);
       return;
@@ -67,14 +67,14 @@ export const recalculateInvestment = async (investmentId) => {
 
       if (addOnDays <= 0) {
         addOn.accruedAddOnInterest = 0;
-        await addOn.save();
+        await addOn.save(session ? { session } : undefined);
         continue;
       }
 
       // Only charge interest if amount is at least 5000 GHS
       if (addOn.amount < 5000) {
         addOn.accruedAddOnInterest = 0;
-        await addOn.save();
+        await addOn.save(session ? { session } : undefined);
         continue;
       }
 
@@ -86,7 +86,7 @@ export const recalculateInvestment = async (investmentId) => {
 
       const addOnInterest = round2(dailyAddOnReturn * addOnDays);
       addOn.accruedAddOnInterest = addOnInterest;
-      await addOn.save(); // Persist the add-on document update
+      await addOn.save(session ? { session } : undefined);
       totalAddOnReturn = round2(totalAddOnReturn + addOnInterest);
     }
 
@@ -109,7 +109,7 @@ export const recalculateInvestment = async (investmentId) => {
       )
     );
 
-    await investment.save();
+    await investment.save(session ? { session } : undefined);
     console.log(
       `[Recalculate] Updated investment ${investment._id} | Principal: ${principalReturn.toFixed(
         2
@@ -119,5 +119,7 @@ export const recalculateInvestment = async (investmentId) => {
     );
   } catch (error) {
     console.error("[Recalculate] Error recalculating investment:", error.message || error);
+    // Inside a transaction, silence would commit a half-updated mandate.
+    if (session) throw error;
   }
 };
