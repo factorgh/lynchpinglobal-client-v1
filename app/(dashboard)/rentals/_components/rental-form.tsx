@@ -149,7 +149,7 @@ const RentalForm: React.FC = () => {
       </button>
       <Drawer
         title="Create a New Asset Rental"
-        width={720}
+        width="min(720px, 100vw)"
         onClose={onClose}
         open={open}
       >
@@ -161,7 +161,7 @@ const RentalForm: React.FC = () => {
         >
           <Row gutter={16}>
             {/* User Selection */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetClass"
                 label="Asset Class"
@@ -177,7 +177,7 @@ const RentalForm: React.FC = () => {
             </Col>
 
             {/* Principal */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetDesignation"
                 label="Asset Designation"
@@ -197,7 +197,7 @@ const RentalForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="amountDue"
                 label="Amount Due (GHS)"
@@ -215,7 +215,7 @@ const RentalForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="user"
                 label="User"
@@ -239,7 +239,7 @@ const RentalForm: React.FC = () => {
           </Row>
           <Row gutter={16}>
             {/* Performance Yield */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="returnDate"
                 label="Return Date"
@@ -250,7 +250,7 @@ const RentalForm: React.FC = () => {
                 <DatePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="overdueFee"
                 label="Overdue Fee (GHS)"
@@ -275,7 +275,7 @@ const RentalForm: React.FC = () => {
           <Row gutter={16}>
             {/* Management Fee */}
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="quater"
                 label="Quarter"
@@ -296,7 +296,7 @@ const RentalForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="status"
                 label="Status"

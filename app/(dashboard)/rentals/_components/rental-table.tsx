@@ -426,7 +426,7 @@ const RentalTable: React.FC = () => {
       <Drawer
         title="Edit Rental Details"
         placement="right"
-        width="50%"
+        width="min(520px, 100vw)"
         onClose={handleCloseDrawer}
         open={isDrawerVisible}
       >
@@ -437,7 +437,7 @@ const RentalTable: React.FC = () => {
           hideRequiredMark
         >
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetClass"
                 label="Asset Class"
@@ -446,7 +446,7 @@ const RentalTable: React.FC = () => {
                 <Input />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetDesignation"
                 label="Asset Designation"
@@ -458,7 +458,7 @@ const RentalTable: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="amountDue"
                 label="Amount Due"
@@ -467,7 +467,7 @@ const RentalTable: React.FC = () => {
                 <InputNumber className="w-full" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="dueDate"
                 label="Due Date"

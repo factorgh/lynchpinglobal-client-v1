@@ -81,7 +81,7 @@ const PaymentForm: React.FC = () => {
       </button>
       <Drawer
         title="Create Mandate Contribution"
-        width={400}
+        width="min(400px, 100vw)"
         onClose={onClose}
         open={open}
       >

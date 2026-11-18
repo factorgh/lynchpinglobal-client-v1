@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
         {/* Overlay */}
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
-        <div className="relative z-10 w-full max-w-md space-y-5 bg-gray-50 p-8 rounded-lg shadow-lg">
+        <div className="relative z-10 w-full max-w-md space-y-5 bg-gray-50 p-6 sm:p-8 rounded-lg shadow-lg">
           <img src="/logo.png" alt="Logo" className="w-32 mx-auto mb-6" />
           <div className="text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -152,7 +152,7 @@ export default function ForgotPasswordPage() {
 
       <form
         onSubmit={onSubmit}
-        className="relative z-10 w-full max-w-md space-y-5 bg-gray-50 p-8 rounded-lg shadow-lg"
+        className="relative z-10 w-full max-w-md space-y-5 bg-gray-50 p-6 sm:p-8 rounded-lg shadow-lg"
       >
         <img src="/logo.png" alt="Logo" className="w-32 mx-auto mb-6" />
         <h1 className="text-2xl font-bold text-gray-800 text-center">

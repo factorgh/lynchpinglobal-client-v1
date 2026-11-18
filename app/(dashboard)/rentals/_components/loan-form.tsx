@@ -151,7 +151,7 @@ const LoanForm: React.FC = () => {
       </button>
       <Drawer
         title="Create a New Loan"
-        width={720}
+        width="min(720px, 100vw)"
         onClose={onClose}
         open={open}
       >
@@ -163,7 +163,7 @@ const LoanForm: React.FC = () => {
         >
           <Row gutter={16}>
             {/* User Selection */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="user"
                 label="User"
@@ -186,7 +186,7 @@ const LoanForm: React.FC = () => {
             </Col>
 
             {/* Principal */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="loanAmount"
                 label="Loan Amount (GHS)"
@@ -221,7 +221,7 @@ const LoanForm: React.FC = () => {
 
           <Row gutter={16}>
             {/* Management Fee */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="overdueRate"
                 label="Overdue Daily Rate (%)"
@@ -237,7 +237,7 @@ const LoanForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="quater"
                 label="Quarter"
@@ -287,7 +287,7 @@ const LoanForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="dueDate"
                 label="Due Date"
@@ -311,7 +311,7 @@ const LoanForm: React.FC = () => {
                 <DatePicker style={{ width: "100%" }} />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="status"
                 label="Status"

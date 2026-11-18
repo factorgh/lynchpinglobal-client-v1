@@ -38,6 +38,10 @@ import {
 import Title from "antd/es/typography/Title";
 import moment from "moment";
 import { useEffect, useRef, useState } from "react";
+import {
+  useResponsiveDrawerWidth,
+  useResponsiveModalWidth,
+} from "@/lib/useResponsiveOverlay";
 import Swal from "sweetalert2";
 
 const { Text } = Typography;
@@ -85,6 +89,8 @@ const InvestmentDetailDrawer = ({
   onClose,
 }: any) => {
   const isOpen = open !== undefined ? Boolean(open) : Boolean(visible);
+  const drawerWidth = useResponsiveDrawerWidth(1000);
+  const modalWidth = useResponsiveModalWidth(980);
 
   const { data: allInvestmentsData } = useGetAllInvestmentsQuery(null, {
     skip: !isOpen,
@@ -489,14 +495,14 @@ const InvestmentDetailDrawer = ({
     <>
       <Drawer
         title="Mandate Details"
-        width={1000}
+        width={drawerWidth}
         onClose={onClose}
         open={isOpen}
         visible={isOpen}
         styles={{ body: { paddingBottom: 80 } }}
       >
         <Card title="Mandate Summary" bordered={false}>
-          <Descriptions column={2} bordered>
+          <Descriptions column={{ xs: 1, sm: 2 }} bordered>
             <Descriptions.Item label="Transaction ID">
               {investment?.transactionId}
             </Descriptions.Item>
@@ -663,7 +669,7 @@ const InvestmentDetailDrawer = ({
           setUploadFile(null);
         }}
         footer={null}
-        width={480}
+        width="min(480px, 100vw)"
       >
         <div className="space-y-4 pt-2">
           <div>
@@ -741,7 +747,7 @@ const InvestmentDetailDrawer = ({
         open={!!previewDoc}
         onCancel={() => setPreviewDoc(null)}
         footer={null}
-        width={980}
+        width="min(980px, 100vw)"
         title={
           <div className="flex items-center justify-between pr-8">
             <div className="flex items-center gap-2 min-w-0">

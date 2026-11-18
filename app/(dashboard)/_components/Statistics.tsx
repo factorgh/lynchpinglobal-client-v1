@@ -239,7 +239,7 @@ export default function Statistics({ investments: propInvestments }: StatisticsP
       </div>
 
       {/* Metrics Bar */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3 bg-slate-50/80 rounded-xl p-3 mb-4 border border-slate-100">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 bg-slate-50/80 rounded-xl p-3 mb-4 border border-slate-100">
         <div className="flex flex-col">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
             <Wallet className="w-3 h-3 text-emerald-600" />

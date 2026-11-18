@@ -288,7 +288,7 @@ const AssetForm: React.FC = () => {
       </button>
       <Drawer
         title="Create a New Asset Transaction"
-        width={720}
+        width="min(720px, 100vw)"
         onClose={onClose}
         open={open}
       >
@@ -299,7 +299,7 @@ const AssetForm: React.FC = () => {
           hideRequiredMark
         >
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="user"
                 label="User"
@@ -320,7 +320,7 @@ const AssetForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="owners" label="Co-Owners (optional)">
                 <Select
                   mode="multiple"
@@ -343,7 +343,7 @@ const AssetForm: React.FC = () => {
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetName"
                 label="Engagement Name"
@@ -360,7 +360,7 @@ const AssetForm: React.FC = () => {
           </Row>
           <Row gutter={16}>
             {/* User Selection */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetClass"
                 label="Asset Class"
@@ -376,7 +376,7 @@ const AssetForm: React.FC = () => {
             </Col>
 
             {/* Principal */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetDesignation"
                 label="Asset Designation"
@@ -397,7 +397,7 @@ const AssetForm: React.FC = () => {
 
           <Row gutter={16}>
             {/* Performance Yield */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="accruedInterest"
                 label="Accrued Earnings (GHS)"
@@ -417,7 +417,7 @@ const AssetForm: React.FC = () => {
 
             {/* Guaranteed Rate */}
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="maturityDate"
                 label="Maturity Date"
@@ -432,7 +432,7 @@ const AssetForm: React.FC = () => {
 
           <Row gutter={16}>
             {/* Management Fee */}
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="managementFee"
                 label="Service Fee (GHS)"
@@ -446,7 +446,7 @@ const AssetForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="quater"
                 label="Quarter"
@@ -470,7 +470,7 @@ const AssetForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="timeCourse"
                 label="Time course"
@@ -500,7 +500,7 @@ const AssetForm: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetValue"
                 label="Participation Amount (GHS)"
@@ -521,7 +521,7 @@ const AssetForm: React.FC = () => {
 
           {/* Upload Files */}
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="status"
                 label="Status"
@@ -542,7 +542,7 @@ const AssetForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetImage"
                 label="Engagement Image"

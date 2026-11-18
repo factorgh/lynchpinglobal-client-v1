@@ -142,7 +142,7 @@ const WealthForm: React.FC = () => {
       </button>
       <Drawer
         title="Create a New Mandate"
-        width="70%"
+        width="min(720px, 100vw)"
         onClose={onClose}
         open={open}
       >
@@ -154,7 +154,7 @@ const WealthForm: React.FC = () => {
         >
           {/* Existing form fields */}
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="userId"
                 label="User"
@@ -176,7 +176,7 @@ const WealthForm: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="owners" label="Co-Owners (optional)">
                 <Select
                   mode="multiple"
@@ -200,7 +200,7 @@ const WealthForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="principal"
                 label="Mandate Contribution (GHS)"
@@ -218,7 +218,7 @@ const WealthForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="performanceYield" label="Performance Bonus (GHS)">
                 <InputNumber
                   placeholder="Enter performance yield"
@@ -227,7 +227,7 @@ const WealthForm: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="guaranteedRate"
                 label="Contractual Terms (%)"
@@ -247,7 +247,7 @@ const WealthForm: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="managementFeeRate"
                 label="Service Fee Rate (%)"
@@ -262,7 +262,7 @@ const WealthForm: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="quarter"
                 label="Quarter"
@@ -279,7 +279,7 @@ const WealthForm: React.FC = () => {
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item name="operationalCost" label="Operational Charges (GHS)">
                 <InputNumber
                   placeholder="Enter operational cost"
@@ -287,7 +287,7 @@ const WealthForm: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="startDate"
                 label="Start Date"

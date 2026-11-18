@@ -296,7 +296,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
                   No Ledger Report Attached Yet
                 </h4>
 
-                <p className="text-xs text-slate-500 max-w-[270px] leading-relaxed mb-2.5">
+                <p className="text-xs text-slate-500 max-w-full sm:max-w-[270px] leading-relaxed mb-2.5 px-1">
                   The official ledger report uploaded to your mandate record by the portfolio team will appear here.
                 </p>
 
@@ -315,7 +315,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
             )}
 
             {/* Bottom summary pill strip */}
-            <div className="grid grid-cols-2 gap-2.5 mt-3 pt-3 border-t border-emerald-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3 pt-3 border-t border-emerald-100">
               <div className="bg-white/90 rounded-xl p-2.5 border border-emerald-100 text-left">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
                   Mandate Portfolios
@@ -407,7 +407,7 @@ export const QuarterlyDisbursementReportCard: React.FC<
         <Modal
           open={isPreviewDocOpen}
           onCancel={() => setIsPreviewDocOpen(false)}
-          width={920}
+          width="min(920px, 100vw)"
           title={
             <div className="flex items-center gap-2">
               <FilePdfOutlined className="text-red-500 text-lg" />

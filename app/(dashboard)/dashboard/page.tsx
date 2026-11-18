@@ -225,7 +225,7 @@ export default function DashboardPage() {
         title="Add New Client"
         open={isAddClientOpen}
         onClose={() => setIsAddClientOpen(false)}
-        width={400}
+        width="min(400px, 100vw)"
       >
         <Form form={form} layout="vertical" onFinish={handleAddClientSubmit}>
           <Form.Item

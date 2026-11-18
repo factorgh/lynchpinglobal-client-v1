@@ -38,8 +38,8 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
+      <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg p-6 sm:p-8 shadow-sm">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gray-900 rounded-full mx-auto mb-4 flex items-center justify-center">
             <span className="text-white text-2xl font-bold">LG</span>

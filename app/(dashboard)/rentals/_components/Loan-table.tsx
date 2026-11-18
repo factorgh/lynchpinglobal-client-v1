@@ -412,7 +412,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ external = false }) => {
       <Drawer
         title="Edit Loan"
         placement="right"
-        width="50%"
+        width="min(520px, 100vw)"
         onClose={handleCloseDrawer}
         open={isDrawerVisible}
       >
@@ -423,7 +423,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ external = false }) => {
           hideRequiredMark
         >
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="dueDate"
                 label="Due Date"
@@ -432,7 +432,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ external = false }) => {
                 <DatePicker className="w-full" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="loanAmount"
                 label="Loan Amount (GHS)"
@@ -444,7 +444,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ external = false }) => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="overdueRate"
                 label="Overdue Rate (%)"

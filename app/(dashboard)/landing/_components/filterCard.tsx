@@ -24,9 +24,9 @@ const FilterCard: React.FC<FilterCardProps> = ({ onFilter }) => {
 
   return (
     <Card className="w-full shadow-sm border rounded-lg">
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
         {/* Quarter Selector */}
-        <div className="w-[800px]">
+        <div className="w-full sm:flex-1 min-w-0">
           <label className="block text-gray-600 font-medium mb-1">
             Select Quarter
           </label>
@@ -43,7 +43,7 @@ const FilterCard: React.FC<FilterCardProps> = ({ onFilter }) => {
         </div>
 
         {/* Year Selector with DatePicker */}
-        <div className="w-[800px]">
+        <div className="w-full sm:flex-1 min-w-0">
           <label className="block text-gray-600 font-medium mb-1">
             Select Year
           </label>
@@ -58,6 +58,7 @@ const FilterCard: React.FC<FilterCardProps> = ({ onFilter }) => {
         {/* Filter Button */}
         <Button
           type="primary"
+          className="w-full sm:w-auto"
           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl"
           onClick={handleFilter}
         >

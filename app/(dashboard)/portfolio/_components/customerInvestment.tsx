@@ -509,7 +509,7 @@ const CustomerInvestment: React.FC = () => {
         title="Mandate Details"
         open={drawerVisible}
         onClose={onCloseDrawer}
-        width={600}
+        width="min(600px, 100vw)"
       >
         {selectedInvestment && (
           <div className="space-y-4">
@@ -1055,7 +1055,7 @@ const CustomerInvestment: React.FC = () => {
         open={!!previewDoc}
         onCancel={() => setPreviewDoc(null)}
         footer={null}
-        width={960}
+        width="min(960px, 100vw)"
         title={
           <div className="flex items-center justify-between pr-8">
             <span className="font-bold text-sm text-slate-800 truncate">

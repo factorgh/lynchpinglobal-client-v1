@@ -62,7 +62,7 @@ const WithdrawalForm: React.FC = () => {
       </button>
       <Drawer
         title="Create Mandate Disbursement"
-        width={400}
+        width="min(400px, 100vw)"
         onClose={onClose}
         open={open}
       >

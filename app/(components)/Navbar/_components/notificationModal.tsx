@@ -12,7 +12,7 @@ const NotificationModal = ({
   return (
     <Modal
       title="Notifications"
-      width={680}
+      width="min(680px, 100vw)"
       style={{ maxWidth: "calc(100vw - 24px)", top: 20 }}
       open={showNotification}
       onCancel={() => setShowNotification(false)}

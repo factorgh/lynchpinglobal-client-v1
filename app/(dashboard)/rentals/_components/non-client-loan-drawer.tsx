@@ -12,7 +12,7 @@ interface NonClientLoanDrawerProps {
 
 const NonClientLoanDrawer: React.FC<NonClientLoanDrawerProps> = ({ loan, visible, onClose }) => {
   return (
-    <Drawer title="Non-Client Loan Details" placement="right" width={420} onClose={onClose} open={visible}>
+    <Drawer title="Non-Client Loan Details" placement="right" width="min(420px, 100vw)" onClose={onClose} open={visible}>
       {loan && (
         <Descriptions column={1} bordered>
           <Descriptions.Item label="Name">{loan.externalName}</Descriptions.Item>

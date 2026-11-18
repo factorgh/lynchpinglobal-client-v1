@@ -778,7 +778,7 @@ export default function ClientsPage() {
         }
         open={isAddDrawerOpen}
         onClose={() => setIsAddDrawerOpen(false)}
-        width={520}
+        width="min(520px, 100vw)"
         destroyOnClose
       >
         <Form
@@ -988,7 +988,7 @@ export default function ClientsPage() {
         }
         open={isEditDrawerOpen}
         onClose={() => setIsEditDrawerOpen(false)}
-        width={520}
+        width="min(520px, 100vw)"
         destroyOnClose
       >
         <Form
@@ -1121,7 +1121,7 @@ export default function ClientsPage() {
         }
         open={isDetailsDrawerOpen}
         onClose={() => setIsDetailsDrawerOpen(false)}
-        width={560}
+        width="min(560px, 100vw)"
       >
         {selectedClient && (
           <div className="space-y-6">

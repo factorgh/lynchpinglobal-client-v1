@@ -50,13 +50,13 @@ const withdrawalSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-withdrawalSchema.pre("validate", function (next) {
-  if (this.isModified("status") || this.isNew) {
-    this.status = normalizeDisbursementStatus(this.status) || "Pending";
-  }
-  next();
-});
+// Drop any previously compiled model (stale middleware from hot reload).
+if (mongoose.models.Withdrawal) {
+  delete mongoose.models.Withdrawal;
+}
+if (mongoose.connection?.models?.Withdrawal) {
+  delete mongoose.connection.models.Withdrawal;
+}
 
-const Withdrawal =
-  mongoose.models.Withdrawal || mongoose.model("Withdrawal", withdrawalSchema);
+const Withdrawal = mongoose.model("Withdrawal", withdrawalSchema);
 export default Withdrawal;

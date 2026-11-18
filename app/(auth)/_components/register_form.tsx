@@ -133,9 +133,9 @@ const RegisterForm = () => {
     >
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
-      <div className="relative z-10 w-full max-w-md bg-gray-50 shadow-lg rounded-lg p-8 my-auto">
-        <img src="/lynch.png" alt="Logo" className="w-32 mx-auto mb-6" />
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-6" data-tour="register-policy">
+      <div className="relative z-10 w-full max-w-md bg-gray-50 shadow-lg rounded-lg p-6 sm:p-8 my-auto">
+        <img src="/lynch.png" alt="Logo" className="w-28 sm:w-32 mx-auto mb-6" />
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 text-center mb-6" data-tour="register-policy">
           Register to Lynchpin Global
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4" data-tour="register-form">
@@ -434,7 +434,8 @@ const RegisterForm = () => {
         }
         open={termsModalVisible}
         onCancel={() => setTermsModalVisible(false)}
-        width={620}
+        width="min(620px, 100vw)"
+        style={{ maxWidth: "calc(100vw - 24px)" }}
         footer={
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <span className="text-xs text-gray-500">

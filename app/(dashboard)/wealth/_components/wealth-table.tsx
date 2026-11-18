@@ -619,7 +619,7 @@ const WealthTable = ({
       <Drawer
         title="Edit Mandate"
         placement="right"
-        width="50%"
+        width="min(520px, 100vw)"
         onClose={handleCloseDrawer}
         open={isDrawerVisible}
       >
@@ -630,7 +630,7 @@ const WealthTable = ({
           hideRequiredMark
         >
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="principal"
                 label="Mandate Contribution (GH)"
@@ -645,7 +645,7 @@ const WealthTable = ({
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="startDate"
                 label="Start Date"
@@ -659,7 +659,7 @@ const WealthTable = ({
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="performanceYield"
                 label="Performance Bonus (GHS)"
@@ -671,7 +671,7 @@ const WealthTable = ({
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="guaranteedRate"
                 label="Contractual Terms (%)"
@@ -691,7 +691,7 @@ const WealthTable = ({
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="managementFeeRate"
                 label="Service Fee Rate (%)"
@@ -706,7 +706,7 @@ const WealthTable = ({
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="quarter"
                 label="Quarter"
@@ -724,7 +724,7 @@ const WealthTable = ({
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="operationalCost"
                 label="Operational Charges (GHS)"
@@ -762,7 +762,7 @@ const WealthTable = ({
         title="Create Additional Contribution (Add-On)"
         open={isAddOnDrawerVisible}
         onClose={closeAddOnDrawer}
-        width={400}
+        width="min(400px, 100vw)"
       >
         <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
           <Form.Item

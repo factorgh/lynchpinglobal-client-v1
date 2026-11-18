@@ -60,7 +60,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
     <Modal
       open={visible}
       onCancel={onClose}
-      width={780}
+      width="min(780px, 100vw)"
       style={{ maxWidth: "calc(100vw - 24px)", top: 20 }}
       footer={[
         <Button key="close" onClick={onClose}>
@@ -87,17 +87,17 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
     >
       <div
         ref={printRef}
-        className="p-6 bg-white text-gray-800 rounded-lg space-y-6 print:p-0 print:m-0"
+        className="p-4 sm:p-6 bg-white text-gray-800 rounded-lg space-y-6 print:p-0 print:m-0"
       >
         {/* Document Header with Lynchpin Global Branding */}
-        <div className="flex justify-between items-start border-b border-gray-200 pb-5">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 border-b border-gray-200 pb-5">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
                 LG
               </div>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-none">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-gray-900 leading-none">
                   LYNCHPIN GLOBAL
                 </h1>
                 <p className="text-xs uppercase tracking-widest text-emerald-700 font-semibold mt-0.5">
@@ -110,14 +110,14 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
             </p>
           </div>
 
-          <div className="text-right">
+          <div className="text-left sm:text-right shrink-0">
             <Tag
               color={data.isClosed ? "green" : "blue"}
-              className="text-xs px-2.5 py-0.5 uppercase font-medium"
+              className="text-xs px-2.5 py-0.5 uppercase font-medium whitespace-normal"
             >
               {data.isClosed ? "Official Quarterly Mandate Report" : "Interim Progress Ledger"}
             </Tag>
-            <p className="text-xs text-gray-500 mt-1 font-mono">
+            <p className="text-xs text-gray-500 mt-1 font-mono break-all">
               REF: LPG-{year}-{quarter}-
               {Math.abs(Math.round(data.principal)).toString().slice(-4) || "8801"}
             </p>
@@ -128,17 +128,17 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
         </div>
 
         {/* Document Title Banner */}
-        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-100/80 p-4 rounded-xl flex items-center justify-between">
-          <div>
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-100/80 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="min-w-0">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
               {isStatement ? "Quarterly Mandate Report" : "Disbursement Ledger"}
             </span>
-            <h2 className="text-lg font-bold text-gray-900 mt-0.5">{docTitle}</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 mt-0.5 break-words">{docTitle}</h2>
             <p className="text-xs text-gray-600">
               Accounting Period: {quarter} {year} • Quarter Closing: {data.quarterEndDate}
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-left sm:text-right shrink-0">
             <span className="text-xs text-gray-500">Day Count Convention</span>
             <p className="text-xs font-semibold text-emerald-800">
               30/360 Daily Accrual
@@ -150,7 +150,7 @@ export const QuarterlyDocumentModal: React.FC<DocumentModalProps> = ({
         </div>
 
         {/* Summary Metric Strip */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-gray-50 border border-gray-100 p-3.5 rounded-xl">
             <span className="text-xs uppercase text-gray-500 font-medium">
               Mandate Principal

@@ -99,14 +99,14 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
     <>
       <Drawer
         title={`Asset Details - ${assets?.assetName}`}
-        width={1000}
+        width="min(1000px, 100vw)"
         onClose={onClose}
         visible={visible}
         bodyStyle={{ paddingBottom: 80 }}
       >
         {/* Investment Summary Section */}
         <Card title="Asset Summary" bordered={false}>
-          <Descriptions column={2} bordered>
+          <Descriptions column={{ xs: 1, sm: 2 }} bordered>
             <Descriptions.Item label="Engagement Name">
               {assets?.assetName}
             </Descriptions.Item>
@@ -278,7 +278,7 @@ const AssetsDrawer = ({ assets, visible, onClose }: any) => {
         visible={imagePreviewVisible}
         footer={null}
         onCancel={handleImageClose}
-        width={800}
+        width="min(800px, 100vw)"
       >
         <Image
           alt="Asset Image Preview"

@@ -53,7 +53,7 @@ export const RolloverBatchModal: React.FC<RolloverBatchModalProps> = ({
       }
       open={visible}
       onCancel={onClose}
-      width={560}
+      width="min(560px, 100vw)"
       footer={null}
       destroyOnClose
       className="rounded-2xl"
@@ -75,7 +75,7 @@ export const RolloverBatchModal: React.FC<RolloverBatchModalProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
             <span className="text-xs text-slate-500 font-semibold block">Pending Mandates</span>
             <span className="text-xl font-black text-slate-900">{pendingCandidates.length}</span>

@@ -266,23 +266,23 @@ export default function ClientOnboardingModal() {
       closable={false}
       maskClosable={false}
       footer={null}
-      width={540}
+      width="min(540px, 100vw)"
       centered
       className="backdrop-blur-xs"
     >
       <div className="py-2 select-none">
         {/* Step Indicator Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-emerald-700 flex items-center justify-center text-white shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100 mb-5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-emerald-700 flex items-center justify-center text-white shadow-xs shrink-0">
               {currentStep === "terms" ? (
                 <FileText className="w-5 h-5 text-emerald-200" />
               ) : (
                 <LockOutlined className="text-lg text-emerald-200" />
               )}
             </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900 leading-tight">
+            <div className="min-w-0">
+              <h2 className="text-base font-bold text-slate-900 leading-tight break-words">
                 {currentStep === "terms"
                   ? "Client Onboarding & Mandate Governance"
                   : "Account & Profile Preferences"}
@@ -297,7 +297,7 @@ export default function ClientOnboardingModal() {
             </div>
           </div>
 
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto shrink-0">
             Mandatory
           </span>
         </div>

@@ -331,11 +331,11 @@ const CustomerLanding = () => {
               Close
             </Button>,
           ]}
-          width={750}
+          width="min(750px, 100vw)"
           style={{ maxWidth: "calc(100vw - 24px)", top: 20 }}
         >
           <div className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
                   Total Contributions
@@ -353,13 +353,16 @@ const CustomerLanding = () => {
                 </p>
               </div>
             </div>
-            <Table
-              dataSource={allAddOns}
-              columns={addOnColumns}
-              rowKey="_id"
-              pagination={{ pageSize: 5 }}
-              size="middle"
-            />
+            <div className="overflow-x-auto -mx-1 px-1">
+              <Table
+                dataSource={allAddOns}
+                columns={addOnColumns}
+                rowKey="_id"
+                pagination={{ pageSize: 5 }}
+                size="middle"
+                scroll={{ x: 640 }}
+              />
+            </div>
           </div>
         </Modal>
       </Wrapper>

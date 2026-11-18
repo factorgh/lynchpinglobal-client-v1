@@ -292,7 +292,7 @@ const LPLibraryAdmin = () => {
           </div>
         </div>
 
-        <div data-tour="policy-view" className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <div data-tour="policy-view" className="grid grid-cols-1 xl:grid-cols-1 sm:grid-cols-2 gap-5">
           {renderSection("shared")}
           {renderSection("adminOnly")}
         </div>

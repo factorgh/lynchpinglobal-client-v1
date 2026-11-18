@@ -124,12 +124,16 @@ button.ant-btn-primary:disabled,
   font-size: 0.8125rem !important;
 }
 
-/* Ant Design Mobile Responsive Overrides */
+/* Ant Design responsive overlays — phone + tablet */
 .ant-drawer-content-wrapper {
   max-width: 100vw !important;
 }
 
-@media (max-width: 640px) {
+.ant-modal {
+  max-width: calc(100vw - 24px) !important;
+}
+
+@media (max-width: 768px) {
   .ant-drawer-content-wrapper {
     width: 100% !important;
     max-width: 100vw !important;
@@ -141,6 +145,25 @@ button.ant-btn-primary:disabled,
   .ant-modal-content {
     padding: 16px !important;
   }
+  .ant-modal-body {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  .ant-form-item {
+    margin-bottom: 14px !important;
+  }
+  .ant-descriptions-view table {
+    display: block;
+    width: 100% !important;
+  }
+}
+
+/* Prevent long unbroken strings from blowing out layout */
+.ant-table-cell,
+.ant-descriptions-item-content,
+.ant-list-item-meta-description {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 @layer base {

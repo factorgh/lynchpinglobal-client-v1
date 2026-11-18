@@ -384,7 +384,7 @@ const WithdrawalTable: React.FC<any> = () => {
       <Drawer
         title="Edit Disbursement"
         placement="right"
-        width={400}
+        width="min(400px, 100vw)"
         onClose={handleCloseDrawer}
         open={isDrawerVisible}
       >

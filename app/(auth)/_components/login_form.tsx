@@ -60,7 +60,7 @@ const LoginForm = () => {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center flex items-center justify-center"
+      className="min-h-screen bg-cover bg-center flex items-center justify-center px-4 py-10"
       style={{
         backgroundImage: "url(/p4.jpeg)", // Set your image path here
       }}
@@ -68,8 +68,8 @@ const LoginForm = () => {
       {/* Optional: Overlay to make form more visible on top of the background */}
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
 
-      <div className="relative z-10 w-full max-w-md bg-gray-50 shadow-lg rounded-lg p-8">
-        <img src="/logo.png" alt="Logo" className="w-40 mx-auto mb-6" />
+      <div className="relative z-10 w-full max-w-md bg-gray-50 shadow-lg rounded-lg p-6 sm:p-8">
+        <img src="/logo.png" alt="Logo" className="w-32 sm:w-40 mx-auto mb-6" />
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
           Login to Lynchpin Global
         </h2>

@@ -412,7 +412,7 @@ const PaymentTable: React.FC<any> = () => {
       <Drawer
         title="Edit Payment"
         placement="right"
-        width={400}
+        width="min(400px, 100vw)"
         onClose={handleCloseDrawer}
         open={isDrawerVisible}
       >

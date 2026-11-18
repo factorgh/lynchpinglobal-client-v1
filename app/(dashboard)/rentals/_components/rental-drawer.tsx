@@ -64,7 +64,7 @@ const RentalDrawer = ({ visible, onClose, rental }: any) => {
       title="Rental Details"
       onClose={onClose}
       visible={visible}
-      width={600}
+      width="min(600px, 100vw)"
     >
       {rental ? (
         <>

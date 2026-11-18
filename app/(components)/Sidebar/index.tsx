@@ -282,7 +282,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <Mail className="w-4 h-4 flex-shrink-0 text-slate-600" />
                 <span className="flex flex-col leading-tight">
                   <span>Email Us</span>
-                  <span className="text-[10px] font-medium text-slate-500">{OFFICE_EMAIL}</span>
+                  <span className="text-[10px] font-medium text-slate-500 break-all">{OFFICE_EMAIL}</span>
                 </span>
               </a>
               <a
@@ -290,9 +290,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 className="flex items-center mx-3 my-0.5 px-3.5 py-2 gap-3 rounded-xl transition-all duration-200 text-xs font-semibold text-slate-700 hover:text-slate-950 hover:bg-slate-100/70 cursor-pointer"
               >
                 <Phone className="w-4 h-4 flex-shrink-0 text-slate-600" />
-                <span className="flex flex-col leading-tight">
+                <span className="flex flex-col leading-tight min-w-0">
                   <span>Call Our Office</span>
-                  <span className="text-[10px] font-medium text-slate-500">
+                  <span className="text-[10px] font-medium text-slate-500 break-words">
                     {OFFICE_PHONE_INTL} / {OFFICE_PHONE_LOCAL}
                   </span>
                 </span>

@@ -333,7 +333,7 @@ const AppTour: React.FC<AppTourProps> = ({
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 
                       0 0 0 1px rgba(0, 0, 0, 0.05) !important;
           padding: 20px 24px !important;
-          max-width: 400px !important;
+          max-width: min(400px, calc(100vw - 32px)) !important;
         }
 
         .driver-popover-title {

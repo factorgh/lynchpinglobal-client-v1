@@ -545,7 +545,7 @@ const AssetTransactionTable: React.FC = () => {
       <Drawer
         title="Edit Asset Transaction"
         placement="right"
-        width="50%"
+        width="min(520px, 100vw)"
         onClose={handleCloseDrawer}
         open={isDrawerVisible}
       >
@@ -556,7 +556,7 @@ const AssetTransactionTable: React.FC = () => {
           hideRequiredMark
         >
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetClass"
                 label="Asset Class"
@@ -565,7 +565,7 @@ const AssetTransactionTable: React.FC = () => {
                 <Input placeholder="Enter Asset Class" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="assetDesignation"
                 label="Asset Designation"
@@ -579,7 +579,7 @@ const AssetTransactionTable: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="accruedInterest"
                 label="Accrued Earnings"
@@ -596,7 +596,7 @@ const AssetTransactionTable: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="maturityDate"
                 label="Maturity Date"
@@ -610,7 +610,7 @@ const AssetTransactionTable: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="managementFee"
                 label="Service Fee"
@@ -619,7 +619,7 @@ const AssetTransactionTable: React.FC = () => {
                 <InputNumber className="w-full" placeholder="Service Fee" />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="timeCourse"
                 label="Time Course"
@@ -631,7 +631,7 @@ const AssetTransactionTable: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name="quater"
                 label="Quarter"

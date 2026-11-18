@@ -65,7 +65,7 @@ const InboxForm = ({ showInboxForm, setShowInboxForm }: any) => {
       open={showInboxForm}
       onCancel={() => setShowInboxForm(false)}
       title="Compose New Request"
-      width={500}
+      width="min(500px, 100vw)"
       style={{ maxWidth: "calc(100vw - 24px)" }}
       centered={true}
       okText="Send"

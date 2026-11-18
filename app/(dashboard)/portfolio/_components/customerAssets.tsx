@@ -312,7 +312,7 @@ const CustomerAssets: React.FC = () => {
       {/* Drawer Component */}
       <Drawer
         title="Asset Details"
-        width={500}
+        width="min(500px, 100vw)"
         onClose={closeDrawer}
         open={drawerVisible}
       >

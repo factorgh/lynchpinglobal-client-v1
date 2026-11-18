@@ -64,6 +64,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user, pathname, router]);
 
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [pathname]);
+
   return (
     <AuthProvider>
       <Provider store={store}>

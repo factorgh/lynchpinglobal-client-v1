@@ -178,10 +178,10 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
                       label: (
                         <a
                           href={`mailto:${OFFICE_EMAIL}`}
-                          className="text-xs font-semibold text-slate-700 flex items-center justify-between gap-3"
+                          className="text-xs font-semibold text-slate-700 flex flex-col gap-0.5 min-w-0"
                         >
                           <span>Email Us</span>
-                          <span className="text-[10px] text-blue-600">{OFFICE_EMAIL}</span>
+                          <span className="text-[10px] text-blue-600 truncate max-w-[200px]">{OFFICE_EMAIL}</span>
                         </a>
                       ),
                     },
@@ -190,10 +190,10 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleMobileSidebar }) => {
                       label: (
                         <a
                           href={`tel:${OFFICE_PHONE_TEL}`}
-                          className="text-xs font-semibold text-slate-700 flex items-center justify-between gap-3"
+                          className="text-xs font-semibold text-slate-700 flex flex-col gap-0.5 min-w-0"
                         >
                           <span>Call Our Office</span>
-                          <span className="text-[10px] text-blue-600">{OFFICE_PHONE_INTL}</span>
+                          <span className="text-[10px] text-blue-600 truncate max-w-[200px]">{OFFICE_PHONE_INTL}</span>
                         </a>
                       ),
                     },

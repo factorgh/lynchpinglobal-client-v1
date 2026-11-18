@@ -870,7 +870,7 @@ const ClientVaultPage: React.FC = () => {
           open={!!previewDoc}
           onCancel={() => setPreviewDoc(null)}
           footer={null}
-          width={880}
+          width="min(880px, 100vw)"
           title={
             <div className="flex items-center justify-between pr-8">
               <div className="flex items-center gap-2 truncate">

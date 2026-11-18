@@ -730,7 +730,7 @@ const Users = () => {
             </div>
           </div>
         }
-        width={400}
+        width="min(400px, 100vw)"
         open={drawerVisible}
         onClose={() => setDrawerVisible(false)}
         footer={

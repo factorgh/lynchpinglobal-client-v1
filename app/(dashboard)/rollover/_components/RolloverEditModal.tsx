@@ -112,7 +112,7 @@ export const RolloverEditModal: React.FC<RolloverEditModalProps> = ({
       }
       open={visible}
       onCancel={onClose}
-      width={680}
+      width="min(680px, 100vw)"
       footer={null}
       destroyOnClose
       className="rounded-2xl"
@@ -124,7 +124,7 @@ export const RolloverEditModal: React.FC<RolloverEditModalProps> = ({
             <span>Ending Quarter Summary ({candidate.sourceQuarter || "Previous"})</span>
             <Tag color="blue">{candidate.name || "Main Mandate"}</Tag>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white p-2.5 rounded-lg border border-slate-100">
               <span className="text-[10px] text-slate-400 font-semibold block">Ending Principal</span>
               <span className="text-xs sm:text-sm font-bold text-slate-800">
@@ -328,7 +328,7 @@ export const RolloverEditModal: React.FC<RolloverEditModalProps> = ({
             </span>
             <Tag color="cyan">Automatic Recalculation</Tag>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             <div>
               <span className="text-slate-400 block text-[10px]">Rollover Capital</span>
               <span className="font-bold text-sm text-white">{formatPriceGHS(newPrincipal)}</span>

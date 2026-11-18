@@ -166,7 +166,7 @@ const ActivityPage: React.FC = () => {
           </div>
 
           {/* Quick Metrics Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 self-stretch lg:self-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 self-stretch lg:self-auto">
             <div className="bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl border border-white/60 shadow-xs flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
                 <HistoryOutlined className="text-xs" />
