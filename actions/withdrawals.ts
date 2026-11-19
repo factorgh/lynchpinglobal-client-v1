@@ -15,8 +15,8 @@ export async function getAllWithdrawalsAction() {
   try {
     await connectDB();
     const withdrawals = await Withdrawal.find()
-      .populate("userId", "name email phone")
-      .populate("investmentId", "principal guaranteedRate accruedReturn")
+      .populate("user", "name email phone")
+      .populate("investment", "principal guaranteedRate accruedReturn")
       .lean();
 
     return { success: true, data: JSON.parse(JSON.stringify(withdrawals)) };
@@ -32,9 +32,9 @@ export async function getAllWithdrawalsAction() {
 export async function getUserWithdrawalsAction(userId: string) {
   try {
     await connectDB();
-    const withdrawals = await Withdrawal.find({ userId })
-      .populate("userId", "name email phone")
-      .populate("investmentId", "principal guaranteedRate accruedReturn")
+    const withdrawals = await Withdrawal.find({ user: userId })
+      .populate("user", "name email phone")
+      .populate("investment", "principal guaranteedRate accruedReturn")
       .lean();
 
     return { success: true, data: JSON.parse(JSON.stringify(withdrawals)) };
@@ -112,8 +112,8 @@ export async function updateWithdrawalAction(id: string, data: any) {
       if (!investment) {
         investment = await Investment.findOne({
           $or: [
-            { userId: oldDoc.user || oldDoc.userId },
-            { "owners.user": oldDoc.user || oldDoc.userId },
+            { userId: oldDoc.user },
+            { "owners.user": oldDoc.user },
           ],
           active: { $ne: false },
           archived: { $ne: true },
@@ -128,9 +128,11 @@ export async function updateWithdrawalAction(id: string, data: any) {
       if (delta !== 0 && investment) {
         await applyPrincipalChange(investment, delta, session);
       }
-      let working = oldDoc;
-      if (session) {
-        working = await Withdrawal.findById(id).session(session);
+      const working = session
+        ? await Withdrawal.findById(id).session(session)
+        : oldDoc;
+      if (!working) {
+        throw new Error("Disbursement not found");
       }
       Object.assign(working, data, {
         status: nextStatus,
@@ -145,7 +147,7 @@ export async function updateWithdrawalAction(id: string, data: any) {
     };
 
     const updated = await withMongoTransaction(
-      (session) => runUpdate(session),
+      (session: any) => runUpdate(session),
       async () => {
         const snap = investment ? snapshotPrincipalState(investment) : null;
         try {
@@ -187,8 +189,8 @@ export async function deleteWithdrawalAction(id: string) {
       if (!investment) {
         investment = await Investment.findOne({
           $or: [
-            { userId: doc.user || doc.userId },
-            { "owners.user": doc.user || doc.userId },
+            { userId: doc.user },
+            { "owners.user": doc.user },
           ],
         }).select("+archived +active");
       }
@@ -202,7 +204,7 @@ export async function deleteWithdrawalAction(id: string) {
     };
 
     await withMongoTransaction(
-      (session) => runDelete(session),
+      (session: any) => runDelete(session),
       async () => {
         const snap = investment ? snapshotPrincipalState(investment) : null;
         try {
