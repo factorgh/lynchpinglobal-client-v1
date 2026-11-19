@@ -213,16 +213,8 @@ userSchema.methods.createPasswordResetToken = function () {
     crypto.createHash("sha256").update(resetToken).digest("hex"),
   );
 
-  // Set the expiration time on the user object
-  this.set("passwordResetExpiresIn", Date.now() + 10 * 60 * 1000);
-
-  console.log({ resetToken }, this.passwordResetToken);
-  console.log("Token expires at:", this.passwordResetExpiresIn);
-  console.log("Current time:", Date.now());
-  console.log(
-    "Expires in (minutes):",
-    (this.passwordResetExpiresIn - Date.now()) / (1000 * 60),
-  );
+  // Match the email copy: reset links are valid for 1 hour.
+  this.set("passwordResetExpiresIn", Date.now() + 60 * 60 * 1000);
 
   return resetToken;
 };

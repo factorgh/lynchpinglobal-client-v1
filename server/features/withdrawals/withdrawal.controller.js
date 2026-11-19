@@ -179,18 +179,26 @@ export const createWithdrawal = catchAsync(async (req, res, next) => {
     user,
     amount: numericAmount,
     requestedDate: req.body.requestedDate,
-    approvedDate: hasApprovalDate(approvedDate) ? approvedDate : undefined,
+    // Never store an approval date unless the disbursement is actually approved.
+    approvedDate:
+      isApproved && hasApprovalDate(approvedDate) ? approvedDate : undefined,
     status: normalizedStatus,
     investment: investment._id,
     deductedAmount: 0,
   };
 
   const runCreate = async (session = null) => {
-    const created = await WithdrawalModel.create([payload], session ? { session } : undefined);
+    // Array + options form is required for sessions; plain create otherwise.
+    const created = session
+      ? await WithdrawalModel.create([payload], { session })
+      : await WithdrawalModel.create(payload);
     const doc = Array.isArray(created) ? created[0] : created;
     let principalAfter = principalBefore;
     if (isApproved) {
       const updated = await applyPrincipalChange(investment, numericAmount, session);
+      if (!updated) {
+        throw new AppError("Failed to update mandate principal for this disbursement.", 500);
+      }
       principalAfter = updated.principal;
       doc.deductedAmount = numericAmount;
       await doc.save(session ? { session } : undefined);

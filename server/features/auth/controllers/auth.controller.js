@@ -239,7 +239,11 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
-    const resetURL = `${process.env.FRONTEND_URL || "https://partner.lynchpinglobal.com"}/reset-password/${resetToken}`;
+    // FRONTEND_URL only — do not use NEXT_PUBLIC_DOMAIN (that is Firebase authDomain).
+    const frontendBase = (
+      process.env.FRONTEND_URL || "https://partner.lynchpinglobal.com"
+    ).replace(/\/$/, "");
+    const resetURL = `${frontendBase}/reset-password/${resetToken}`;
 
     // Send reset email
     const { getPasswordResetTemplate } =
@@ -254,11 +258,9 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     const { sendEmail } = await import("../../../utils/email.js");
     await sendEmail({
       to: user.email,
-      subject: "Password Reset Request",
+      subject: "Lynchpin Global — Password Reset Request",
       html: htmlContent,
     });
-
-    // await logAuditEvent(user._id, "PASSWORD_RESET_REQUESTED", req, true);
 
     res.status(200).json({
       status: "success",
@@ -269,13 +271,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     user.passwordResetExpiresIn = undefined;
     await user.save({ validateBeforeSave: false });
 
-    // await logAuditEvent(
-    //   user._id,
-    //   "PASSWORD_RESET_FAILED",
-    //   req,
-    //   false,
-    //   error.message,
-    // );
+    console.error("[forgotPassword] email send failed:", error?.message || error);
 
     return next(
       new AppError(

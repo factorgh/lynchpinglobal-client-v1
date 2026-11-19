@@ -94,12 +94,17 @@ const WithdrawalTable: React.FC<any> = () => {
     setEditRentalId(null);
   };
 
+  const watchedStatus = Form.useWatch("status", form);
+
   const handleFormSubmit = async (values: any) => {
     try {
       const status = values.status;
       const payload = {
         ...values,
-        approvedDate: status === "Approved" ? values.approvedDate : null,
+        approvedDate:
+          status === "Approved"
+            ? values.approvedDate?.toISOString?.() || values.approvedDate
+            : null,
       };
       await updatePayment({
         id: editRentalId,
@@ -117,7 +122,7 @@ const WithdrawalTable: React.FC<any> = () => {
       setIsDrawerVisible(false);
     } catch (error: any) {
       toast.error(
-        error?.data?.message || error?.message || "An error occurred",
+        error?.data?.message || error?.error || error?.message || "An error occurred",
       );
     }
   };
@@ -408,29 +413,6 @@ const WithdrawalTable: React.FC<any> = () => {
           </Form.Item>
 
           <Form.Item
-            label="Approval Date"
-            name="approvedDate"
-            dependencies={["status"]}
-            rules={[
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  const status = getFieldValue("status");
-                  if (status === "Approved" && !value) {
-                    return Promise.reject(
-                      new Error(
-                        "Approval date is required when status is Approved.",
-                      ),
-                    );
-                  }
-                  return Promise.resolve();
-                },
-              }),
-            ]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
-
-          <Form.Item
             label="Status"
             name="status"
             rules={[
@@ -440,12 +422,33 @@ const WithdrawalTable: React.FC<any> = () => {
               },
             ]}
           >
-            <Select>
+            <Select
+              onChange={(status) => {
+                if (status !== "Approved") {
+                  form.setFieldsValue({ approvedDate: undefined });
+                }
+              }}
+            >
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Approved">Approved</Select.Option>
               <Select.Option value="Cancelled">Cancelled</Select.Option>
             </Select>
           </Form.Item>
+
+          {watchedStatus === "Approved" && (
+            <Form.Item
+              label="Approval Date"
+              name="approvedDate"
+              rules={[
+                {
+                  required: true,
+                  message: "Approval date is required when status is Approved.",
+                },
+              ]}
+            >
+              <DatePicker style={{ width: "100%" }} />
+            </Form.Item>
+          )}
 
           <Form.Item>
             <Button

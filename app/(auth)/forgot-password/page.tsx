@@ -106,9 +106,9 @@ export default function ForgotPasswordPage() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <h3 className="font-medium text-blue-800 mb-2">What's next?</h3>
               <ol className="text-sm text-blue-700 space-y-2 list-decimal list-inside">
-                <li>Check your email inbox</li>
-                <li>Look for an email from "Finance Platform"</li>
-                <li>Click the reset link in the email</li>
+                <li>Check your email inbox (and spam folder)</li>
+                <li>Look for an email from Lynchpin Global</li>
+                <li>Click the reset link within 1 hour</li>
                 <li>Create a new password</li>
               </ol>
             </div>
